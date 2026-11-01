@@ -73,8 +73,11 @@ opens the new capture in the editor.
   the history). Nothing is
   put on the clipboard until you ask. *Settings*, *Capture*, *After a capture*
   can be set to *Copy it* instead: the quick way, no page, every capture is
-  copied and kept. *Capture and edit* and the no-trace mode never ask: the first
-  opens the editor, the second only copies.
+  copied and kept. *Save the file* keeps the capture and downloads it at once,
+  with your format settings and your file name template, from a tab that opens in
+  the background and closes itself: the captured page keeps the focus, and the
+  tab only comes forward if the download fails. *Capture and edit* and the
+  no-trace mode never ask: the first opens the editor, the second only copies.
 - **Clipboard**: with *Copy it*, every capture is copied and saved. A badge on the icon says how
   it went: `OK` (green) copied and saved, `!` (orange) saved but not copied,
   `ERR` (red) failed, `...` (grey) ignored because another capture is running,

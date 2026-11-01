@@ -6,6 +6,15 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Save the file after a capture** (*Settings*, *Capture*, *After a capture*, third choice next to
+  *Ask what to do* and *Copy it*). The capture is kept in the history, then downloaded as a file with the
+  format, the quality and the file name template of the *Download* section. It is written by a tab that opens
+  in the background and closes itself, so the captured page keeps the focus; the tab comes forward only when
+  the download fails. The no-trace mode keeps copying only, and *Capture and edit* still opens the editor. No
+  new permission.
+
 ## [0.1.0] - unreleased
 
 First release. It has not been published yet; the date is set when it is.

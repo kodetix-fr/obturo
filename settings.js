@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   downloadQuality: 0.9,   // lossy formats (and the light PDF), 0.1 to 1
   pdfLayout: 'fit',       // 'fit' (one page the size of the image) | 'a4'
   pdfEncoding: 'flate',   // 'flate' (lossless) | 'jpeg' (light)
-  afterCapture: 'ask',    // 'ask' (the capture is kept, and a page in a new tab asks what to do: edit, copy, download) | 'copy' (it is copied, and kept in the history)
+  afterCapture: 'ask',    // 'ask' (the capture is kept, and a page in a new tab asks what to do: edit, copy, download) | 'copy' (it is copied, and kept in the history) | 'save' (it is kept, and downloaded as a file)
   filenameTemplate: '{host}_{date}_{time}', // name of a downloaded capture, see suggestedFilename (encode.js; encode.test.js keeps its default equal to this)
   fullPageWait: 0,        // full page: ms to wait after each scroll, on top of what the capture waits for by itself (images, animations)
   fullPageFixed: 'edges', // full page: 'edges' (a fixed bar shows once, at the top or at the bottom of the image) | 'hide' (none shows)
@@ -29,7 +29,7 @@ export const PDF_LAYOUTS = ['fit', 'a4']; // the layouts of pdf.js
 export const PDF_ENCODINGS = ['flate', 'jpeg']; // its encodings
 export const FULL_PAGE_WAITS = [0, 500, 1000, 2000]; // ms: the choices of the settings (library.html)
 export const FULL_PAGE_FIXED = ['edges', 'hide'];
-export const AFTER_CAPTURE = ['ask', 'copy']; // what a capture does once it is taken (the select of the settings, library.html)
+export const AFTER_CAPTURE = ['ask', 'copy', 'save']; // what a capture does once it is taken (the select of the settings, library.html)
 export const MAX_NAME_TEMPLATE = 80; // characters: the maxlength of the field in library.html
 /** How the formats are written on screen: proper names, the same in every language. */
 export const FORMAT_NAMES = Object.freeze({ png: 'PNG', jpeg: 'JPEG', webp: 'WebP', pdf: 'PDF' });

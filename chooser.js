@@ -2,7 +2,8 @@
 // the capture in its address: chooser.html#shot=<id>) in a tab next to the captured page. The capture is already in the history: this page reads
 // it from there and offers the actions: edit it (the worker opens the editor), copy it, download it as PNG, JPEG, WebP or PDF (the format
 // settings of the library, and the file name template, apply). A choice that worked closes the tab and brings the captured page back: the
-// answer is given. Nothing leaves the machine and no permission is needed.
+// answer is given. Nothing leaves the machine and no permission is needed. With `&save=1` (setting "Save the file") the tab opens in the
+// background and downloads the capture by itself, in the stored format; it comes forward only if that fails.
 import { DEFAULT_SETTINGS, getSettings } from './settings.js';
 import { loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
 import { applyDom, setI18n } from './dom-i18n.js';
@@ -15,7 +16,9 @@ import { download as exportFile } from './export-ui.js';
 const CLOSE_AFTER_MS = { copy: 500, download: 1500 };
 
 const $ = (id) => document.getElementById(id);
-const id = Number(new URLSearchParams(location.hash.slice(1)).get('shot'));
+const params = new URLSearchParams(location.hash.slice(1));
+const id = Number(params.get('shot'));
+const auto = params.get('save') === '1'; // "Save the file": the page was opened in the background and downloads the capture by itself
 const state = /** @type {HTMLElement} */ ($('state'));
 
 /** @type {import('./db.js').Shot | null} */
@@ -52,11 +55,14 @@ async function act(job) {
 async function closeTab() {
   try {
     const here = await chrome.tabs.getCurrent();
-    if (here?.openerTabId !== undefined) await chrome.tabs.update(here.openerTabId, { active: true }).catch(() => {}); // gone, or in another window: nothing to show
+    if (here?.openerTabId !== undefined && !auto) await chrome.tabs.update(here.openerTabId, { active: true }).catch(() => {}); // gone, or in another window: nothing to show
     if (here?.id !== undefined) { await chrome.tabs.remove(here.id); return; }
   } catch { /* fall through */ }
   window.close();
 }
+
+/** Brings this tab forward: a download that was left to it in the background did not happen, and the page says why. */
+const surface = () => chrome.tabs.getCurrent().then((tab) => tab?.id !== undefined && chrome.tabs.update(tab.id, { active: true })).catch(() => {});
 
 /** The tab goes away shortly: a choice was made, and it worked. @param {number} ms */
 const closeSoon = (ms) => {
@@ -109,7 +115,7 @@ async function start() {
   } catch (e) {
     console.error('Obturo: chooser', e);
   }
-  if (!shot || !original) { say('chooser.gone', 'error'); return; }
+  if (!shot || !original) { say('chooser.gone', 'error'); if (auto) surface(); return; }
   const preview = /** @type {HTMLImageElement} */ ($('preview'));
   preview.src = URL.createObjectURL(original);
   preview.hidden = false;
@@ -118,6 +124,9 @@ async function start() {
   $('caption').textContent = host ? `${host} · ${size}` : size;
   for (const b of buttons()) b.disabled = false;
   /** @type {HTMLElement} */ ($('edit')).focus();
+  if (!auto) return;
+  await download(settings.downloadFormat);
+  if (!closing) surface();
 }
 
 start().catch((e) => console.error('Obturo: chooser', e));
