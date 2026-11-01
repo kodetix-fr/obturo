@@ -198,13 +198,16 @@ Non-destructive: the original of a capture is never changed.
   **background**: none, one of the nine colors or a free color, or one of six
   gradients. The look has a **padding**, rounded **corners**, a **shadow** (none,
   soft, strong) and an optional **window bar** with the three dots above the
-  capture. A preview shows the result as you change it, and the *Output* size
-  counts what the look adds (the scale comes down if the result would pass the
-  ceilings). It belongs to a version: the original is untouched, it can be turned
-  off, a new version starts without it, and the last look is offered when you turn
-  it on for another version. The editor's copy and download, the grouped export,
-  the PDF and the thumbnails all draw the same pixels. A background of *None*
-  stays transparent in PNG and WebP, and is white in JPEG and PDF.
+  capture. The editor shows the capture inside its look while it is on, and you
+  keep drawing, selecting, cropping, zooming and panning on the capture itself
+  (the look steps aside while you edit a crop). A preview in the panel shows the
+  result as you change it, and the *Output* size counts what the look adds (the
+  scale comes down if the result would pass the ceilings). It belongs to a
+  version: the original is untouched, it can be turned off, a new version starts
+  without it, and the last look is offered when you turn it on for another
+  version. The editor, its copy and download, the grouped export, the PDF and the
+  thumbnails all draw the same pixels. A background of *None* stays transparent
+  in PNG and WebP, and is white in JPEG and PDF.
 - **Copy image** puts the displayed version on the clipboard. **Download** is
   described below.
 - The interface is built on icons; a button that is only an icon has a tooltip
