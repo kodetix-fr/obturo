@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Intensa',
   'be.frame': 'Marco',
   'be.frame.window': 'Ventana',
-  'be.preview': 'Vista previa del resultado',
   'be.err': 'No se pudo abrir el panel de embellecer.',
   'zoom.fit': 'Ajustar',
   'zoom.fit.tip': 'Ajustar a la ventana',

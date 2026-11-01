@@ -14,13 +14,13 @@ import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applySh
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
-import { blankVersion, createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
+import { createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
 import { fitView, clampView, zoomAt, panBy } from './view.js';
 import { createSaver } from './saver.js';
 import { createHistory } from './history.js';
-import { editorSync, renderCanvas, renderPng, renderPreview, renderThumb } from './output.js';
+import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
 import { getSettings } from './settings.js';
 import { clamp, versionsKey } from './pure.js';
 import { t } from './i18n.js';
@@ -535,11 +535,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   }
 
   // The beautify look of the displayed version, null to turn it off. Like any other change, the first one to an original creates V1.
-  function setBeautify(style) {
+  // Not `final`: a control of the panel is still moving, the stage follows and nothing is kept yet.
+  function setBeautify(style, final = true) {
     ensureVersion();
     cur().beautify = normalizeBeautify(style);
     syncOutput();
-    commit();
+    if (final) commit();
   }
 
   // ---------- crop ----------
@@ -651,14 +652,13 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   let beautifyLoad = null;
   const loadBeautifyUi = () => beautifyLoad ??= import('./beautify-ui.js').then((m) => (beautifyUi = m)).catch((e) => { beautifyLoad = null; throw e; });
 
-  /** The look of the displayed version, how to change it, and a preview of a look in a box (a canvas that the caller owns); null if nothing is open. */
+  /** The look of the displayed version and how to change it; null if nothing is open. */
   function beautifyContext() {
     if (!ready()) return null;
     endPendingEdit();
     return {
       style: () => styleOf(cur()),
       apply: setBeautify,
-      preview: (style, width, height) => renderPreview(canvas, { ...(cur() ?? blankVersion()), beautify: style }, W, H, width, height),
     };
   }
 

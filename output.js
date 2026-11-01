@@ -46,31 +46,17 @@ export function renderCanvas(canvas, version, W, H) {
   return framed(renderRegion(canvas, crop, version.scale, size.w, size.h), styleOf(version), 1);
 }
 
-// The version drawn small, look included, in a box of `width` x `height` at most and never larger than the output. `top`: a full
-// page keeps its top only (see thumbPlan).
-function renderSmall(canvas, version, W, H, width, height, top) {
-  const area = version?.crop ?? { x: 0, y: 0, w: W, h: H };
-  const scale = version?.scale ?? 1;
+// The thumbnail of a version that has a look: the top of the capture (see thumbPlan) inside its look, reduced to the width of a thumbnail
+// and never larger than the output.
+function renderFramedThumb(canvas, version, W, H) {
+  const area = version.crop ?? { x: 0, y: 0, w: W, h: H };
   const style = styleOf(version);
-  const keepH = top ? thumbPlan(area.w, area.h).keepH : area.h;
-  const full = framedSize(Math.floor(area.w * scale + 1e-6), Math.floor(keepH * scale + 1e-6), style);
-  const ratio = Math.min(width / full.w, height / full.h, 1 / scale); // the output px -> this drawing's px
-  const k = scale * ratio; // the px of the original -> this drawing's px
+  const { keepH } = thumbPlan(area.w, area.h);
+  const full = framedSize(Math.floor(area.w * version.scale + 1e-6), Math.floor(keepH * version.scale + 1e-6), style);
+  const ratio = Math.min(THUMB_WIDTH / full.w, 1 / version.scale); // the output px -> this drawing's px
+  const k = version.scale * ratio; // the px of the original -> this drawing's px
   return framed(renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k))), style, ratio);
 }
-
-/**
- * What the displayed version looks like, in a box of `width` x `height` at most: the preview of the beautify panel. A canvas that
- * belongs to the caller. `version` absent = the original.
- * @param {any} canvas
- * @param {import('./versions.js').Version | undefined} version
- * @param {number} W
- * @param {number} H
- * @param {number} width
- * @param {number} height
- * @returns {HTMLCanvasElement}
- */
-export const renderPreview = (canvas, version, W, H, width, height) => renderSmall(canvas, version, W, H, width, height, false);
 
 /**
  * PNG of a version, crop and scale applied.
@@ -108,7 +94,7 @@ export async function renderThumb(canvas, version, W, H) { // async: a thumbnail
   const area = version?.crop ?? { x: 0, y: 0, w: W, h: H };
   const { keepH, k } = thumbPlan(area.w, area.h);
   const el = styleOf(version)
-    ? renderSmall(canvas, version, W, H, THUMB_WIDTH, Infinity, true)
+    ? renderFramedThumb(canvas, version, W, H)
     : renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k)));
   try {
     return await new Promise((done) => el.toBlob(done, 'image/webp', THUMB_QUALITY));

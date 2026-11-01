@@ -136,7 +136,6 @@ export default {
   'be.shadow.strong': 'Forte',
   'be.frame': 'Cadre',
   'be.frame.window': 'Fenêtre',
-  'be.preview': 'Aperçu du résultat',
   'be.err': "Le panneau d'habillage n'a pas pu s'ouvrir.",
   'zoom.fit': 'Ajuster',
   'zoom.fit.tip': 'Ajuster à la fenêtre',

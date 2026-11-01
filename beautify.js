@@ -1,5 +1,5 @@
 // Draws a capture with its beautify look: the backdrop, the shadow, the window (bar and rounded corners) and the capture. Every
-// consumer goes through it (output.js: the editor exports, the grouped export, the thumbnails, the preview; the editor itself draws
+// consumer goes through it (output.js: the editor exports, the grouped export, the thumbnails; the editor itself draws
 // the backdrop behind its canvas with paintBackdrop), from the geometry of beautify-pure.js, so that they agree to the pixel.
 import { GRADIENTS, layout } from './beautify-pure.js';
 

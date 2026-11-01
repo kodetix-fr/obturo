@@ -21,9 +21,11 @@ describe('beautify: the editor shows the look around the capture', () => {
     await page.click('#beautify');
     await page.waitForSelector('#bePop:not([hidden])');
   };
+  const refitted = () => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   const closePanel = async () => {
     await page.keyboard.press('Escape');
     await page.waitForSelector('#bePop', { state: 'hidden' });
+    await refitted(); // the stage is wide again and the editor fits the capture in it
   };
   const setRange = (id, value) => page.evaluate(({ id, value }) => {
     const el = /** @type {HTMLInputElement} */ (document.getElementById(id));
@@ -183,6 +185,57 @@ describe('beautify: the editor shows the look around the capture', () => {
     await page.click('#cropCancel');
     await poll(async () => (await placed()).clip !== '', { what: 'and comes back' });
     assert.ok(await backdropDrawn() > 0);
+  });
+
+  it('the panel is a column next to the stage: the capture and its look are fitted in what is left and stay visible, and closing gives the width back', async () => {
+    await resetLibrary(page, h, [spec('Alpha', 1280, 720)], undefined, CLEAN);
+    await open(1280, 720);
+    const wide = await page.evaluate(() => document.getElementById('stage').clientWidth);
+    await openPanel();
+    await page.click('#beOn');
+    await choose('beBg', '#2563eb');
+    await choose('beShadow', 'none');
+    await setRange('bePadding', 48);
+    await waitOut(page, 1376, 816);
+    await refitted();
+    const panel = await page.locator('#bePop').boundingBox();
+    const stageBox = await page.locator('#stage').boundingBox();
+    assert.ok(stageBox.x + stageBox.width <= panel.x + 0.5, `the panel is right of the stage, not over it: stage ends at ${stageBox.x + stageBox.width}, panel starts at ${panel.x}`);
+    assert.ok(Math.abs(panel.y - stageBox.y) < 1 && Math.abs(panel.height - stageBox.height) < 1, 'and it takes the height of the stage');
+    const p = await placed();
+    assert.ok(p.stageW < wide - 200, `the stage is narrower: ${p.stageW} instead of ${wide}`);
+    const z = p.w / 1280, padding = 48 * z;
+    assert.ok(p.x - padding >= -0.5 && p.x + p.w + padding <= p.stageW + 0.5, 'the whole look is in sight beside the panel');
+    assert.ok(await backdropDrawn() > 0, 'and drawn');
+    near(px(await stageShot(), Math.round(p.x - padding / 2), Math.round(p.y + p.h / 2)), BLUE, 6, 'the background is on the stage while the panel is open');
+
+    await closePanel();
+    const after = await placed();
+    assert.equal(after.stageW, wide, 'the stage has its width back');
+    assert.ok(after.w > p.w, 'and the capture is fitted larger');
+  });
+
+  it('a slider moves the look on the stage while it is dragged, and the version keeps it when it is let go', async () => {
+    await resetLibrary(page, h, [spec('Alpha', 1280, 720)], undefined, CLEAN);
+    await open(1280, 720);
+    await lookOn({ padding: 48, w: 1280, hgt: 720 });
+    const { id } = (await dbDump(page)).at(-1);
+    await shotWhere(page, id, (s) => s.versions[0]?.beautify?.padding === 48, 'the look is saved');
+    await openPanel();
+    await refitted();
+    const before = (await placed()).w;
+    await page.evaluate(() => {
+      const el = /** @type {HTMLInputElement} */ (document.getElementById('bePadding'));
+      el.value = '120';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await waitOut(page, 1520, 960); // 1280 + 2 x 120, 720 + 2 x 120
+    await poll(async () => (await placed()).w < before, { what: 'the capture is smaller on the stage: the padding grew' });
+    await new Promise((done) => setTimeout(done, 500));
+    assert.equal((await dbDump(page)).find((s) => s.id === id).versions[0].beautify.padding, 48, 'nothing is kept while the slider is held');
+    await page.evaluate(() => document.getElementById('bePadding').dispatchEvent(new Event('change', { bubbles: true })));
+    await shotWhere(page, id, (s) => s.versions[0].beautify.padding === 120, 'kept when it is let go');
+    await closePanel();
   });
 
   it('a cropped version shows only the crop in its look, and the output label counts the crop and the padding', async () => {

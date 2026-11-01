@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': '浓重',
   'be.frame': '边框',
   'be.frame.window': '窗口',
-  'be.preview': '结果预览',
   'be.err': '无法打开美化面板。',
   'zoom.fit': '适应',
   'zoom.fit.tip': '适应窗口',

@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Kuat',
   'be.frame': 'Bingkai',
   'be.frame.window': 'Jendela',
-  'be.preview': 'Pratinjau hasil',
   'be.err': 'Panel percantik tidak dapat dibuka.',
   'zoom.fit': 'Pas',
   'zoom.fit.tip': 'Pas ke jendela',

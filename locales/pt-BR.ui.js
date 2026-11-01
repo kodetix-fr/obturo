@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Forte',
   'be.frame': 'Moldura',
   'be.frame.window': 'Janela',
-  'be.preview': 'Pré-visualização do resultado',
   'be.err': 'Não foi possível abrir o painel de embelezar.',
   'zoom.fit': 'Ajustar',
   'zoom.fit.tip': 'Ajustar à janela',

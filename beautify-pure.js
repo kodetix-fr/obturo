@@ -1,6 +1,6 @@
 // Beautify: the look that a version can give its capture (a background, a padding, rounded corners, a shadow, a window bar) and the
 // geometry that the editor, the exports and the thumbnails share. Pure functions, testable with `node --test`.
-// Sizes are in pixels of the OUTPUT: `k` scales them for a reduced drawing (a thumbnail, the preview).
+// Sizes are in pixels of the OUTPUT: `k` scales them for a reduced drawing (a thumbnail).
 
 /**
  * @typedef {{ type: 'none' } | { type: 'color', color: string } | { type: 'gradient', index: number }} Background

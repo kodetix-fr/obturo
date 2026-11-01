@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': '濃い',
   'be.frame': 'フレーム',
   'be.frame.window': 'ウィンドウ',
-  'be.preview': '結果のプレビュー',
   'be.err': '装飾パネルを開けませんでした。',
   'zoom.fit': '全体表示',
   'zoom.fit.tip': 'ウィンドウに合わせて表示します',

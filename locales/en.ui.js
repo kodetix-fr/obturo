@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Strong',
   'be.frame': 'Frame',
   'be.frame.window': 'Window',
-  'be.preview': 'Preview of the result',
   'be.err': 'The beautify panel could not open.',
   'zoom.fit': 'Fit',
   'zoom.fit.tip': 'Fit to window',

@@ -1,4 +1,4 @@
-// Beautify, in the real extension: the panel of the editor (its preview, its keyboard, its texts), the look in the downloads
+// Beautify, in the real extension: the panel of the editor (its keyboard, its texts, its layout), the look in the downloads
 // (size, corners, background, bar, JPEG backdrop), in the grouped export (pixel for pixel the same), in the thumbnail, and the
 // life of the look across turning it off, a new version, undo and the scale ceiling. The geometry is tested in beautify-pure.test.js.
 //
@@ -29,6 +29,7 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
   const closePanel = async () => {
     await page.keyboard.press('Escape');
     await page.waitForSelector('#bePop', { state: 'hidden' });
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))); // the stage is wide again and the editor fits the capture in it
   };
   const choose = (name, value) => page.click(`#bePop input[name="${name}"][value="${value}"]`);
   const turnOn = () => page.click('#beOn');
@@ -76,7 +77,7 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     assert.equal((await dbDump(page)).at(-1).versions.length, 0, 'opening it changes nothing');
   });
 
-  it('turning it on creates V1 and the output size counts the padding; the preview has the shape of the result; off gives the plain size back', async () => {
+  it('turning it on creates V1 and the output size counts the padding; off gives the plain size back', async () => {
     await library();
     await open();
     await openPanel();
@@ -85,19 +86,11 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     assert.equal(await page.locator('#bePadding').isDisabled(), false);
     assert.equal(await page.locator('#beautify').getAttribute('data-on'), '');
     await page.waitForSelector('#versions button:nth-child(2)'); // V1
-    await poll(async () => {
-      const { width, height } = await page.locator('#bePreview').evaluate((c) => ({ width: c.width, height: c.height }));
-      return width > 0 && Math.abs(width / height - 1376 / 816) < 0.02;
-    }, { what: 'the preview has the proportions of 1376 x 816' });
     await choose('beFrame', 'window');
     await waitOut(page, 1376, 852); // + the bar
     await turnOn(); // off
     await waitOut(page, 1280, 720);
     assert.equal(await page.locator('#beautify').getAttribute('data-on'), null);
-    await poll(async () => {
-      const { width, height } = await page.locator('#bePreview').evaluate((c) => ({ width: c.width, height: c.height }));
-      return Math.abs(width / height - 1280 / 720) < 0.02;
-    }, { what: 'the preview of the plain capture' });
     const { id } = (await dbDump(page)).at(-1);
     await shotWhere(page, id, (s) => s.versions.length === 1 && s.versions[0].beautify === null, 'off is stored as no look');
     await closePanel();
@@ -293,8 +286,37 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     const box = await page.locator('#bePop').boundingBox();
     assert.ok(box.x >= 0 && box.x + box.width <= 560, `the panel is inside the window: x ${box.x}, width ${box.width}`);
     assert.ok(box.y >= 0, `and under the top: y ${box.y}`);
+    const stage = await page.locator('#stage').boundingBox();
+    assert.ok(stage.x + stage.width <= box.x + 0.5 && stage.width >= 200, `the stage keeps a usable width beside it: ${stage.width}`);
     await closePanel();
     await page.setViewportSize({ width: 1500, height: 900 });
+  });
+
+  it('the chosen background is obvious: a ring and a check mark; the free color is a labelled line of its own', async () => {
+    await library();
+    await open();
+    await openPanel();
+    assert.equal((await page.locator('#bePop .be-custom').innerText()).trim(), 'Other color');
+    assert.equal(await page.locator('#bePop .swatches #beColor').count(), 0, 'the free color is not among the chips');
+    await choose('beBg', '#2563eb');
+    const mark = (value) => page.evaluate((value) => {
+      const span = /** @type {HTMLElement} */ (document.querySelector(`#bePop input[name="beBg"][value="${value}"] + span`));
+      return { check: getComputedStyle(span, '::after').content, ring: getComputedStyle(span).boxShadow };
+    }, value);
+    const chosen = await mark('#2563eb');
+    assert.notEqual(chosen.check, 'none', 'a check mark on the chosen chip');
+    assert.match(chosen.ring, /4\.5px/, 'and a thick ring');
+    assert.equal((await mark('#e53935')).check, 'none', 'none on the others');
+    assert.equal(await page.locator('#bePop .be-custom[data-on]').count(), 0);
+    await page.evaluate(() => {
+      const el = /** @type {HTMLInputElement} */ (document.getElementById('beColor'));
+      el.value = '#123456';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    assert.equal(await page.locator('#bePop .be-custom[data-on]').count(), 1, 'the free color shows as the chosen one');
+    assert.equal(await page.locator('#bePop input[name="beBg"]:checked').count(), 0, 'and no chip does');
+    await closePanel();
   });
 
   it('the French texts: the button and the panel', async () => {

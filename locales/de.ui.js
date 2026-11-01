@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Stark',
   'be.frame': 'Rahmen',
   'be.frame.window': 'Fenster',
-  'be.preview': 'Vorschau des Ergebnisses',
   'be.err': 'Das Fenster zum Verschönern konnte nicht geöffnet werden.',
   'zoom.fit': 'Einpassen',
   'zoom.fit.tip': 'An das Fenster anpassen',

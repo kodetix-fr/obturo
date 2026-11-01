@@ -135,7 +135,6 @@ export default {
   'be.shadow.strong': 'Сильная',
   'be.frame': 'Рамка',
   'be.frame.window': 'Окно',
-  'be.preview': 'Предпросмотр результата',
   'be.err': 'Не удалось открыть панель оформления.',
   'zoom.fit': 'Вписать',
   'zoom.fit.tip': 'Вписать в окно',
