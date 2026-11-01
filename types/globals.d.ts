@@ -58,6 +58,17 @@ interface FullPageApi {
   end(): boolean;
 }
 
+/** What redact.js sets on the window of the captured page, and sw.js calls. */
+interface RedactApi {
+  apply(region?: FullPageBox): Promise<void>;
+  clear(): void;
+  result(): { hidden: number; incomplete: boolean };
+}
+
 interface Window {
   __obturoFull?: FullPageApi;
+  __obturoRedact?: RedactApi;
 }
+
+/** What sensitive.js sets on the global object: the parts of a text to hide. */
+declare var __obturoSensitive: { find(text: string): Array<{ start: number; end: number; kind: string }> };
