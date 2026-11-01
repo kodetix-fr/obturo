@@ -5,8 +5,10 @@
   "cmdCaptureArea": { "message": "Tangkap area" },
   "cmdCaptureVisible": { "message": "Tangkap bagian yang terlihat" },
   "cmdCaptureFull": { "message": "Tangkap seluruh halaman" },
+  "cmdCaptureElement": { "message": "Tangkap elemen" },
   "cmdOpenLibrary": { "message": "Buka pustaka" },
   "cmdCaptureAreaEdit": { "message": "Tangkap area dan edit" },
   "cmdCaptureVisibleEdit": { "message": "Tangkap bagian yang terlihat dan edit" },
-  "cmdCaptureFullEdit": { "message": "Tangkap seluruh halaman dan edit" }
+  "cmdCaptureFullEdit": { "message": "Tangkap seluruh halaman dan edit" },
+  "cmdCaptureElementEdit": { "message": "Tangkap elemen dan edit" }
 }

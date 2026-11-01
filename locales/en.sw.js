@@ -7,6 +7,7 @@ export default {
   'menu.area': 'Area',
   'menu.visible': 'Visible part',
   'menu.full': 'Full page',
+  'menu.element': 'Element',
   'menu.library': 'Open the library',
   'menu.settings': 'Settings',
   // the no-trace mode: a capture is copied and saved nowhere

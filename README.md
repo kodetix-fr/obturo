@@ -23,7 +23,7 @@ the original of every capture, so a redacted copy never costs you the real one.
 
 ### Capture
 
-Three kinds of capture, each in two flavours. *Capture* copies the image to the
+Four kinds of capture, each in two flavours. *Capture* copies the image to the
 clipboard and saves it in the history. *Capture and edit* does the same, then
 opens the new capture in the editor.
 
@@ -32,17 +32,24 @@ opens the new capture in the editor.
 | An area, dragged with the mouse | **Alt+Shift+Z**, or a click on the icon | no default key |
 | The visible part of the tab | **Alt+Shift+V** | no default key |
 | The full page | **Alt+Shift+F** | no default key |
+| An element of the page, picked with the mouse | no default key | no default key |
 
 - **Alt+Shift+L** opens the library. A library already open in a tab is brought
   to the front instead of opening a second one.
-- Chrome lets an extension suggest four shortcuts, so the three *Capture and
-  edit* commands have no default key. All seven commands are yours to set or
-  change at `chrome://extensions/shortcuts`.
+- Chrome lets an extension suggest four shortcuts, so the *Element* commands and
+  the three *Capture and edit* commands have no default key. All nine commands
+  are yours to set or change at `chrome://extensions/shortcuts`.
 - **The icon's right-click menu** holds *Capture* and *Capture and edit* (each a
-  submenu: *Area*, *Visible part*, *Full page*), *Open the library* and
+  submenu: *Area*, *Visible part*, *Full page*, *Element*), *Open the library* and
   *Settings*. That is four entries at the top level; Chrome shows six at most.
 - **Area**: drag a rectangle. Esc cancels, and a selection under 5 px is
   ignored.
+- **Element**: move the pointer and a box follows the innermost element under
+  it; a click captures that element, the part of it that the window shows, and
+  the page never gets the click. **Alt+ArrowUp** selects the parent, **Alt+ArrowDown**
+  goes back down to the child, a move of the pointer takes the choice back, Esc
+  cancels, and an element under 5 px is ignored. The page stays live while you
+  pick: its hover styles and menus keep working, so a hover state is in the capture.
 - **Full page**: Obturo scrolls the page (the document, or the panel of a web
   application that scrolls inside the page), captures each tile and stitches
   them together. Esc cancels. The scroll position and the fixed elements of the

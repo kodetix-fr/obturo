@@ -7,6 +7,7 @@ export default {
   'menu.area': 'Zona',
   'menu.visible': 'Parte visible',
   'menu.full': 'Página completa',
+  'menu.element': 'Elemento',
   'menu.library': 'Abrir la biblioteca',
   'menu.settings': 'Configuración',
   // the no-trace mode: a capture is copied and saved nowhere

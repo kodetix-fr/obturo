@@ -131,6 +131,18 @@ describe('delay before a capture', () => {
     await page.waitForSelector('#obturo-overlay', { state: 'detached' });
   });
 
+  it('an element pick: no box during the wait, the pick starts when the delay is over', async () => {
+    await set({ captureDelay: 3 });
+    const tab = await ready();
+    const job = run('capture-element', tab);
+    await sleep(1500);
+    assert.equal(await page.locator('#obturo-element').count(), 0, 'not yet');
+    await job;
+    await page.waitForSelector('#obturo-element', { state: 'attached', timeout: 3000 });
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('#obturo-element', { state: 'detached' });
+  });
+
   it('"and edit" waits too, then opens the editor on the capture', async () => {
     await set({ captureDelay: 3 });
     const tab = await ready();

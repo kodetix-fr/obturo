@@ -18,11 +18,13 @@ export const MENU = [
     { id: 'capture-area', title: 'menu.area' },
     { id: 'capture-visible', title: 'menu.visible' },
     { id: 'capture-full', title: 'menu.full' },
+    { id: 'capture-element', title: 'menu.element' },
   ] },
   { id: 'capture-edit', title: 'menu.captureEdit', children: [
     { id: 'capture-area-edit', title: 'menu.area' },
     { id: 'capture-visible-edit', title: 'menu.visible' },
     { id: 'capture-full-edit', title: 'menu.full' },
+    { id: 'capture-element-edit', title: 'menu.element' },
   ] },
   { id: 'open-library', title: 'menu.library' },
   { id: 'open-settings', title: 'menu.settings' },
@@ -62,7 +64,8 @@ export function libraryTarget({ shot, settings } = {}) {
 /** @type {Record<string, string>} */
 export const POPUP_ICONS = {
   'capture-area': 'area', 'capture-visible': 'visible', 'capture-full': 'full',
-  'capture-area-edit': 'area-edit', 'capture-visible-edit': 'visible-edit', 'capture-full-edit': 'full-edit',
+  'capture-element': 'element', 'capture-area-edit': 'area-edit', 'capture-visible-edit': 'visible-edit', 'capture-full-edit': 'full-edit',
+  'capture-element-edit': 'element-edit',
   'open-library': 'history', 'open-settings': 'sliders',
 };
 

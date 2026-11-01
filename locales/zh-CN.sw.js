@@ -7,6 +7,7 @@ export default {
   'menu.area': '区域',
   'menu.visible': '可见区域',
   'menu.full': '整个页面',
+  'menu.element': '元素',
   'menu.library': '打开图库',
   'menu.settings': '设置',
   // the no-trace mode: a capture is copied and saved nowhere

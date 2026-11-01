@@ -55,7 +55,7 @@ describe('no trace: copy only, nothing saved', () => {
     const menus = (await menuState(sw)).rebuilds;
     await setNoTrace(true);
     await until(async () => (await title()) === 'Obturo (no trace)', 'the tooltip says it');
-    const items = await menuWhere((list) => list.length === 10 && list.find((i) => i.id === 'capture-edit')?.enabled === false, '"Capture and edit" greyed out in the menu');
+    const items = await menuWhere((list) => list.length === 12 && list.find((i) => i.id === 'capture-edit')?.enabled === false, '"Capture and edit" greyed out in the menu');
     assert.equal(items.find((i) => i.id === 'capture')?.enabled, undefined, 'a plain capture still works');
     assert.ok((await menuState(sw)).rebuilds > menus, 'the menu was rebuilt');
     await quota();
@@ -100,7 +100,7 @@ describe('no trace: copy only, nothing saved', () => {
   it('on: "and edit" is refused with the reason, in the page: nothing captured, nothing copied, no library, no overlay', async () => {
     // the clipboard holds the full page now: a visible capture would replace it with the window
     const [w0, h0] = await clipSize(page);
-    for (const name of ['capture-visible-edit', 'capture-full-edit', 'capture-area-edit']) {
+    for (const name of ['capture-visible-edit', 'capture-full-edit', 'capture-area-edit', 'capture-element-edit']) {
       await quota();
       const before = await count();
       await resetBadges(sw);
@@ -108,7 +108,7 @@ describe('no trace: copy only, nothing saved', () => {
       await until(async () => (await noticeText()) !== null, `the page says why (${name})`);
       assert.ok((await noticeText()).includes(enSw['sw.noTrace.edit']), `${name}: ${await noticeText()}`);
       assert.equal(await count(), before, `${name}: nothing saved`);
-      assert.equal(await page.locator('#obturo-overlay').count(), 0, `${name}: no area selection`);
+      assert.equal(await page.locator('#obturo-overlay, #obturo-element').count(), 0, `${name}: no area or element selection`);
       assert.equal(libraryPages(h).length, 0, `${name}: no library`);
       assert.deepEqual(await clipSize(page), [w0, h0], `${name}: the clipboard is as it was`);
       assert.equal((await badges(sw)).filter((b) => b[1] === 'text' && ['OK', '!', 'ERR'].includes(b[2])).length, 0, `${name}: no result badge`);
@@ -130,8 +130,8 @@ describe('no trace: copy only, nothing saved', () => {
   it('turned off again: the history is back, the tooltip, the icon and the menu too', async () => {
     await setNoTrace(false);
     await until(async () => (await title()) === 'Obturo', 'the tooltip is back');
-    const items = await menuWhere((list) => list.length === 10 && list.find((i) => i.id === 'capture-edit')?.enabled === undefined, '"Capture and edit" back in the menu');
-    assert.equal(items.length, 10);
+    const items = await menuWhere((list) => list.length === 12 && list.find((i) => i.id === 'capture-edit')?.enabled === undefined, '"Capture and edit" back in the menu');
+    assert.equal(items.length, 12);
     await quota();
     const before = await count();
     await resetBadges(sw);

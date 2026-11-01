@@ -5,8 +5,10 @@
   "cmdCaptureArea": { "message": "Сделать снимок области" },
   "cmdCaptureVisible": { "message": "Сделать снимок видимой части" },
   "cmdCaptureFull": { "message": "Сделать снимок всей страницы" },
+  "cmdCaptureElement": { "message": "Сделать снимок элемента" },
   "cmdOpenLibrary": { "message": "Открыть библиотеку" },
   "cmdCaptureAreaEdit": { "message": "Сделать снимок области и редактировать" },
   "cmdCaptureVisibleEdit": { "message": "Сделать снимок видимой части и редактировать" },
-  "cmdCaptureFullEdit": { "message": "Сделать снимок всей страницы и редактировать" }
+  "cmdCaptureFullEdit": { "message": "Сделать снимок всей страницы и редактировать" },
+  "cmdCaptureElementEdit": { "message": "Сделать снимок элемента и редактировать" }
 }

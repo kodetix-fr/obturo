@@ -40,7 +40,7 @@ globalThis.__menu = [];
   api.create = (props, cb) => create.call(api, props, () => { globalThis.__menu.push(['create', props, chrome.runtime.lastError?.message ?? null, performance.now()]); cb?.(); });
   api.removeAll = (cb) => removeAll.call(api, () => { globalThis.__menu.push(['removeAll', null, null, performance.now()]); cb?.(); });
 }
-globalThis.__t = { capture, captureFull, startArea, openLibrary, run, onMessage, db: __db, settings: __settings, badge: __badge };
+globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, badge: __badge };
 `;
 
 function copyExtension(dest, { hook, hostPermissions, realDefaults }) {

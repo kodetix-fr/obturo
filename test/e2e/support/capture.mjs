@@ -232,7 +232,7 @@ export const announceSettings = (sw) => sw.evaluate(() => {
 });
 
 /** Waits for a rebuild of the menu after `rebuilds` earlier ones, complete (`count` entries). */
-export const menuRebuilt = (sw, rebuilds, count = 10) => until(async () => {
+export const menuRebuilt = (sw, rebuilds, count = 12) => until(async () => {
   const s = await menuState(sw);
   return s.rebuilds > rebuilds && s.items.length === count ? s : null;
 }, 'menu rebuilt');

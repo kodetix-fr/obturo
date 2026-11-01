@@ -7,6 +7,7 @@ export default {
   'menu.area': 'Область',
   'menu.visible': 'Видимая часть',
   'menu.full': 'Вся страница',
+  'menu.element': 'Элемент',
   'menu.library': 'Открыть библиотеку',
   'menu.settings': 'Настройки',
   // the no-trace mode: a capture is copied and saved nowhere

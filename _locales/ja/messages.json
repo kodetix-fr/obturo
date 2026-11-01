@@ -5,8 +5,10 @@
   "cmdCaptureArea": { "message": "範囲をキャプチャ" },
   "cmdCaptureVisible": { "message": "表示部分をキャプチャ" },
   "cmdCaptureFull": { "message": "ページ全体をキャプチャ" },
+  "cmdCaptureElement": { "message": "要素をキャプチャ" },
   "cmdOpenLibrary": { "message": "ライブラリを開く" },
   "cmdCaptureAreaEdit": { "message": "範囲をキャプチャして編集" },
   "cmdCaptureVisibleEdit": { "message": "表示部分をキャプチャして編集" },
-  "cmdCaptureFullEdit": { "message": "ページ全体をキャプチャして編集" }
+  "cmdCaptureFullEdit": { "message": "ページ全体をキャプチャして編集" },
+  "cmdCaptureElementEdit": { "message": "要素をキャプチャして編集" }
 }

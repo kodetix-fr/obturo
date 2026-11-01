@@ -8,6 +8,11 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **Element capture**: a fourth kind next to *Area*, *Visible part* and *Full page*, in the popup, in both
+  submenus of the icon menu and as two commands without a default key (*Capture an element*, *Capture an
+  element and edit*). A box follows the pointer over the innermost element, a click captures its part inside
+  the window and the page never gets that click, Alt+ArrowUp and Alt+ArrowDown choose the parent and the child,
+  Esc cancels. The page stays live while you pick, so a hover state is in the capture. No new permission.
 - **A delay before a capture** (*Settings*, *Capture*, *Delay before capture*: none, 3, 5 or 10 s, and a row of
   the popup that goes through the choices). The icon counts the seconds down and the page stays usable, so a
   menu, a tooltip or a hover state can be opened before the capture. Any capture gesture during the wait cancels

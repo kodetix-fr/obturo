@@ -17,11 +17,11 @@ test('menu: under the limit of top-level entries that Chrome shows for the icon 
   assert.equal(top.length, 4);
 });
 
-test('menu: Capture, Capture and edit (area, visible part, full page each), library, settings - in this order', () => {
+test('menu: Capture, Capture and edit (area, visible part, full page, element each), library, settings - in this order', () => {
   const shape = (defs) => defs.map((d) => (d.children ? [d.id, shape(d.children)] : d.id));
   assert.deepEqual(shape(MENU), [
-    ['capture', ['capture-area', 'capture-visible', 'capture-full']],
-    ['capture-edit', ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit']],
+    ['capture', ['capture-area', 'capture-visible', 'capture-full', 'capture-element']],
+    ['capture-edit', ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'capture-element-edit']],
     'open-library',
     'open-settings',
   ]);
@@ -38,14 +38,14 @@ test('menuItems: parents before their children, unique ids, every entry in the i
       assert.equal(items[parent].parentId, undefined, 'a single level of submenu');
     }
   });
-  assert.deepEqual(items.filter((i) => i.parentId === 'capture').map((i) => i.id), ['capture-area', 'capture-visible', 'capture-full']);
-  assert.deepEqual(items.filter((i) => i.parentId === 'capture-edit').map((i) => i.id), ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit']);
+  assert.deepEqual(items.filter((i) => i.parentId === 'capture').map((i) => i.id), ['capture-area', 'capture-visible', 'capture-full', 'capture-element']);
+  assert.deepEqual(items.filter((i) => i.parentId === 'capture-edit').map((i) => i.id), ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'capture-element-edit']);
 });
 
 test('menuItems: titles come from the translate function, nothing is left untranslated', () => {
   for (const [name, dict] of [['en', en], ['fr', fr]]) {
     const items = menuItems((key) => dict[key]);
-    assert.equal(items.length, 10);
+    assert.equal(items.length, 12);
     for (const item of items) assert.ok(typeof item.title === 'string' && item.title.trim(), `${name}: no text for ${item.id}`);
   }
   const titles = menuItems((key) => fr[key]).map((i) => i.title);
@@ -80,8 +80,8 @@ test('libraryTarget: an id that is not an integer never reaches the address', ()
 test('popupGroups: the groups of the menu (Capture, Capture and edit), then the library and the settings without a title', () => {
   const shape = popupGroups().map((g) => [g.title ?? null, g.items.map((i) => i.id)]);
   assert.deepEqual(shape, [
-    ['menu.capture', ['capture-area', 'capture-visible', 'capture-full']],
-    ['menu.captureEdit', ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit']],
+    ['menu.capture', ['capture-area', 'capture-visible', 'capture-full', 'capture-element']],
+    ['menu.captureEdit', ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'capture-element-edit']],
     [null, ['open-library', 'open-settings']],
   ]);
   assert.deepEqual(POPUP_IDS, shape.flatMap(([, ids]) => ids));
