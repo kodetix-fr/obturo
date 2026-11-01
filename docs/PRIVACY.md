@@ -29,7 +29,7 @@ An image you add yourself (a file you pick, an image you paste with Ctrl+V or dr
 
 Obturo also stores your settings: language, theme, how long to keep captures, the size limit, and the default download format and options. Two technical records go with them: a copy of the language and the theme (so that the library opens in the right ones), and the list of the captures that the open library holds (so that the cleanup does not remove them).
 
-Obturo does not read page content beyond the captured image, the address and the title. It reads the clipboard only at the moment you paste into the library (Ctrl+V), and then only an image, never text; otherwise it only writes the image you have just captured, when you ask for it or when the setting that copies straight away is on. It sets no cookie and has no identifier of you or of your device.
+Obturo does not read page content beyond the captured image, the address and the title, except when you turn on *Hide sensitive text* in the settings: it then reads the text of the page, inside the page, to find what to cover while the image is taken, and keeps none of it and sends none of it. It reads the clipboard only at the moment you paste into the library (Ctrl+V), and then only an image, never text; otherwise it only writes the image you have just captured, when you ask for it or when the setting that copies straight away is on. It sets no cookie and has no identifier of you or of your device.
 
 ## Where and for how long
 
@@ -54,7 +54,7 @@ None. Obturo does not send, sell, share or transfer any data to anyone.
 ## Permissions used
 
 - `activeTab`: capture the active tab, only after an action from you.
-- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, and show a short note on the page when a full-page capture is not the whole page or stopped, from the active tab.
+- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page when a full-page capture is not the whole page or stopped, and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
 - `contextMenus`: the icon's right-click menu: Capture and Capture and edit (each with Area, Visible part and Full page), Open the library, and Settings.
 
 Obturo requests no broad access to websites. It does not use `unlimitedStorage`.
@@ -107,7 +107,7 @@ Une image que tu ajoutes toi-même (un fichier que tu choisis, une image que tu 
 
 Obturo enregistre aussi tes paramètres : langue, thème, durée de conservation des captures, limite de taille, format et options de téléchargement par défaut. Deux enregistrements techniques les accompagnent : une copie de la langue et du thème (pour que la bibliothèque s'ouvre dans les bons), et la liste des captures que la bibliothèque ouverte tient (pour que le nettoyage ne les supprime pas).
 
-Obturo ne lit pas le contenu des pages en dehors de l'image capturée, de l'adresse et du titre. Il ne lit le presse-papiers qu'au moment où tu colles dans la bibliothèque (Ctrl+V), et alors seulement une image, jamais du texte ; sinon il y écrit seulement l'image que tu viens de capturer, quand tu le demandes ou quand le réglage qui copie directement est actif. Il ne dépose aucun cookie et n'a aucun identifiant de toi ni de ton appareil.
+Obturo ne lit pas le contenu des pages en dehors de l'image capturée, de l'adresse et du titre, sauf si tu actives *Masquer le texte sensible* dans les paramètres : il lit alors le texte de la page, dans la page, pour trouver ce qu'il faut recouvrir pendant la prise de l'image, et n'en garde rien et n'en envoie rien. Il ne lit le presse-papiers qu'au moment où tu colles dans la bibliothèque (Ctrl+V), et alors seulement une image, jamais du texte ; sinon il y écrit seulement l'image que tu viens de capturer, quand tu le demandes ou quand le réglage qui copie directement est actif. Il ne dépose aucun cookie et n'a aucun identifiant de toi ni de ton appareil.
 
 ## Où et combien de temps
 
@@ -132,7 +132,7 @@ Aucun. Obturo n'envoie, ne vend, ne partage ni ne transfère aucune donnée à q
 ## Permissions utilisées
 
 - `activeTab` : capturer l'onglet actif, uniquement après une action de ta part.
-- `scripting` : afficher la sélection de zone, faire défiler la page pour une capture de la page entière, écrire l'image dans le presse-papiers, et afficher une courte note sur la page quand une capture de la page entière n'est pas la page complète ou s'est arrêtée, depuis l'onglet actif.
+- `scripting` : afficher la sélection de zone, faire défiler la page pour une capture de la page entière, écrire l'image dans le presse-papiers, afficher une courte note sur la page quand une capture de la page entière n'est pas la page complète ou s'est arrêtée, et, quand *Masquer le texte sensible* est actif, recouvrir le texte sensible de la page pendant la prise de l'image, depuis l'onglet actif.
 - `contextMenus` : le menu du clic droit sur l'icône : Capturer et Capturer et éditer (chacun avec Zone, Partie visible et Page entière), Ouvrir la bibliothèque, et Paramètres.
 
 Obturo ne demande aucun accès général aux sites web. Il n'utilise pas `unlimitedStorage`.
