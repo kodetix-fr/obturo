@@ -174,7 +174,7 @@ describe('editor: non-regressions', () => {
         await poll(() => page.evaluate(() => [...document.querySelectorAll('#strip li.shot')].findIndex((li) => li.hasAttribute('aria-current'))).then((i) => i === last), { what: `current shot (gap ${gap} ms, order ${order})` });
         // (when this order ends on the shot of the previous one, the text and the strip are right from the start, and the editor is
         // still between closing and mounting: wait for it rather than count at once)
-        await poll(async () => (await page.evaluate(() => document.querySelectorAll('canvas').length)) === 2, { what: `a single editor (2 Fabric canvases) must remain (gap ${gap} ms, order ${order})` });
+        await poll(async () => (await page.evaluate(() => document.querySelectorAll('canvas').length)) === 3, { what: `a single editor (2 Fabric canvases and the backdrop of the look) must remain (gap ${gap} ms, order ${order})` });
       }
     }
     assert.deepEqual(pageErrors(), [], 'page errors');

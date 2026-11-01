@@ -473,7 +473,7 @@ describe('hiding: solid fill and soft blur', () => {
     // memory: the scratch canvas that read the pixels is back to 0, the tiles are a pixel per block
     const left = await page.evaluate(() => /** @type {any} */ (window).__canvases.filter((c) => !c.isConnected).map((c) => c.width * c.height));
     assert.ok(left.every((area) => area <= 60 * 60), `temporary canvases still holding pixels: ${left.filter((a) => a > 3600)}`);
-    assert.equal(await page.evaluate(() => document.querySelectorAll('canvas').length), 2, 'the canvases of the editor only');
+    assert.equal(await page.evaluate(() => document.querySelectorAll('canvas').length), 3, 'the canvases of the editor only (Fabric\'s two and the backdrop of the look)');
     // deleting the blur gives its tiles back
     await page.keyboard.press('Delete');
     await shotWhere(page, id, (s) => s.versions[0].objects.length === 0, 'blur deleted');
