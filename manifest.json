@@ -29,6 +29,9 @@
       "suggested_key": { "default": "Alt+Shift+F" },
       "description": "__MSG_cmdCaptureFull__"
     },
+    "capture-element": {
+      "description": "__MSG_cmdCaptureElement__"
+    },
     "open-library": {
       "suggested_key": { "default": "Alt+Shift+L" },
       "description": "__MSG_cmdOpenLibrary__"
@@ -41,6 +44,9 @@
     },
     "capture-full-edit": {
       "description": "__MSG_cmdCaptureFullEdit__"
+    },
+    "capture-element-edit": {
+      "description": "__MSG_cmdCaptureElementEdit__"
     }
   }
 }

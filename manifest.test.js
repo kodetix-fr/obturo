@@ -98,11 +98,11 @@ test('texts: resolved name is Obturo, description within 132 characters, in each
   }
 });
 
-test('commands: four suggested keys (Chrome limit), the "edit" ones have none, each has a description', () => {
+test('commands: four suggested keys (Chrome limit), the "edit" ones and the element ones have none, each has a description', () => {
   const entries = Object.entries(manifest.commands);
   assert.equal(entries.filter(([, c]) => c.suggested_key).length, 4, 'Chrome admits at most 4 suggested shortcuts');
   assert.deepEqual(entries.filter(([, c]) => !c.suggested_key).map(([name]) => name).sort(),
-    ['capture-area-edit', 'capture-full-edit', 'capture-visible-edit']);
+    ['capture-area-edit', 'capture-element', 'capture-element-edit', 'capture-full-edit', 'capture-visible-edit']);
   for (const [name, c] of entries) assert.match(c.description, /^__MSG_\w+__$/, name);
 });
 

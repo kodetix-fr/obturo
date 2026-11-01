@@ -5,8 +5,10 @@
   "cmdCaptureArea": { "message": "Capturar una zona" },
   "cmdCaptureVisible": { "message": "Capturar la parte visible" },
   "cmdCaptureFull": { "message": "Capturar la página completa" },
+  "cmdCaptureElement": { "message": "Capturar un elemento" },
   "cmdOpenLibrary": { "message": "Abrir la biblioteca" },
   "cmdCaptureAreaEdit": { "message": "Capturar una zona y editar" },
   "cmdCaptureVisibleEdit": { "message": "Capturar la parte visible y editar" },
-  "cmdCaptureFullEdit": { "message": "Capturar la página completa y editar" }
+  "cmdCaptureFullEdit": { "message": "Capturar la página completa y editar" },
+  "cmdCaptureElementEdit": { "message": "Capturar un elemento y editar" }
 }

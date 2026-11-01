@@ -8,7 +8,7 @@ import {
   announceSettings, closeLibraries, libraryPages, listenChannel, menuPasses, menuRebuilt, menuState, received, recordMenu, sleep, stopServiceWorker, until,
 } from './support/capture.mjs';
 
-const LEAVES = ['capture-area', 'capture-visible', 'capture-full', 'capture-area-edit', 'capture-visible-edit', 'capture-full-edit'];
+const LEAVES = ['capture-area', 'capture-visible', 'capture-full', 'capture-element', 'capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'capture-element-edit'];
 const titles = (items) => items.map((i) => i.title);
 const iconTitle = (sw) => sw.evaluate(() => chrome.action.getTitle({}));
 
@@ -28,13 +28,13 @@ describe('icon menu in the real extension', () => {
     const { items, errors } = await menuRebuilt(sw, 0);
     assert.deepEqual(errors, [], 'Chrome accepted every entry');
     assert.deepEqual(items.map((i) => i.id), [
-      'capture', ...LEAVES.slice(0, 3), 'capture-edit', ...LEAVES.slice(3), 'open-library', 'open-settings',
+      'capture', ...LEAVES.slice(0, 4), 'capture-edit', ...LEAVES.slice(4), 'open-library', 'open-settings',
     ]);
     assert.deepEqual(titles(items), [
-      'Capture', 'Area', 'Visible part', 'Full page', 'Capture and edit', 'Area', 'Visible part', 'Full page', 'Open the library', 'Settings',
+      'Capture', 'Area', 'Visible part', 'Full page', 'Element', 'Capture and edit', 'Area', 'Visible part', 'Full page', 'Element', 'Open the library', 'Settings',
     ]);
-    assert.deepEqual(items.filter((i) => i.parentId === 'capture').map((i) => i.id), LEAVES.slice(0, 3));
-    assert.deepEqual(items.filter((i) => i.parentId === 'capture-edit').map((i) => i.id), LEAVES.slice(3));
+    assert.deepEqual(items.filter((i) => i.parentId === 'capture').map((i) => i.id), LEAVES.slice(0, 4));
+    assert.deepEqual(items.filter((i) => i.parentId === 'capture-edit').map((i) => i.id), LEAVES.slice(4));
     assert.ok(items.every((i) => i.contexts.length === 1 && i.contexts[0] === 'action'));
     assert.equal(await iconTitle(sw), 'Obturo', 'the tooltip of the icon');
   });
@@ -57,7 +57,7 @@ describe('icon menu in the real extension', () => {
     await sleep(500); // a second pass, if the rebuilds overlapped, would show up here
     const { items, errors } = await menuState(sw);
     assert.deepEqual(errors, [], 'no "duplicate id" or any other error');
-    assert.equal(items.length, 10);
+    assert.equal(items.length, 12);
   });
 
   it('a page that tells the worker through the runtime (which also wakes it up) gets a rebuild too', async () => {
@@ -82,7 +82,7 @@ describe('icon menu in the real extension', () => {
       await change('fr');
       let { items, errors } = await menuRebuilt(sw, rebuilds);
       assert.deepEqual(titles(items), [
-        'Capturer', 'Zone', 'Partie visible', 'Page entière', 'Capturer et éditer', 'Zone', 'Partie visible', 'Page entière', 'Ouvrir la bibliothèque', 'Paramètres',
+        'Capturer', 'Zone', 'Partie visible', 'Page entière', 'Élément', 'Capturer et éditer', 'Zone', 'Partie visible', 'Page entière', 'Élément', 'Ouvrir la bibliothèque', 'Paramètres',
       ]);
       assert.equal(await iconTitle(sw), 'Obturo', 'the tooltip of the icon follows the language chosen, not the one of the browser');
       rebuilds = (await menuState(sw)).rebuilds;
@@ -219,8 +219,8 @@ describe('manifest texts in the real browser', () => {
 // waiting for each answer, rebuilds triggered by the start, onInstalled, onStartup and 'settings-changed' running over each other,
 // and answers (lastError) never read. The expected tree is checked pass by pass, from the record of the calls the worker made.
 const TREE = [
-  ['capture', undefined], ['capture-area', 'capture'], ['capture-visible', 'capture'], ['capture-full', 'capture'],
-  ['capture-edit', undefined], ['capture-area-edit', 'capture-edit'], ['capture-visible-edit', 'capture-edit'], ['capture-full-edit', 'capture-edit'],
+  ['capture', undefined], ['capture-area', 'capture'], ['capture-visible', 'capture'], ['capture-full', 'capture'], ['capture-element', 'capture'],
+  ['capture-edit', undefined], ['capture-area-edit', 'capture-edit'], ['capture-visible-edit', 'capture-edit'], ['capture-full-edit', 'capture-edit'], ['capture-element-edit', 'capture-edit'],
   ['open-library', undefined], ['open-settings', undefined],
 ];
 const shapeOf = (creates) => creates.map((c) => [c.id, c.parentId]);
@@ -231,7 +231,7 @@ describe('icon menu: one serialized rebuild', () => {
   after(() => h?.close());
 
   it('every pass of the worker is the whole tree, parents before their children, in order, with no error from Chrome', async () => {
-    await until(async () => (await menuPasses(h.sw)).length >= 1 && (await menuPasses(h.sw)).at(-1).creates.length === 10, 'first build');
+    await until(async () => (await menuPasses(h.sw)).length >= 1 && (await menuPasses(h.sw)).at(-1).creates.length === 12, 'first build');
     await sleep(300);
     const passes = await menuPasses(h.sw);
     assert.ok(passes.length >= 1 && passes.length <= 2, `${passes.length} pass(es) for the start of the worker and onInstalled`);
@@ -278,11 +278,11 @@ describe('icon menu: one serialized rebuild', () => {
     try {
       const before = (await menuPasses(sw)).length;
       await change('fr');
-      await until(async () => { const p = await menuPasses(sw); return p.length > before && p.at(-1).creates.length === 10 && p.at(-1).creates[0].title === 'Capturer'; }, 'French pass');
+      await until(async () => { const p = await menuPasses(sw); return p.length > before && p.at(-1).creates.length === 12 && p.at(-1).creates[0].title === 'Capturer'; }, 'French pass');
       await sleep(400);
       const last = (await menuPasses(sw)).at(-1);
       assert.deepEqual(shapeOf(last.creates), TREE);
-      assert.deepEqual(last.creates.map((c) => c.title), ['Capturer', 'Zone', 'Partie visible', 'Page entière', 'Capturer et éditer', 'Zone', 'Partie visible', 'Page entière', 'Ouvrir la bibliothèque', 'Paramètres']);
+      assert.deepEqual(last.creates.map((c) => c.title), ['Capturer', 'Zone', 'Partie visible', 'Page entière', 'Élément', 'Capturer et éditer', 'Zone', 'Partie visible', 'Page entière', 'Élément', 'Ouvrir la bibliothèque', 'Paramètres']);
       assert.deepEqual(last.errors, []);
     } finally {
       await change('auto');
@@ -309,6 +309,6 @@ describe('icon menu: one serialized rebuild', () => {
     assert.ok(errors.some((e) => /^Obturo: create capture: .*no-such-parent/.test(e)), JSON.stringify(errors));
     assert.ok(errors.every((e) => /^[\x20-\x7e]+$/.test(e)), 'ASCII only');
     const last = (await menuPasses(sw)).at(-1);
-    assert.equal(last.creates.length, 10, 'the other entries were still created');
+    assert.equal(last.creates.length, 12, 'the other entries were still created');
   });
 });

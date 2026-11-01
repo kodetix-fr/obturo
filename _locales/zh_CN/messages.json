@@ -5,8 +5,10 @@
   "cmdCaptureArea": { "message": "截取区域" },
   "cmdCaptureVisible": { "message": "截取可见区域" },
   "cmdCaptureFull": { "message": "截取整个页面" },
+  "cmdCaptureElement": { "message": "截取元素" },
   "cmdOpenLibrary": { "message": "打开图库" },
   "cmdCaptureAreaEdit": { "message": "截取区域并编辑" },
   "cmdCaptureVisibleEdit": { "message": "截取可见区域并编辑" },
-  "cmdCaptureFullEdit": { "message": "截取整个页面并编辑" }
+  "cmdCaptureFullEdit": { "message": "截取整个页面并编辑" },
+  "cmdCaptureElementEdit": { "message": "截取元素并编辑" }
 }

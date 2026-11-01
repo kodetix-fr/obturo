@@ -7,6 +7,7 @@ export default {
   'menu.area': 'Zone',
   'menu.visible': 'Partie visible',
   'menu.full': 'Page entière',
+  'menu.element': 'Élément',
   'menu.library': 'Ouvrir la bibliothèque',
   'menu.settings': 'Paramètres',
   // le mode sans trace : une capture est copiée et n'est enregistrée nulle part

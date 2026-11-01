@@ -22,6 +22,7 @@ interface Window {
   __xss?: number;
   __marker?: number;
   __sent?: unknown[];
+  __events: string[]; // element capture test page: what the page was told
   __closed: number; // popup test pages
   __created: unknown[]; // popup test pages: the tabs it asked for
   __answers: unknown[];

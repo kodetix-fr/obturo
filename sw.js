@@ -439,21 +439,26 @@ const captureFull = (tab, edit) => exclusive(() => fullPage(tab), edit);
 // No flag while the overlay is open (it would stay stuck after an Escape): we only refuse to open one while a capture
 // is running. `edit` ("capture and edit") is written on the overlay element, which carries it back in its message: the
 // service worker may be stopped while the user is still selecting, so nothing is kept in memory.
+// An element pick (element.js) works the same way: it answers with the same message, the box of the element being the area.
 // ponytail: an overlay that is already open keeps its mode when a second gesture asks for the other one; send both modes through the injection if people mix them up.
-const startArea = async (tab, edit = false) => {
+/** @param {Tab} tab @param {string} file The script that selects. @param {string} id The id of the element it adds to the page. @param {boolean} edit */
+const startPicker = async (tab, file, id, edit) => {
   if (busy) return badge('...', GREY, IGNORED_BADGE_MS);
   try {
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['overlay.js'] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: [file] });
     if (edit) {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: () => window.document.getElementById('obturo-overlay')?.setAttribute('data-edit', '1'),
+        func: (id) => window.document.getElementById(id)?.setAttribute('data-edit', '1'),
+        args: [id],
       });
     }
   } catch {
     badge('ERR', RED);
   }
 };
+const startArea = (tab, edit = false) => startPicker(tab, 'overlay.js', 'obturo-overlay', edit);
+const startElement = (tab, edit = false) => startPicker(tab, 'element.js', 'obturo-element', edit);
 
 // The delay before a capture: the badge counts the seconds down and the page stays usable, so that a menu or a tooltip can be opened. Any
 // capture gesture during the wait cancels it. The worker stays awake: every tick is a call to the badge API, which restarts its idle timer.
@@ -490,9 +495,11 @@ const ACTIONS = {
   'capture-area': (tab) => startArea(tab),
   'capture-visible': (tab) => capture(tab),
   'capture-full': (tab) => captureFull(tab),
+  'capture-element': (tab) => startElement(tab),
   'capture-area-edit': (tab) => startArea(tab, true),
   'capture-visible-edit': (tab) => capture(tab, undefined, true),
   'capture-full-edit': (tab) => captureFull(tab, true),
+  'capture-element-edit': (tab) => startElement(tab, true),
   'open-library': () => openLibrary(),
   'open-settings': () => openLibrary({ settings: true }),
 };

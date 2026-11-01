@@ -7,6 +7,7 @@ export default {
   'menu.area': '範囲',
   'menu.visible': '表示部分',
   'menu.full': 'ページ全体',
+  'menu.element': '要素',
   'menu.library': 'ライブラリを開く',
   'menu.settings': '設定',
   // the no-trace mode: a capture is copied and saved nowhere

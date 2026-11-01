@@ -7,6 +7,7 @@ export default {
   'menu.area': 'Area',
   'menu.visible': 'Bagian yang terlihat',
   'menu.full': 'Seluruh halaman',
+  'menu.element': 'Elemen',
   'menu.library': 'Buka pustaka',
   'menu.settings': 'Pengaturan',
   // the no-trace mode: a capture is copied and saved nowhere
