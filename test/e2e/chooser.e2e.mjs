@@ -245,9 +245,11 @@ describe('after a capture: ask what to do', () => {
     await lib.goto(h.url('library.html#settings'));
     await lib.waitForSelector('dialog#settings[open]');
     assert.equal(await lib.locator('#afterCapture').inputValue(), 'ask', 'a fresh install asks');
-    assert.deepEqual(await lib.locator('#afterCapture option').allInnerTexts(), ['Ask what to do', 'Copy it']);
+    assert.deepEqual(await lib.locator('#afterCapture option').allInnerTexts(), ['Ask what to do', 'Copy it', 'Save the file']);
     await lib.selectOption('#afterCapture', 'copy');
     await until(async () => (await sw.evaluate(() => __t.settings.getSettings())).afterCapture === 'copy', 'the choice is stored');
+    await lib.selectOption('#afterCapture', 'save');
+    await until(async () => (await sw.evaluate(() => __t.settings.getSettings())).afterCapture === 'save', 'the third choice is stored');
     await lib.selectOption('#afterCapture', 'ask');
     await until(async () => (await sw.evaluate(() => __t.settings.getSettings())).afterCapture === 'ask', 'and back');
     await lib.close();

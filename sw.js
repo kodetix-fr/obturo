@@ -58,15 +58,17 @@ const succeeds = (promise) => promise.then((v) => v ?? true, (e) => { console.er
 // The page that asks what to do with a capture (chooser.html): copy it, edit it, download it. A tab next to the captured one, the captured tab
 // as its opener, so that closing it brings the person back to the page. No permission is needed to create a tab.
 const CHOOSER_URL = chrome.runtime.getURL('chooser.html');
+// With `save` the page downloads the capture by itself, in a tab that stays in the background (a worker has no DOM to write a file, and
+// chrome.downloads is a permission): the person stays on the captured page, and the page only comes forward if the download fails.
 /**
- * @param {number} shot The id of the capture in the history. @param {Tab} tab The captured tab.
+ * @param {number} shot The id of the capture in the history. @param {Tab} tab The captured tab. @param {boolean} [save]
  */
-async function openChooser(shot, tab) {
-  const url = `${CHOOSER_URL}#shot=${shot}`;
+async function openChooser(shot, tab, save = false) {
+  const url = `${CHOOSER_URL}#shot=${shot}${save ? '&save=1' : ''}`;
   try {
-    return await chrome.tabs.create({ url, active: true, openerTabId: tab.id, windowId: tab.windowId });
+    return await chrome.tabs.create({ url, active: !save, openerTabId: tab.id, windowId: tab.windowId });
   } catch {
-    return chrome.tabs.create({ url, active: true }); // the captured tab is gone: the page opens in the window in use
+    return chrome.tabs.create({ url, active: !save }); // the captured tab is gone: the page opens in the window in use
   }
 }
 
@@ -138,13 +140,13 @@ async function copyToClipboard(tabId, blob, b64) {
 /** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @returns {Promise<number | boolean>} */
 async function save(tab, blob, w, h, b64) {
   const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (copy it, keep it)
-  // "Ask what to do": the capture is kept and a page offers the actions, so nothing goes to the clipboard unasked. Not in the
-  // no-trace mode (nothing is kept to ask about) and not for "Capture and edit" (the editor is the answer).
-  if (settings.afterCapture === 'ask' && !settings.noTrace && !editing) {
+  // "Ask what to do" (a page offers the actions) and "Save the file" (the page downloads it): the capture is kept and nothing goes to the
+  // clipboard unasked. Not in the no-trace mode (nothing is kept) and not for "Capture and edit" (the editor is the answer).
+  if (settings.afterCapture !== 'copy' && !settings.noTrace && !editing) {
     const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h }));
     if (!kept) { badge('ERR', RED); return kept; }
     badge('OK', GREEN);
-    openChooser(/** @type {number} */ (kept), tab).catch(fail);
+    openChooser(/** @type {number} */ (kept), tab, settings.afterCapture === 'save').catch(fail);
     return kept;
   }
   const copied = succeeds(copyToClipboard(tab.id, blob, b64));

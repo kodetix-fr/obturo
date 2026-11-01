@@ -145,7 +145,7 @@ test('normalizeSettings: the download format and quality choices are the ones th
 });
 
 test('normalizeSettings: what happens after a capture is ask or copy, ask (the default) for anything else', () => {
-  assert.deepEqual(AFTER_CAPTURE, ['ask', 'copy']);
+  assert.deepEqual(AFTER_CAPTURE, ['ask', 'copy', 'save']);
   assert.equal(DEFAULT_SETTINGS.afterCapture, 'ask', 'a window asks what to do with a capture, until the person chooses to copy it');
   for (const afterCapture of AFTER_CAPTURE) assert.equal(normalizeSettings({ afterCapture }).afterCapture, afterCapture);
   for (const junk of ['both', 'Copy', '', null, undefined, 1, {}, ['copy'], 'constructor']) assert.equal(normalizeSettings({ afterCapture: junk }).afterCapture, 'ask', String(junk));
