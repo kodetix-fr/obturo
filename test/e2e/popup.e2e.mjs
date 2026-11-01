@@ -6,6 +6,7 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
+import { LANGUAGES } from '../../languages.js';
 import {
   GREEN, badges, finalBadge, lastShot, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until, closeLibraries,
 } from './support/capture.mjs';
@@ -215,6 +216,17 @@ describe('popup: content, language, theme, keys', () => {
     page = await openPopup(h, { spy: true });
     assert.deepEqual((await rows(page)).map((r) => r.label), EN);
     await page.close();
+    await seedAppearance(h, null);
+  });
+
+  it('the popup fits the 600 px that Chrome allows, in each language', async () => {
+    for (const language of Object.keys(LANGUAGES)) {
+      await seedAppearance(h, { language, theme: 'auto' });
+      const page = await openPopup(h, { spy: true });
+      const height = await page.evaluate(() => document.body.getBoundingClientRect().height);
+      assert.ok(height < 600, `${language}: height ${height} fits a popup (Chrome allows 600)`);
+      await page.close();
+    }
     await seedAppearance(h, null);
   });
 
