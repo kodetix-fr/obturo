@@ -194,6 +194,17 @@ Non-destructive: the original of a capture is never changed.
   disc stays where you clicked whatever the text does. The text moves, resizes and
   is saved with the marker, and the box you select holds both.
 - Output scale (percentage or width), 50 levels of undo and redo, zoom and pan.
+- **Beautify** (the button in the bar under the editor) puts the capture on a
+  **background**: none, one of the nine colors or a free color, or one of six
+  gradients. The look has a **padding**, rounded **corners**, a **shadow** (none,
+  soft, strong) and an optional **window bar** with the three dots above the
+  capture. A preview shows the result as you change it, and the *Output* size
+  counts what the look adds (the scale comes down if the result would pass the
+  ceilings). It belongs to a version: the original is untouched, it can be turned
+  off, a new version starts without it, and the last look is offered when you turn
+  it on for another version. The editor's copy and download, the grouped export,
+  the PDF and the thumbnails all draw the same pixels. A background of *None*
+  stays transparent in PNG and WebP, and is white in JPEG and PDF.
 - **Copy image** puts the displayed version on the clipboard. **Download** is
   described below.
 - The interface is built on icons; a button that is only an icon has a tooltip
@@ -207,7 +218,7 @@ sideways). Cmd stands in for Ctrl on macOS.
 ### Versions
 
 The original of each capture is immutable. A version holds only its annotations,
-its crop and its scale (JSON, no pixels). Make as many as you like, "original",
+its crop, its scale and its beautify look (JSON, no pixels). Make as many as you like, "original",
 "hidden for the customer", "annotated for the team", and switch between them
 without losing anything.
 

@@ -8,6 +8,14 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **Beautify** (the button in the bar under the editor): a background (none, a color of the palette or a
+  free one, or one of six gradients), a padding, rounded corners, a shadow and an optional window bar around
+  the capture, with a preview. It is a property of a version, so the original stays untouched and it can be
+  turned off; a new version starts without it, and the last look is offered when it is turned on for another
+  version. The size of the output, the copy and the download of the editor, the grouped export (ZIP and PDF)
+  and the thumbnails draw it from the same geometry, so they agree to the pixel; the scale ceilings count the
+  padding and the bar, and the background *None* is transparent in PNG and WebP and white in JPEG and PDF.
+  No new permission.
 - **Element capture**: a fourth kind next to *Area*, *Visible part* and *Full page*, in the popup, in both
   submenus of the icon menu and as two commands without a default key (*Capture an element*, *Capture an
   element and edit*). A box follows the pointer over the innermost element, a click captures its part inside
