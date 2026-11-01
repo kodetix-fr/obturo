@@ -273,6 +273,18 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     await closePanel();
   });
 
+  it('the panel stays inside a narrow window', async () => {
+    await library();
+    await page.setViewportSize({ width: 560, height: 800 });
+    await open();
+    await openPanel();
+    const box = await page.locator('#bePop').boundingBox();
+    assert.ok(box.x >= 0 && box.x + box.width <= 560, `the panel is inside the window: x ${box.x}, width ${box.width}`);
+    assert.ok(box.y >= 0, `and under the top: y ${box.y}`);
+    await closePanel();
+    await page.setViewportSize({ width: 1500, height: 900 });
+  });
+
   it('the French texts: the button and the panel', async () => {
     await library(undefined, { ...CLEAN, language: 'fr' });
     await ready(page);

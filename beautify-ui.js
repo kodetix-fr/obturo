@@ -178,6 +178,9 @@ async function openPanel(options) {
     working = structuredClone(current ?? lastStyle ?? DEFAULT_BEAUTIFY);
     reflect();
     panel.hidden = false;
+    panel.style.left = '0';
+    const over = panel.getBoundingClientRect().right - (window.innerWidth - 8); // the button of a narrow window may be near the right edge
+    if (over > 0) panel.style.left = `${-over}px`;
     opened = true;
     $('beautify').setAttribute('aria-expanded', 'true');
     drawPreview();
