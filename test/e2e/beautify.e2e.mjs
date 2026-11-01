@@ -66,7 +66,7 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     assert.equal(await page.getAttribute('#beautify', 'aria-expanded'), 'true');
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'beOn', 'the focus goes in');
     assert.equal(await page.isChecked('#beOn'), false);
-    assert.equal(await page.locator('#bePadding').isDisabled(), true, 'nothing to set while it is off');
+    assert.equal(await page.locator('#bePadding').isDisabled(), false, 'a control is never dead: using it turns the look on');
     assert.equal(await page.getAttribute('#bePop', 'role'), 'dialog');
     assert.equal(await page.getAttribute('#bePop', 'aria-label'), 'Beautify');
     await closePanel();
@@ -103,6 +103,18 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     await closePanel();
     const file = await png();
     assert.deepEqual([file.width, file.height], [1280, 720], 'the download is the plain capture again');
+  });
+
+  it('a control used while the look is off turns the look on and applies it', async () => {
+    await library();
+    await open();
+    await openPanel();
+    assert.equal(await page.isChecked('#beOn'), false);
+    await choose('beBg', '#2563eb');
+    assert.equal(await page.isChecked('#beOn'), true, 'the switch follows the first click');
+    await closePanel();
+    const file = await png();
+    assert.ok(file.width > 1280 && file.height > 720, `${file.width} x ${file.height} carries the look`);
   });
 
   it('PNG: the size is the capture plus the padding, a color background and rounded corners, the capture inside', async () => {

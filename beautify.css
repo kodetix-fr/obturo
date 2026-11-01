@@ -17,7 +17,7 @@
 
 .be-on { display: flex; align-items: center; gap: 8px; margin: 12px 2px 2px; font-weight: 650; cursor: pointer; }
 .be-controls { min-width: 0; margin: 0; padding: 0; border: 0; }
-.be-controls:disabled { opacity: .5; }
+.be-off { opacity: .6; }
 .be-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .be-h { color: var(--muted); font-size: 12px; font-weight: 600; }
 .be-out { font-variant-numeric: tabular-nums; }

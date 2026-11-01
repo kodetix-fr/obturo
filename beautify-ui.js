@@ -73,7 +73,7 @@ function build() {
 
   root.querySelector('#beOn').addEventListener('change', (e) => {
     on = e.target.checked;
-    $('beControls').disabled = !on;
+    $('beControls').classList.toggle('be-off', !on);
     commit();
   });
   bg.addEventListener('change', (e) => {
@@ -81,27 +81,37 @@ function build() {
     if (id === 'beColor') working.bg = { type: 'color', color: value };
     else if (name === 'beBg') working.bg = value === 'none' ? { type: 'none' } : value.startsWith('g') ? { type: 'gradient', index: Number(value.slice(1)) } : { type: 'color', color: value };
     else return;
+    turnOn();
     pickBackground();
     commit();
   });
   bg.addEventListener('input', (e) => { // the free color follows the pointer in the preview and is applied when it is let go
     if (e.target.id !== 'beColor') return;
     working.bg = { type: 'color', color: e.target.value };
+    turnOn();
     pickBackground();
     drawPreview();
   });
   for (const [id, field] of [['bePadding', 'padding'], ['beRadius', 'radius']]) {
     const input = root.querySelector(`#${id}`);
-    input.addEventListener('input', () => { working[field] = Number(input.value); showValues(); drawPreview(); }); // the preview follows the slider
+    input.addEventListener('input', () => { working[field] = Number(input.value); turnOn(); showValues(); drawPreview(); }); // the preview follows the slider
     input.addEventListener('change', commit); // the version changes when it is let go
   }
   for (const [name, field] of [['beShadow', 'shadow'], ['beFrame', 'frame']]) {
-    root.querySelector(`[name="${name}"]`).closest('.seg').addEventListener('change', (e) => { working[field] = e.target.value; commit(); });
+    root.querySelector(`[name="${name}"]`).closest('.seg').addEventListener('change', (e) => { working[field] = e.target.value; turnOn(); commit(); });
   }
   $('beWrap').append(root);
   applyDom(root);
   setAria(root, 'be.title'); // applyDom only translates what is inside
   return root;
+}
+
+/** A control used while the look is off turns it on: the controls are never dead. */
+function turnOn() {
+  if (on) return;
+  on = true;
+  $('beOn').checked = true;
+  $('beControls').classList.remove('be-off');
 }
 
 function pickBackground() {
@@ -119,7 +129,7 @@ function showValues() {
 /** The controls follow `working` and `on`. */
 function reflect() {
   $('beOn').checked = on;
-  $('beControls').disabled = !on;
+  $('beControls').classList.toggle('be-off', !on);
   pickBackground();
   $('bePadding').value = String(working.padding);
   $('beRadius').value = String(working.radius);
