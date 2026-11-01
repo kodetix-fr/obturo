@@ -23,4 +23,9 @@ export default {
   'sw.full.fail.tab': 'Ganze Seite abgebrochen: Ein anderer Tab oder ein anderes Fenster hat während der Aufnahme den Fokus übernommen. Nichts wurde gespeichert.',
   'sw.full.fail.page': 'Ganze Seite abgebrochen: Die Seite hat sich während der Aufnahme geändert oder nicht mehr geantwortet. Nichts wurde gespeichert.',
   'sw.full.fail.other': 'Ganze Seite fehlgeschlagen. Nichts wurde gespeichert. Versuche es noch einmal.',
+  // what a capture says on the page when the sensitive text was hidden (redact.js)
+  'sw.redact.one': '{n} sensibles Element in der Aufnahme ausgeblendet. Obturo kann etwas übersehen: Prüfe vor dem Teilen.',
+  'sw.redact.other': '{n} sensible Elemente in der Aufnahme ausgeblendet. Obturo kann etwas übersehen: Prüfe vor dem Teilen.',
+  'sw.redact.none': 'Im Text der Seite wurden keine E-Mail-Adresse, Telefonnummer, IBAN, Kartennummer und kein Schlüssel gefunden. Prüfe vor dem Teilen.',
+  'sw.redact.partial': 'Die Seite ist zu groß, um vollständig durchsucht zu werden: Es kann noch Text sichtbar sein.',
 };

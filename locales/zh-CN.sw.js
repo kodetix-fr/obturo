@@ -23,4 +23,9 @@ export default {
   'sw.full.fail.tab': '整页截图已中止：截图过程中另一个标签页或窗口获得了焦点。没有保存任何内容。',
   'sw.full.fail.page': '整页截图已中止：截图过程中页面发生了变化或停止响应。没有保存任何内容。',
   'sw.full.fail.other': '整页截图失败。没有保存任何内容。请重试。',
+  // what a capture says on the page when the sensitive text was hidden (redact.js)
+  'sw.redact.one': '截图中已隐藏 {n} 项敏感内容。Obturo 可能有遗漏：分享前请先检查。',
+  'sw.redact.other': '截图中已隐藏 {n} 项敏感内容。Obturo 可能有遗漏：分享前请先检查。',
+  'sw.redact.none': '在页面文本中未发现电子邮件地址、电话号码、IBAN、银行卡号或密钥。分享前请先检查。',
+  'sw.redact.partial': '页面太大，无法完整搜索：部分文本可能仍然可见。',
 };
