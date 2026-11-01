@@ -135,6 +135,13 @@ test('normalizeSettings: the delay before a capture is one of the choices, none 
   for (const junk of [1, 4, -3, 11, '3', '', null, undefined, 3.5, NaN, {}, [3]]) assert.equal(normalizeSettings({ captureDelay: junk }).captureDelay, 0, String(junk));
 });
 
+test('normalizeSettings: hiding the sensitive text is a boolean, off by default', () => {
+  assert.equal(DEFAULT_SETTINGS.redactSensitive, false);
+  assert.equal(normalizeSettings({ redactSensitive: true }).redactSensitive, true);
+  assert.equal(normalizeSettings({ redactSensitive: false }).redactSensitive, false);
+  for (const junk of ['true', 1, 0, null, undefined, {}, [true], 'yes']) assert.equal(normalizeSettings({ redactSensitive: junk }).redactSensitive, false, String(junk));
+});
+
 test('normalizeSettings: the full-page wait and the fixed elements', () => {
   assert.deepEqual([DEFAULT_SETTINGS.fullPageWait, DEFAULT_SETTINGS.fullPageFixed], [0, 'edges']);
   assert.deepEqual(FULL_PAGE_WAITS, [0, 500, 1000, 2000]);

@@ -91,7 +91,7 @@ test('locales: same keys in every language, same placeholders, no empty text, no
 test('normalizeSettings: defaults, valid values kept, invalid ones replaced', () => {
   assert.deepEqual(normalizeSettings(undefined), DEFAULT_SETTINGS);
   assert.deepEqual(normalizeSettings('nope'), DEFAULT_SETTINGS);
-  const ok = { language: 'fr', theme: 'dark', retentionDays: 365, maxBytes: 0, downloadFormat: 'webp', downloadQuality: 0.5, pdfLayout: 'a4', pdfEncoding: 'jpeg', afterCapture: 'copy', filenameTemplate: '{date} {title}', fullPageWait: 1000, fullPageFixed: 'hide', noTrace: true, captureDelay: 10 };
+  const ok = { language: 'fr', theme: 'dark', retentionDays: 365, maxBytes: 0, downloadFormat: 'webp', downloadQuality: 0.5, pdfLayout: 'a4', pdfEncoding: 'jpeg', afterCapture: 'copy', filenameTemplate: '{date} {title}', fullPageWait: 1000, fullPageFixed: 'hide', noTrace: true, captureDelay: 10, redactSensitive: true };
   assert.deepEqual(normalizeSettings(ok), ok);
   const bad = normalizeSettings({ language: 'klingon', theme: 'pink', retentionDays: -1, maxBytes: 1.5, downloadFormat: 'bmp', downloadQuality: 7, pdfLayout: 'letter', pdfEncoding: 'lzw', afterCapture: 'both', filenameTemplate: '  ', fullPageWait: 750, fullPageFixed: 'show', noTrace: 'yes', captureDelay: 4, extra: 1 });
   assert.deepEqual(bad, DEFAULT_SETTINGS);

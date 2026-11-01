@@ -72,6 +72,8 @@ export default {
   'settings.capture.delay.five': '5 s',
   'settings.capture.delay.ten': '10 s',
   'settings.capture.delay.hint': "Pendant le délai, l'icône décompte et la page reste utilisable\u00a0: ouvre le menu, l'infobulle ou la liste à capturer. Relance une capture pour annuler. Pour une zone ou un élément, la sélection commence à la fin du délai.",
+  'settings.capture.redact': 'Masquer le texte sensible',
+  'settings.capture.redact.hint': "Avant chaque image d'une capture, Obturo recouvre en noir les adresses e-mail, numéros de téléphone, IBAN, numéros de carte et clés qu'il trouve dans le texte de la page, puis remet la page en l'état. Il ne voit ni les images, ni les canevas, ni les cadres, ni le shadow DOM fermé, ni ce qui est saisi dans un champ, et il peut manquer du texte : vérifie avant de partager.",
   'prop.strength': 'Intensité',
   'prop.textHint': 'Pour du texte, préfère un aplat.',
   'prop.hl': 'Surligneur',
