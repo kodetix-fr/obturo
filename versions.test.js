@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { blankVersion, createVersion, deleteVersion, pickVersion, clampCrop, outputSize, scaleForWidth, maxScale, capScale } from './versions.js';
+import { blankVersion, createVersion, deleteVersion, pickVersion, clampCrop, innerSize, outputSize, scaleForWidth, maxScale, capScale } from './versions.js';
+import { DEFAULT_BEAUTIFY, extraOf } from './beautify-pure.js';
 
 const v = (name, extra = {}) => ({ ...blankVersion(), name, ...extra });
 
@@ -104,5 +105,42 @@ test('scaleForWidth', () => {
   assert.equal(scaleForWidth(1000, 500), 0.5);
   assert.equal(scaleForWidth(1000, 0), 0.01);
   assert.equal(scaleForWidth(10, 1e6), 10);
+});
+
+test('createVersion: the beautify look is not copied, a new version starts without it', () => {
+  const base = { versions: [v('V1', { beautify: { ...DEFAULT_BEAUTIFY } })], active: 0 };
+  assert.equal(createVersion(base).versions[1].beautify, null);
+  assert.deepEqual(base.versions[0].beautify, DEFAULT_BEAUTIFY, 'the displayed version keeps its own');
+  assert.equal(blankVersion().beautify, null);
+});
+
+test('outputSize adds the padding and the bar to the capture, innerSize does not', () => {
+  const beautify = { ...DEFAULT_BEAUTIFY, padding: 40, frame: 'window' };
+  const version = v('V1', { crop: { x: 0, y: 0, w: 1000, h: 500 }, scale: 0.5, beautify });
+  assert.deepEqual(innerSize(2000, 1000, version), { w: 500, h: 250 });
+  assert.deepEqual(outputSize(2000, 1000, version), { w: 580, h: 250 + 80 + 36 });
+  assert.deepEqual(outputSize(2000, 1000, v('V2', { beautify: null })), { w: 2000, h: 1000 });
+  assert.deepEqual(outputSize(2000, 1000, v('V3', { beautify: 'junk' })), { w: 2000, h: 1000 }, 'a damaged style is no style');
+});
+
+test('maxScale with the beautify extra: the padding counts in both ceilings', () => {
+  const extra = extraOf({ ...DEFAULT_BEAUTIFY, padding: 128, frame: 'window' });
+  const side = maxScale(1000, 500, extra);
+  assert.ok(1000 * side + extra.x <= 16384 && 500 * side + extra.y <= 16384);
+  const wide = maxScale(10000, 10000, extra); // the area ceiling decides
+  assert.ok((10000 * wide + extra.x) * (10000 * wide + extra.y) <= 100e6);
+  assert.ok((10000 * (wide + 2e-4) + extra.x) * (10000 * (wide + 2e-4) + extra.y) > 100e6, 'and it is the largest one, to the fourth decimal');
+  assert.equal(maxScale(1000, 500, { x: 0, y: 0 }), maxScale(1000, 500), 'no extra, the plain ceiling');
+  assert.ok(maxScale(1000, 500, extra) < maxScale(1000, 500));
+});
+
+test('capScale brings the scale down for the frame too', () => {
+  const style = { ...DEFAULT_BEAUTIFY, padding: 128 };
+  const without = capScale(10000, 5000, 1.5);
+  const framed = capScale(10000, 5000, 1.5, style);
+  assert.equal(without.capped, true);
+  assert.equal(framed.capped, true);
+  assert.ok(framed.scale < without.scale);
+  assert.deepEqual(capScale(100, 100, 2, style), { scale: 2, capped: false });
 });
 
