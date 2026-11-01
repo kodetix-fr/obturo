@@ -1,6 +1,6 @@
 import { addShot } from './db.js';
 import { cropRect, cleanArea, pngSize, planTiles, growPlan, pickScroller, clipBox, canvasSize, tileDest, decodeDataUrl, isCut, unscrolledKey, failureKey } from './pure.js';
-import { menuItems, libraryTarget, cleanNoTrace, cleanPopupRun, cleanChooserEdit } from './gestures.js';
+import { menuItems, libraryTarget, cleanNoTrace, cleanDelay, cleanPopupRun, cleanChooserEdit } from './gestures.js';
 import { t, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
 import { DEFAULT_SETTINGS, getSettings, setSettings } from './settings.js';
@@ -455,6 +455,35 @@ const startArea = async (tab, edit = false) => {
   }
 };
 
+// The delay before a capture: the badge counts the seconds down and the page stays usable, so that a menu or a tooltip can be opened. Any
+// capture gesture during the wait cancels it. The worker stays awake: every tick is a call to the badge API, which restarts its idle timer.
+/** @type {{ cancelled: boolean } | null} */
+let countdown = null;
+const cancelCountdown = () => {
+  if (countdown) countdown.cancelled = true;
+  countdown = null;
+  badge('', GREY, 0);
+};
+/**
+ * Waits for the delay of the settings (none: no wait). Resolves false when the capture must not go on: cancelled, another one is running,
+ * or the tab is no longer the one in front (captureVisibleTab would take another).
+ * @param {Tab} tab
+ */
+async function afterDelay(tab) {
+  const seconds = await getSettings().then((s) => s.captureDelay, () => 0);
+  if (!seconds) return true;
+  if (busy) return void badge('...', GREY, IGNORED_BADGE_MS);
+  const mine = (countdown = { cancelled: false });
+  for (let left = seconds; left > 0 && !mine.cancelled; left--) {
+    badge(String(left), BLUE, 0);
+    await sleep(1000);
+  }
+  if (countdown === mine) countdown = null;
+  if (mine.cancelled) return false;
+  badge('', GREY, 0);
+  return stillThere(tab).catch(() => false);
+}
+
 // One table for the keyboard shortcuts (manifest commands) and the icon menu: the name of a command is also the id of
 // its menu entry (see gestures.js).
 const ACTIONS = {
@@ -470,11 +499,13 @@ const ACTIONS = {
 /** @param {string} name Command or menu entry. @param {any} [tab] The active tab (chrome.tabs.Tab). */
 const run = async (name, tab) => {
   if (!Object.hasOwn(ACTIONS, name)) return undefined;
+  if (countdown && name.startsWith('capture-')) return cancelCountdown();
   // "and edit" opens the capture in the library: with no trace there is none to open, and the person is told why
   if (name.endsWith('-edit') && (await isNoTrace())) {
     if (tab) await notice(tab, [t('sw.noTrace.edit')]);
     return undefined;
   }
+  if (name.startsWith('capture-') && !(await afterDelay(tab))) return undefined;
   return ACTIONS[name](tab);
 };
 
@@ -519,6 +550,15 @@ function onPopupNoTrace(m, sender, respond) {
   return true; // the answer comes once the setting is stored
 }
 
+// Message from the popup: its delay control was changed. Same sender rule and same answer as the no-trace switch.
+/** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
+function onPopupDelay(m, sender, respond) {
+  const value = sender.id === chrome.runtime.id && !sender.tab && sender.url === POPUP_URL ? cleanDelay(m) : null;
+  if (value === null) return respond(false);
+  setSettings({ captureDelay: value }).then(() => respond(true), (e) => { fail(e); respond(false); });
+  return true; // the answer comes once the setting is stored
+}
+
 // Message from the window of actions after a capture: "Edit". Only from that page of the extension (its address, with its #shot).
 /** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
 function onChooserEdit(m, sender, respond) {
@@ -532,6 +572,7 @@ function onMessage(m, sender, respond) {
   if (m?.type === 'settings-changed') return void rebuildMenu(); // sent by pages that want the stopped worker to wake up
   if (m?.type === 'popup-run') return onPopupRun(m, sender, respond);
   if (m?.type === 'popup-notrace') return onPopupNoTrace(m, sender, respond);
+  if (m?.type === 'popup-delay') return onPopupDelay(m, sender, respond);
   if (m?.type === 'chooser-edit') return onChooserEdit(m, sender, respond);
   if (m?.type !== 'area' || sender.frameId !== 0 || !sender.tab) return;
   const area = cleanArea(m);

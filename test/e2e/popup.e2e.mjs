@@ -10,9 +10,9 @@ import {
   GREEN, badges, finalBadge, lastShot, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until, closeLibraries,
 } from './support/capture.mjs';
 
-const IDS = ['capture-area', 'capture-visible', 'capture-full', 'capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'open-library', 'open-settings'];
-const EN = ['Area', 'Visible part', 'Full page', 'Area', 'Visible part', 'Full page', 'Open the library', 'Settings'];
-const FR = ['Zone', 'Partie visible', 'Page entière', 'Zone', 'Partie visible', 'Page entière', 'Ouvrir la bibliothèque', 'Paramètres'];
+const IDS = ['capture-area', 'capture-visible', 'capture-full', 'capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'open-library', 'open-settings', 'capture-delay'];
+const EN = ['Area', 'Visible part', 'Full page', 'Area', 'Visible part', 'Full page', 'Open the library', 'Settings', 'Delay'];
+const FR = ['Zone', 'Partie visible', 'Page entière', 'Zone', 'Partie visible', 'Page entière', 'Ouvrir la bibliothèque', 'Paramètres', 'Délai'];
 
 /** Writes the copy of the appearance that settings.js keeps, on the origin of the extension. */
 async function seedAppearance(h, value) {
@@ -63,14 +63,14 @@ describe('popup: content, language, theme, keys', () => {
   before(async () => { h = await launchExtension({ hook: true, instrumented: false, lang: 'en-US' }); });
   after(() => h?.close());
 
-  it('eight actions in three groups and a switch, one icon each, English by default, first row focused, no scrollbar, 320 px wide', async () => {
+  it('eight actions in three groups, a switch and a delay, one icon each, English by default, first row focused, no scrollbar, 320 px wide', async () => {
     await seedAppearance(h, null);
     const page = await openPopup(h, { spy: true });
     const list = await rows(page);
     assert.deepEqual(list.map((r) => r.id), IDS);
     assert.deepEqual(list.map((r) => r.label), EN);
-    assert.deepEqual(list.map((r) => r.aria), EN, 'the accessible name of a row is its text, not its shortcut');
-    assert.deepEqual(list.map((r) => r.tabindex), [0, -1, -1, -1, -1, -1, -1, -1], 'the list is one tab stop');
+    assert.deepEqual(list.map((r) => r.aria), [...EN.slice(0, -1), 'Delay: Off'], 'the accessible name of a row is its text, not its shortcut; the delay says its value');
+    assert.deepEqual(list.map((r) => r.tabindex), [0, -1, -1, -1, -1, -1, -1, -1, -1], 'the list is one tab stop');
     assert.equal(await focused(page), 'capture-area', 'first row focused at opening');
     const shape = await page.evaluate(() => ({
       menuRole: document.getElementById('menu')?.getAttribute('role'), menuName: document.getElementById('menu')?.getAttribute('aria-label'),
@@ -81,7 +81,7 @@ describe('popup: content, language, theme, keys', () => {
       icons: [...document.querySelectorAll('.item svg.ic use')].map((u) => !!document.querySelector(u.getAttribute('href') ?? '#none')),
       logo: !!document.querySelector(document.querySelector('.logo use')?.getAttribute('href') ?? '#none'),
     }));
-    assert.deepEqual(shape.groups, [[3, 'Capture'], [3, 'Capture and edit'], [2, null], [0, null]], 'the last group is the no-trace switch: no action in it');
+    assert.deepEqual(shape.groups, [[3, 'Capture'], [3, 'Capture and edit'], [2, null], [0, null], [1, null]], 'then the no-trace switch (no action in it) and the delay');
     assert.equal(shape.menuRole, 'menu');
     assert.equal(shape.menuName, 'Obturo actions');
     assert.equal(shape.lang, 'en');
@@ -89,7 +89,7 @@ describe('popup: content, language, theme, keys', () => {
     assert.equal(shape.width, 320);
     assert.ok(shape.height > 250 && shape.height < 600, `height ${shape.height} fits a popup (Chrome allows 600)`);
     assert.deepEqual([shape.overflowX, shape.overflowY], [false, false], 'no scrollbar');
-    assert.deepEqual(shape.icons, Array(9).fill(true), 'every row has its icon, the switch too');
+    assert.deepEqual(shape.icons, Array(10).fill(true), 'every row has its icon, the switch and the delay too');
     assert.ok(shape.logo);
     assert.deepEqual(h.errors, []);
     await page.close();
@@ -153,7 +153,7 @@ describe('popup: content, language, theme, keys', () => {
     await page.addInitScript(() => { chrome.commands.getAll = () => Promise.reject(new Error('no commands')); });
     await page.goto(h.url('popup.html'));
     await page.waitForFunction(() => !document.documentElement.classList.contains('pending'));
-    assert.equal((await rows(page)).length, 8);
+    assert.equal((await rows(page)).length, 9);
     await page.close();
     await seedAppearance(h, null);
     h.errors.length = 0; // the console error of that failure is expected
@@ -316,7 +316,8 @@ describe('popup: content, language, theme, keys', () => {
     await seedAppearance(h, { language: 'en', theme: 'auto', noTrace: true });
     const page = await openPopup(h, { spy: true });
     assert.deepEqual(await state(page), { checked: 'true', hint: true, editOff: ['true', 'true', 'true'] }, 'from the first frame');
-    await page.keyboard.press('End'); // the switch is the last row
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowUp'); // the switch is the row before the last one
     assert.equal(await focused(page), 'no-trace');
     await page.keyboard.press('Space');
     await until(async () => (await state(page)).checked === 'false', 'the switch is off');
@@ -336,6 +337,46 @@ describe('popup: content, language, theme, keys', () => {
     await page.close();
   });
 
+  it('the delay control: none at first, each click goes to the next delay (3, 5, 10 s, none), sends it, writes the copy, and leaves the popup open', async () => {
+    await seedAppearance(h, { language: 'en', theme: 'auto' });
+    const page = await openPopup(h, { spy: true });
+    const value = () => page.evaluate(() => [document.querySelector('[data-id="capture-delay"] .value')?.textContent, document.querySelector('[data-id="capture-delay"]')?.getAttribute('aria-label')]);
+    assert.deepEqual(await value(), ['Off', 'Delay: Off']);
+    assert.equal(await page.getAttribute('[data-id="capture-delay"]', 'role'), 'menuitem');
+    for (const [seconds, text] of [[3, '3 s'], [5, '5 s'], [10, '10 s'], [0, 'Off']]) {
+      await page.click('[data-id="capture-delay"]');
+      await until(async () => (await value())[0] === text, `the delay reads ${text}`);
+      assert.equal((await value())[1], `Delay: ${text}`);
+      assert.equal((await copyOf(page)).captureDelay, seconds, 'the copy that the popup reads at opening');
+      assert.equal((await copyOf(page)).language, 'en', 'the rest of the copy is kept');
+    }
+    assert.deepEqual((await page.evaluate(() => window.__sent)).map((m) => [m.type, m.value]), [['popup-delay', 3], ['popup-delay', 5], ['popup-delay', 10], ['popup-delay', 0]]);
+    assert.equal(await page.evaluate(() => window.__closed), 0, 'a setting: the popup stays open');
+    await page.close();
+  });
+
+  it('the delay is shown at once when the copy says so (no database), the keyboard changes it, and a worker that refuses puts it back', async () => {
+    await seedAppearance(h, { language: 'en', theme: 'auto', captureDelay: 5 });
+    const page = await openPopup(h, { spy: true });
+    const value = () => page.textContent('[data-id="capture-delay"] .value');
+    assert.equal(await value(), '5 s', 'from the first frame');
+    assert.equal(await page.evaluate(() => document.querySelector('[data-id="capture-delay"]')?.classList.contains('on')), true, 'lit while a delay is set');
+    await page.keyboard.press('End');
+    assert.equal(await focused(page), 'capture-delay');
+    await page.keyboard.press('Enter');
+    await until(async () => (await value()) === '10 s', 'the next delay');
+    await page.evaluate(() => { chrome.runtime.sendMessage = async () => false; });
+    await page.keyboard.press('Space');
+    await until(async () => (await value()) === '10 s' && (await copyOf(page)).captureDelay === 10, 'back to what is stored');
+    assert.equal(await page.evaluate(() => window.__closed), 0);
+    await page.close();
+    await seedAppearance(h, { language: 'en', theme: 'auto', captureDelay: 7 });
+    const bad = await openPopup(h, { spy: true });
+    assert.equal(await bad.textContent('[data-id="capture-delay"] .value'), 'Off', 'a delay that is not one of the choices is none');
+    await bad.close();
+    await seedAppearance(h, null);
+  });
+
   it('keyboard: arrows move (and wrap), Home and End, Enter sends the action once, Escape closes', async () => {
     const page = await openPopup(h, { spy: true });
     assert.equal(await focused(page), 'capture-area');
@@ -343,14 +384,14 @@ describe('popup: content, language, theme, keys', () => {
     assert.equal(await focused(page), 'capture-visible');
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('ArrowUp');
-    assert.equal(await focused(page), 'no-trace', 'wraps to the last row: the switch');
+    assert.equal(await focused(page), 'capture-delay', 'wraps to the last row: the delay');
     await page.keyboard.press('ArrowDown');
     assert.equal(await focused(page), 'capture-area', 'wraps to the first row');
     await page.keyboard.press('End');
-    assert.equal(await focused(page), 'no-trace');
+    assert.equal(await focused(page), 'capture-delay');
     await page.keyboard.press('Home');
     assert.equal(await focused(page), 'capture-area');
-    assert.deepEqual(await rows(page).then((l) => l.map((r) => r.tabindex)), [0, -1, -1, -1, -1, -1, -1, -1], 'roving tabindex');
+    assert.deepEqual(await rows(page).then((l) => l.map((r) => r.tabindex)), [0, -1, -1, -1, -1, -1, -1, -1, -1], 'roving tabindex');
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
     assert.equal(await focused(page), 'capture-visible-edit');
     assert.equal((await rows(page)).findIndex((r) => r.tabindex === 0), 4);
@@ -566,7 +607,7 @@ describe('popup: first paint', () => {
       await cold.goto(h.url('popup.html'));
       await cold.waitForFunction(() => performance.getEntriesByName('first-contentful-paint').length > 0 && !document.documentElement.classList.contains('pending'));
       const first = await measure(cold);
-      assert.equal(first.rows, 8);
+      assert.equal(first.rows, 9);
       assert.equal(await cold.locator('[data-id=open-settings] .label').textContent(), 'Paramètres', '"auto" follows the language of the browser');
       const warm = [];
       for (let i = 0; i < 7; i++) {

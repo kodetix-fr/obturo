@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { CAPTURE_DELAYS } from './gestures.js';
 import {
   AFTER_CAPTURE, DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FULL_PAGE_FIXED, FULL_PAGE_WAITS, MAX_NAME_TEMPLATE, PDF_ENCODINGS, PDF_LAYOUTS, cleanShotIds, normalizeSettings, notifySettingsChanged, readAppearance, writeAppearance,
 } from './settings.js';
@@ -71,10 +72,10 @@ test('appearance copy: written, read back validated, null when there is none', (
   try {
     assert.equal(readAppearance(), null, 'no copy yet');
     writeAppearance({ language: 'fr', theme: 'dark' });
-    assert.deepEqual(readAppearance(), { language: 'fr', theme: 'dark', noTrace: false });
-    assert.deepEqual(JSON.parse(g.localStorage.data.get('obturo.appearance')), { language: 'fr', theme: 'dark', noTrace: false });
-    writeAppearance({ language: 'en', theme: 'auto', noTrace: true }); // what the popup shows at once, with no database
-    assert.deepEqual(readAppearance(), { language: 'en', theme: 'auto', noTrace: true });
+    assert.deepEqual(readAppearance(), { language: 'fr', theme: 'dark', noTrace: false, captureDelay: 0 });
+    assert.deepEqual(JSON.parse(g.localStorage.data.get('obturo.appearance')), { language: 'fr', theme: 'dark', noTrace: false, captureDelay: 0 });
+    writeAppearance({ language: 'en', theme: 'auto', noTrace: true, captureDelay: 5 }); // what the popup shows at once, with no database
+    assert.deepEqual(readAppearance(), { language: 'en', theme: 'auto', noTrace: true, captureDelay: 5 });
   } finally {
     delete g.localStorage;
   }
@@ -85,7 +86,7 @@ test('appearance copy: a corrupted or foreign value never breaks the page', () =
     g.localStorage = fakeStorage({ 'obturo.appearance': raw });
     try {
       const copy = readAppearance();
-      if (raw === '{"language":"klingon","theme":"pink"}') assert.deepEqual(copy, { language: DEFAULT_SETTINGS.language, theme: DEFAULT_SETTINGS.theme, noTrace: false });
+      if (raw === '{"language":"klingon","theme":"pink"}') assert.deepEqual(copy, { language: DEFAULT_SETTINGS.language, theme: DEFAULT_SETTINGS.theme, noTrace: false, captureDelay: 0 });
       else assert.equal(copy, null, raw);
     } finally {
       delete g.localStorage;
@@ -125,6 +126,13 @@ test('normalizeSettings: the no-trace mode is a boolean, off by default', () => 
   assert.equal(normalizeSettings({ noTrace: true }).noTrace, true);
   assert.equal(normalizeSettings({ noTrace: false }).noTrace, false);
   for (const junk of ['true', 1, 0, null, undefined, {}, [true], 'yes']) assert.equal(normalizeSettings({ noTrace: junk }).noTrace, false, String(junk));
+});
+
+test('normalizeSettings: the delay before a capture is one of the choices, none by default', () => {
+  assert.equal(DEFAULT_SETTINGS.captureDelay, 0);
+  assert.deepEqual(CAPTURE_DELAYS, [0, 3, 5, 10]);
+  for (const captureDelay of CAPTURE_DELAYS) assert.equal(normalizeSettings({ captureDelay }).captureDelay, captureDelay);
+  for (const junk of [1, 4, -3, 11, '3', '', null, undefined, 3.5, NaN, {}, [3]]) assert.equal(normalizeSettings({ captureDelay: junk }).captureDelay, 0, String(junk));
 });
 
 test('normalizeSettings: the full-page wait and the fixed elements', () => {

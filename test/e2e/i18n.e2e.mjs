@@ -243,7 +243,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     const copy = () => page.evaluate(() => JSON.parse(localStorage.getItem('obturo.appearance') ?? 'null'));
     await library({ language: 'en', theme: 'dark' }); // setSettings writes the copy
     await ready(page);
-    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false });
+    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false, captureDelay: 0 });
     // A stale copy (French, light) while the database says English, dark: the copy shows first, the database wins.
     await page.evaluate(() => localStorage.setItem('obturo.appearance', JSON.stringify({ language: 'fr', theme: 'light' })));
     await page.reload();
@@ -251,14 +251,14 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     await ready(page);
     await waitOut(page, 1280, 720);
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('obturo.appearance')).language === 'en');
-    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false }, 'the copy was repaired');
+    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false, captureDelay: 0 }, 'the copy was repaired');
     // No copy (first visit, cleared data): the page waits for the database and writes the copy.
     await page.evaluate(() => localStorage.removeItem('obturo.appearance'));
     await page.reload();
     await page.waitForFunction(() => !document.documentElement.classList.contains('pending'));
     assert.equal(await page.evaluate(() => document.documentElement.lang), 'en');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
-    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false }, 'the copy was rebuilt');
+    assert.deepEqual(await copy(), { language: 'en', theme: 'dark', noTrace: false, captureDelay: 0 }, 'the copy was rebuilt');
   });
 
   // Records, before any script of the page, when data-theme appears on <html> and when the first paint happens, and every Intl number

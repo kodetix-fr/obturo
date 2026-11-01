@@ -102,6 +102,16 @@ export function cleanPopupRun(m) {
  */
 export const cleanNoTrace = (m) => (m?.type === 'popup-notrace' && typeof m.value === 'boolean' ? m.value : null);
 
+/** The delays before a capture, in seconds (the select of the settings and the control of the popup); 0 is none. */
+export const CAPTURE_DELAYS = [0, 3, 5, 10];
+
+/**
+ * Validates the message { type: 'popup-delay', value } that the popup sends when its delay control is changed: only the shape (the sender
+ * is checked by sw.js).
+ * @param {any} m @returns {number | null} The wanted delay, or null if the message is not that.
+ */
+export const cleanDelay = (m) => (m?.type === 'popup-delay' && CAPTURE_DELAYS.includes(m.value) ? m.value : null);
+
 /**
  * Validates the message { type: 'chooser-edit', id } that the page of actions after a capture sends (chooser.html): the capture to open
  * in the editor, a whole number from 1. Only the shape (the sender is checked by sw.js).

@@ -2,9 +2,10 @@
 // Readable from the service worker, the library and Node tests (normalizeSettings is pure). setSettings tells the
 // other contexts through BroadcastChannel('obturo') and a runtime message: { type: 'settings-changed' }.
 import { LANGUAGES } from './languages.js';
+import { CAPTURE_DELAYS } from './gestures.js';
 import { done, wait } from './idb.js';
 
-/** @typedef {{ language: string, theme: string, retentionDays: number, maxBytes: number, downloadFormat: string, downloadQuality: number, pdfLayout: string, pdfEncoding: string, filenameTemplate: string, afterCapture: string, fullPageWait: number, fullPageFixed: string, noTrace: boolean }} Settings */
+/** @typedef {{ language: string, theme: string, retentionDays: number, maxBytes: number, downloadFormat: string, downloadQuality: number, pdfLayout: string, pdfEncoding: string, filenameTemplate: string, afterCapture: string, fullPageWait: number, fullPageFixed: string, noTrace: boolean, captureDelay: number }} Settings */
 
 /** @type {Readonly<Settings>} */
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   fullPageWait: 0,        // full page: ms to wait after each scroll, on top of what the capture waits for by itself (images, animations)
   fullPageFixed: 'edges', // full page: 'edges' (a fixed bar shows once, at the top or at the bottom of the image) | 'hide' (none shows)
   noTrace: false,         // no trace: a capture is copied to the clipboard and saved nowhere (nothing in the history)
+  captureDelay: 0,        // seconds to wait before a capture (CAPTURE_DELAYS), the icon counting down; 0 = none
 });
 
 const THEMES = ['auto', 'light', 'dark'];
@@ -60,6 +62,7 @@ export function normalizeSettings(raw) {
     fullPageWait: FULL_PAGE_WAITS.includes(r.fullPageWait) ? r.fullPageWait : d.fullPageWait,
     fullPageFixed: FULL_PAGE_FIXED.includes(r.fullPageFixed) ? r.fullPageFixed : d.fullPageFixed,
     noTrace: typeof r.noTrace === 'boolean' ? r.noTrace : d.noTrace,
+    captureDelay: CAPTURE_DELAYS.includes(r.captureDelay) ? r.captureDelay : d.captureDelay,
   };
 }
 
@@ -142,27 +145,27 @@ export async function liveOpenShots() {
 // its first frame in the right language and theme without waiting for the settings database: opening it costs about
 // 10 ms, which is a tenth of the budget of the library strip. IndexedDB stays the truth: a page confirms the copy with
 // getSettings a moment later. The service worker has no localStorage and does not need it.
-// The popup also reads the copy for the no-trace mode (a switch it shows at once, with no database); it writes it too when the
-// switch is flipped there, since it is the page that changes the setting (through the service worker).
-// ponytail: only what a first frame needs is copied (the language, the theme, the no-trace mode); add a key here if another setting must be known before IndexedDB answers.
+// The popup also reads the copy for the no-trace mode and the delay before a capture (controls it shows at once, with no database); it writes it too when
+// one is changed there, since it is the page that changes the setting (through the service worker).
+// ponytail: only what a first frame needs is copied (the language, the theme, the no-trace mode, the delay); add a key here if another setting must be known before IndexedDB answers.
 const APPEARANCE_KEY = 'obturo.appearance';
 
-/** @returns {{ language: string, theme: string, noTrace: boolean } | null} the copy, validated, or null if there is none yet */
+/** @returns {{ language: string, theme: string, noTrace: boolean, captureDelay: number } | null} the copy, validated, or null if there is none yet */
 export function readAppearance() {
   try {
     const raw = JSON.parse(localStorage.getItem(APPEARANCE_KEY));
     if (!raw || typeof raw !== 'object') return null;
-    const { language, theme, noTrace } = normalizeSettings(raw);
-    return { language, theme, noTrace };
+    const { language, theme, noTrace, captureDelay } = normalizeSettings(raw);
+    return { language, theme, noTrace, captureDelay };
   } catch {
     return null; // no localStorage, blocked, or not JSON
   }
 }
 
-/** @param {{ language: string, theme: string, noTrace?: boolean }} settings */
-export function writeAppearance({ language, theme, noTrace = false }) {
+/** @param {{ language: string, theme: string, noTrace?: boolean, captureDelay?: number }} settings */
+export function writeAppearance({ language, theme, noTrace = false, captureDelay = 0 }) {
   try {
-    localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ language, theme, noTrace }));
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ language, theme, noTrace, captureDelay }));
   } catch { /* no localStorage (service worker), blocked or full: the settings database is still the truth */ }
 }
 

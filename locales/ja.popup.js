@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'キャプチャはコピーされるだけで、保存されません。「キャプチャして編集」は使えません。', // under the switch
   'popup.manage': '拡張機能を管理', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'キーボード ショートカット', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': '待ち時間',
+  'popup.delayOff': 'なし',
+  'popup.delayValue': '{n} 秒',
 };

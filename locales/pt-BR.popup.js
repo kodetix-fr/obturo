@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'As capturas são apenas copiadas, nunca salvas. "Capturar e editar" fica indisponível.', // under the switch
   'popup.manage': 'Gerenciar extensões', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'Atalhos de teclado', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': 'Atraso',
+  'popup.delayOff': 'Desativado',
+  'popup.delayValue': '{n} s',
 };

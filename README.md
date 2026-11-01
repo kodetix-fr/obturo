@@ -78,6 +78,13 @@ opens the new capture in the editor.
   the background and closes itself: the captured page keeps the focus, and the
   tab only comes forward if the download fails. *Capture and edit* and the
   no-trace mode never ask: the first opens the editor, the second only copies.
+- **Delay**: *Settings*, *Capture*, *Delay before capture* (none, 3, 5 or 10 s), and
+  a row of the popup that goes through the choices at each click. A capture then
+  waits: the icon counts the seconds down and the page stays usable, so a menu, a
+  tooltip or a hover state can be opened first. Running any capture again (the
+  shortcut, the menu or the popup) cancels the wait, and so does leaving the tab.
+  It applies to the visible part, the full page and *Capture and edit*; for an
+  area, the selection starts when the delay ends.
 - **Clipboard**: with *Copy it*, every capture is copied and saved. A badge on the icon says how
   it went: `OK` (green) copied and saved, `!` (orange) saved but not copied,
   `ERR` (red) failed, `...` (grey) ignored because another capture is running,
