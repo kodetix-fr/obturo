@@ -1,0 +1,135 @@
+// English texts of the history: the full-screen view, its selection bar, and the history block of the settings (keys 'hist.*').
+// Keys with a '.one' and a '.other' form are plurals (history-model.js, pluralForm). Key segments are letters only, so that
+// i18n.test.js can find the keys used by the code.
+/** @type {Record<string, string>} */
+export default {
+  // header button, strip shortcut
+  'hist.open': 'History',
+  'hist.open.tip': 'Browse every capture',
+  'hist.all': 'All history',
+  'hist.all.aria': 'Open the whole history. Captures: {n}',
+
+  // the view
+  'hist.title': 'History',
+  'hist.close': 'Close the history',
+  'hist.grid': 'Captures',
+  'hist.search.label': 'Search captures',
+  'hist.search.placeholder': 'Search by title or address',
+  'hist.host.label': 'Site',
+  'hist.host.all': 'All sites',
+  'hist.period.label': 'Period',
+  'hist.period.all': 'All time',
+  'hist.period.today': 'Today',
+  'hist.period.week': '7 days',
+  'hist.period.month': '30 days',
+  'hist.pinned.only': 'Pinned only',
+  'hist.count.one': '{n} capture',
+  'hist.count.other': '{n} captures',
+  'hist.found.one': '{n} result',
+  'hist.found.other': '{n} results',
+  'hist.more': 'Loading more…',
+  'hist.hint.keys': 'Arrow keys move, Space selects, Enter opens, P pins, Delete removes.',
+  'hist.footer.settings': 'Storage settings',
+  'hist.readonly': 'This tab is read-only: close the other Obturo tab to open, pin or delete captures.',
+
+  // cards
+  'hist.card.select': 'Select the capture from {when}',
+  'hist.pin.card': 'Pin the capture from {when}',
+  'hist.pin.editor': 'Pin this capture',
+  'hist.pin.tip': 'Pinned captures are never removed automatically.',
+
+  // states
+  'hist.none.title': 'No matching captures',
+  'hist.none.hint': 'Try other words, or clear the filters.',
+  'hist.none.clear': 'Clear the filters',
+  'hist.error.title': "Can't read the history",
+  'hist.error.hint': 'The database is unavailable. Reload the page; if the problem persists, restart the browser.',
+  'hist.error.retry': 'Try again',
+
+  // selection bar
+  'hist.bulk.label': 'Actions on the selection',
+  'hist.sel.one': '{n} selected',
+  'hist.sel.other': '{n} selected',
+  'hist.sel.all': 'Select all {n} results',
+  'hist.sel.clear': 'Clear the selection',
+  'hist.bulk.pin': 'Pin',
+  'hist.bulk.unpin': 'Unpin',
+  'hist.bulk.delete': 'Delete',
+
+  // deleting
+  'hist.cancel': 'Cancel',
+  'hist.del.title.one': 'Delete this capture?',
+  'hist.del.title.other': 'Delete {n} captures?',
+  'hist.del.body': 'Deleted captures are erased from this browser, with their versions. This cannot be undone.',
+  'hist.del.includes': 'Includes {pinned} pinned and {edited} edited.',
+  'hist.del.size': 'This frees {size}.',
+  'hist.del.ok': 'Delete',
+  'hist.del.progress': 'Deleting… {done} of {total}',
+  'hist.del.failed': 'Deletion failed: the database is unavailable. Reload the page and try again.',
+  'hist.status.deleted.one': '{n} capture deleted',
+  'hist.status.deleted.other': '{n} captures deleted',
+  'hist.status.pinned.one': '{n} capture pinned',
+  'hist.status.pinned.other': '{n} captures pinned',
+  'hist.status.unpinned.one': '{n} capture unpinned',
+  'hist.status.unpinned.other': '{n} captures unpinned',
+  'hist.pin.failed': "Couldn't update the capture: the database is unavailable. Reload the page and try again.",
+
+  // sizes
+  'hist.unit.b': 'B',
+  'hist.unit.kb': 'KB',
+  'hist.unit.mb': 'MB',
+  'hist.unit.gb': 'GB',
+  'hist.unit.tb': 'TB',
+
+  // settings block
+  'hist.set.title': 'History',
+  'hist.set.keep': 'Keep captures for',
+  'hist.keep.week': '7 days',
+  'hist.keep.month': '30 days',
+  'hist.keep.quarter': '90 days',
+  'hist.keep.year': '1 year',
+  'hist.keep.forever': 'Forever',
+  'hist.keep.custom': '{n} d', // an abbreviation: a custom number of days can be 1, and "1 days" is wrong
+  'hist.set.cap': 'Size limit',
+  'hist.cap.half': '500 MB',
+  'hist.cap.single': '1 GB',
+  'hist.cap.double': '2 GB',
+  'hist.cap.five': '5 GB',
+  'hist.cap.ten': '10 GB',
+  'hist.cap.none': 'No limit',
+  'hist.set.noTrace': 'No trace',
+  'hist.set.noTrace.note': 'Captures are copied to the clipboard and saved nowhere: nothing in the history, nothing to edit. The captures you already have stay. The Obturo popup has the same switch, and the icon turns violet while it is on.',
+  'hist.set.note': 'Pinned captures are never removed automatically. Edited captures are not removed by the age limit, but can be removed when the size limit is reached.',
+  'hist.set.readonly': 'This tab is read-only: close the other Obturo tab to change these settings, purge or delete captures.',
+  'hist.meter.label': 'Storage used by the history',
+  'hist.meter.cap': '{count}, {used} of {cap}',
+  'hist.meter.nocap': '{count}, {used}, no size limit',
+  'hist.meter.over': 'Pinned captures alone take more than the limit.',
+  'hist.meter.unavailable': 'Storage figures unavailable.',
+  'hist.pending': 'At the next cleanup (a new capture, or opening the library): {what} to remove.',
+  'hist.purge.btn': 'Purge now…',
+  'hist.wipe.btn': 'Delete everything…',
+
+  // purge dialog
+  'hist.purge.title': 'Purge now',
+  'hist.purge.age': 'Delete captures older than',
+  'hist.purge.days': 'days',
+  'hist.purge.cap': 'Reduce the history to at most',
+  'hist.purge.note': 'Pinned captures are always kept. Edited captures are kept when purging by age.',
+  'hist.purge.none': 'Nothing to delete with these options.',
+  'hist.purge.some': 'To delete: {what}, freeing {size}.',
+  'hist.purge.kept': 'Kept: {pinned} pinned, {edited} edited.',
+  'hist.purge.remaining': 'Remaining: {what} ({size}).',
+  'hist.purge.over': "The size limit can't be reached: the pinned captures alone take more space.",
+  'hist.purge.run': 'Purge',
+  'hist.purge.running': 'Purging…',
+  'hist.purge.done': 'Deleted: {what}, {size} freed.',
+  'hist.purge.failed': 'The purge failed: the database is unavailable. Reload the page and try again.',
+
+  // delete everything
+  'hist.wipe.title': 'Delete the whole history?',
+  'hist.wipe.body': 'Everything will be erased from this browser: {what} ({size}), pinned and edited captures included. This cannot be undone.',
+  'hist.wipe.type': 'Type {word} to confirm',
+  'hist.wipe.word': 'DELETE',
+  'hist.wipe.ok': 'Delete everything',
+};

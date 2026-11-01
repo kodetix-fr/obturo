@@ -1,0 +1,41 @@
+{
+  "name": "obturo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A small Chrome extension (Manifest V3) for capturing, annotating and keeping screenshots. 100% local, no account.",
+  "keywords": ["chrome-extension", "manifest-v3", "screenshot", "screen-capture", "annotation", "privacy"],
+  "license": "MIT",
+  "author": "Bruno Bellenoue",
+  "homepage": "https://github.com/kodetix-fr/obturo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kodetix-fr/obturo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kodetix-fr/obturo/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test \"*.test.js\"",
+    "test:e2e": "node --test --test-reporter=spec --test-concurrency=1 --test-timeout=180000 \"test/e2e/*.e2e.mjs\"",
+    "bench": "node scripts/bench.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "package": "node scripts/package.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/chrome": "0.3.4",
+    "@types/node": "22.20.4",
+    "eslint": "10.11.0",
+    "globals": "17.13.0",
+    "pdf-lib": "1.17.1",
+    "playwright-core": "1.57.0",
+    "typescript": "7.0.2"
+  }
+}

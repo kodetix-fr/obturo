@@ -1,0 +1,33 @@
+node_modules/
+dist/
+*.zip
+*.crx
+*.pem
+coverage/
+*.tsbuildinfo
+*.log
+
+# Local secrets
+.env
+.env.*
+
+# Browser profiles used by manual or automated tests (--user-data-dir)
+.chrome-profile/
+chrome-profile/
+.playwright/
+test-results/
+
+# Checking vendor/ (npm pack fabric@6.9.1 then tar -xzf, see vendor/README.md)
+fabric-*.tgz
+/package/
+
+# Workstation
+.DS_Store
+Thumbs.db
+
+# Browser automation sessions
+.playwright-mcp/
+
+# Local agent and QA sessions
+.claude/
+.qmw/

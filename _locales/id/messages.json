@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "Tangkap, beri anotasi, dan simpan tangkapan layar Anda. 100% lokal, tanpa akun." },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "Tangkap area" },
+  "cmdCaptureVisible": { "message": "Tangkap bagian yang terlihat" },
+  "cmdCaptureFull": { "message": "Tangkap seluruh halaman" },
+  "cmdOpenLibrary": { "message": "Buka pustaka" },
+  "cmdCaptureAreaEdit": { "message": "Tangkap area dan edit" },
+  "cmdCaptureVisibleEdit": { "message": "Tangkap bagian yang terlihat dan edit" },
+  "cmdCaptureFullEdit": { "message": "Tangkap seluruh halaman dan edit" }
+}

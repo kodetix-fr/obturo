@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "Screenshots aufnehmen, beschriften und behalten. 100\u00a0% lokal, ohne Konto." },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "Bereich aufnehmen" },
+  "cmdCaptureVisible": { "message": "Sichtbaren Ausschnitt aufnehmen" },
+  "cmdCaptureFull": { "message": "Ganze Seite aufnehmen" },
+  "cmdOpenLibrary": { "message": "Bibliothek öffnen" },
+  "cmdCaptureAreaEdit": { "message": "Bereich aufnehmen und bearbeiten" },
+  "cmdCaptureVisibleEdit": { "message": "Sichtbaren Ausschnitt aufnehmen und bearbeiten" },
+  "cmdCaptureFullEdit": { "message": "Ganze Seite aufnehmen und bearbeiten" }
+}

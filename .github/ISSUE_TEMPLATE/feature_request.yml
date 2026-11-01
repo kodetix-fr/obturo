@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest something the extension should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obturo stays small, local and free of install warnings: no server, no telemetry, no remote code, and no new
+        permission without a discussion. An idea outside that frame may be declined; see the Scope section of the
+        [README](https://github.com/kodetix-fr/obturo/blob/main/README.md#scope).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The situation you run into, before any solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you already tried
+      description: Existing tools or settings that come close but do not quite work.
+
+  - type: dropdown
+    id: permission
+    attributes:
+      label: Does it need a new permission, network access or a dependency?
+      options:
+        - "No"
+        - "Yes"
+        - I do not know
+    validations:
+      required: true

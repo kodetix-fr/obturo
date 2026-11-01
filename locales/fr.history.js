@@ -1,0 +1,135 @@
+// Textes français de l'historique : la vue plein écran, sa barre de sélection et le bloc « Historique » des paramètres (clés 'hist.*').
+// Les clés en '.one' et '.other' sont des pluriels (history-model.js, pluralForm : en français 0 et 1 sont au singulier). Les
+// segments de clé ne contiennent que des lettres, pour que i18n.test.js retrouve les clés utilisées par le code.
+/** @type {Record<string, string>} */
+export default {
+  // bouton d'en-tête, raccourci du bandeau
+  'hist.open': 'Historique',
+  'hist.open.tip': 'Parcourir toutes les captures',
+  'hist.all': "Tout l'historique",
+  'hist.all.aria': "Ouvrir tout l'historique. Captures\u00a0: {n}",
+
+  // la vue
+  'hist.title': 'Historique',
+  'hist.close': "Fermer l'historique",
+  'hist.grid': 'Captures',
+  'hist.search.label': 'Rechercher dans les captures',
+  'hist.search.placeholder': 'Rechercher un titre ou une adresse',
+  'hist.host.label': 'Site',
+  'hist.host.all': 'Tous les sites',
+  'hist.period.label': 'Période',
+  'hist.period.all': 'Toutes les périodes',
+  'hist.period.today': "Aujourd'hui",
+  'hist.period.week': '7 jours',
+  'hist.period.month': '30 jours',
+  'hist.pinned.only': 'Épinglées seulement',
+  'hist.count.one': '{n} capture',
+  'hist.count.other': '{n} captures',
+  'hist.found.one': '{n} résultat',
+  'hist.found.other': '{n} résultats',
+  'hist.more': 'Chargement de la suite…',
+  'hist.hint.keys': 'Flèches\u00a0: se déplacer, Espace\u00a0: sélectionner, Entrée\u00a0: ouvrir, P\u00a0: épingler, Suppr\u00a0: supprimer.',
+  'hist.footer.settings': 'Paramètres du stockage',
+  'hist.readonly': 'Cet onglet est en lecture seule\u00a0: ferme l\'autre onglet Obturo pour ouvrir, épingler ou supprimer des captures.',
+
+  // cartes
+  'hist.card.select': 'Sélectionner la capture du {when}',
+  'hist.pin.card': 'Épingler la capture du {when}',
+  'hist.pin.editor': 'Épingler cette capture',
+  'hist.pin.tip': 'Une capture épinglée n\'est jamais supprimée automatiquement.',
+
+  // états
+  'hist.none.title': 'Aucune capture ne correspond',
+  'hist.none.hint': 'Essaie d\'autres mots, ou retire les filtres.',
+  'hist.none.clear': 'Retirer les filtres',
+  'hist.error.title': "Impossible de lire l'historique",
+  'hist.error.hint': 'La base de données est indisponible. Recharge la page\u00a0; si le problème persiste, redémarre le navigateur.',
+  'hist.error.retry': 'Réessayer',
+
+  // barre de sélection
+  'hist.bulk.label': 'Actions sur la sélection',
+  'hist.sel.one': '{n} sélectionnée',
+  'hist.sel.other': '{n} sélectionnées',
+  'hist.sel.all': 'Sélectionner les {n} résultats',
+  'hist.sel.clear': 'Tout désélectionner',
+  'hist.bulk.pin': 'Épingler',
+  'hist.bulk.unpin': 'Désépingler',
+  'hist.bulk.delete': 'Supprimer',
+
+  // suppression
+  'hist.cancel': 'Annuler',
+  'hist.del.title.one': 'Supprimer cette capture\u00a0?',
+  'hist.del.title.other': 'Supprimer {n} captures\u00a0?',
+  'hist.del.body': 'Les captures supprimées sont effacées de ce navigateur, avec leurs versions. Cette action est définitive.',
+  'hist.del.includes': 'Dont épinglées\u00a0: {pinned}, éditées\u00a0: {edited}.',
+  'hist.del.size': 'Cela libère {size}.',
+  'hist.del.ok': 'Supprimer',
+  'hist.del.progress': 'Suppression… {done} sur {total}',
+  'hist.del.failed': 'Suppression impossible\u00a0: la base de données est indisponible. Recharge la page puis réessaie.',
+  'hist.status.deleted.one': '{n} capture supprimée',
+  'hist.status.deleted.other': '{n} captures supprimées',
+  'hist.status.pinned.one': '{n} capture épinglée',
+  'hist.status.pinned.other': '{n} captures épinglées',
+  'hist.status.unpinned.one': '{n} capture désépinglée',
+  'hist.status.unpinned.other': '{n} captures désépinglées',
+  'hist.pin.failed': 'Mise à jour impossible\u00a0: la base de données est indisponible. Recharge la page puis réessaie.',
+
+  // tailles
+  'hist.unit.b': 'o',
+  'hist.unit.kb': 'Ko',
+  'hist.unit.mb': 'Mo',
+  'hist.unit.gb': 'Go',
+  'hist.unit.tb': 'To',
+
+  // bloc des paramètres
+  'hist.set.title': 'Historique',
+  'hist.set.keep': 'Conserver les captures',
+  'hist.keep.week': '7 jours',
+  'hist.keep.month': '30 jours',
+  'hist.keep.quarter': '90 jours',
+  'hist.keep.year': '1 an',
+  'hist.keep.forever': 'Indéfiniment',
+  'hist.keep.custom': '{n}\u00a0j', // une abréviation : un nombre de jours libre peut valoir 1, et « 1 jours » est faux
+  'hist.set.cap': 'Plafond de taille',
+  'hist.cap.half': '500\u00a0Mo',
+  'hist.cap.single': '1\u00a0Go',
+  'hist.cap.double': '2\u00a0Go',
+  'hist.cap.five': '5\u00a0Go',
+  'hist.cap.ten': '10\u00a0Go',
+  'hist.cap.none': 'Sans plafond',
+  'hist.set.noTrace': 'Sans trace',
+  'hist.set.noTrace.note': "Les captures sont copiées dans le presse-papiers et ne sont enregistrées nulle part\u00a0: rien dans l'historique, rien à éditer. Les captures que tu as déjà restent. La fenêtre de l'icône Obturo a le même interrupteur, et l'icône devient violette tant qu'il est actif.",
+  'hist.set.note': "Une capture épinglée n'est jamais supprimée automatiquement. Une capture éditée n'est pas concernée par la limite d'âge, mais peut être supprimée quand le plafond de taille est atteint.",
+  'hist.set.readonly': "Cet onglet est en lecture seule\u00a0: ferme l'autre onglet Obturo pour modifier ces paramètres, purger ou supprimer des captures.",
+  'hist.meter.label': "Stockage utilisé par l'historique",
+  'hist.meter.cap': '{count}, {used} sur {cap}',
+  'hist.meter.nocap': '{count}, {used}, sans plafond de taille',
+  'hist.meter.over': 'Les captures épinglées prennent à elles seules plus que le plafond.',
+  'hist.meter.unavailable': 'Chiffres de stockage indisponibles.',
+  'hist.pending': "Au prochain nettoyage (une nouvelle capture, ou l'ouverture de la bibliothèque)\u00a0: {what} à supprimer.",
+  'hist.purge.btn': 'Purger maintenant…',
+  'hist.wipe.btn': 'Tout supprimer…',
+
+  // boîte de purge
+  'hist.purge.title': 'Purger maintenant',
+  'hist.purge.age': 'Supprimer les captures de plus de',
+  'hist.purge.days': 'jours',
+  'hist.purge.cap': "Limiter l'historique à",
+  'hist.purge.note': 'Les captures épinglées sont toujours conservées. Les captures éditées le sont aussi quand on purge par âge.',
+  'hist.purge.none': 'Rien à supprimer avec ces options.',
+  'hist.purge.some': "À supprimer\u00a0: {what}, {size} d'espace libéré.",
+  'hist.purge.kept': 'Conservées\u00a0: épinglées {pinned}, éditées {edited}.',
+  'hist.purge.remaining': 'Il restera\u00a0: {what} ({size}).',
+  'hist.purge.over': 'Le plafond ne peut pas être atteint\u00a0: les captures épinglées prennent à elles seules plus de place.',
+  'hist.purge.run': 'Purger',
+  'hist.purge.running': 'Purge en cours…',
+  'hist.purge.done': "Supprimé\u00a0: {what}, {size} d'espace libéré.",
+  'hist.purge.failed': 'La purge a échoué\u00a0: la base de données est indisponible. Recharge la page puis réessaie.',
+
+  // tout supprimer
+  'hist.wipe.title': "Supprimer tout l'historique\u00a0?",
+  'hist.wipe.body': 'Tout sera effacé de ce navigateur\u00a0: {what} ({size}), épinglées et éditées comprises. Cette action est définitive.',
+  'hist.wipe.type': 'Saisis {word} pour confirmer',
+  'hist.wipe.word': 'SUPPRIMER',
+  'hist.wipe.ok': 'Tout supprimer',
+};

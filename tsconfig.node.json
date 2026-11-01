@@ -1,0 +1,11 @@
+{
+  // The tooling (unit tests, E2E, scripts, configuration): Node, with the DOM for the functions that Playwright runs
+  // in the browser. Same settings as tsconfig.json, but without noResolve (the tests import the extension code).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "chrome"],
+    "noResolve": false
+  },
+  "include": ["*.test.js", "eslint.config.js", "scripts/*.mjs", "test/**/*.mjs", "test/**/*.d.ts", "types/globals.d.ts"],
+  "exclude": ["node_modules", "dist", "vendor"]
+}

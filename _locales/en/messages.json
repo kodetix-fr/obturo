@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "Capture, annotate and keep your screenshots. 100% local, no account." },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "Capture an area" },
+  "cmdCaptureVisible": { "message": "Capture the visible part" },
+  "cmdCaptureFull": { "message": "Capture the full page" },
+  "cmdOpenLibrary": { "message": "Open the library" },
+  "cmdCaptureAreaEdit": { "message": "Capture an area and edit" },
+  "cmdCaptureVisibleEdit": { "message": "Capture the visible part and edit" },
+  "cmdCaptureFullEdit": { "message": "Capture the full page and edit" }
+}

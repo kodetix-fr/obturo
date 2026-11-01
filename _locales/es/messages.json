@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "Haz capturas de pantalla, anótalas y consérvalas. 100 % local, sin cuenta." },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "Capturar una zona" },
+  "cmdCaptureVisible": { "message": "Capturar la parte visible" },
+  "cmdCaptureFull": { "message": "Capturar la página completa" },
+  "cmdOpenLibrary": { "message": "Abrir la biblioteca" },
+  "cmdCaptureAreaEdit": { "message": "Capturar una zona y editar" },
+  "cmdCaptureVisibleEdit": { "message": "Capturar la parte visible y editar" },
+  "cmdCaptureFullEdit": { "message": "Capturar la página completa y editar" }
+}

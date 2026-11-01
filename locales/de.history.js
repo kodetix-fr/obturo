@@ -1,0 +1,135 @@
+// German texts of the history: the full-screen view, its selection bar, and the history block of the settings (keys 'hist.*').
+// Keys with a '.one' and a '.other' form are plurals (history-model.js, pluralForm). Key segments are letters only, so that
+// i18n.test.js can find the keys used by the code.
+/** @type {Record<string, string>} */
+export default {
+  // header button, strip shortcut
+  'hist.open': 'Verlauf',
+  'hist.open.tip': 'Alle Aufnahmen durchsehen',
+  'hist.all': 'Ganzer Verlauf',
+  'hist.all.aria': 'Den ganzen Verlauf öffnen. Aufnahmen: {n}',
+
+  // the view
+  'hist.title': 'Verlauf',
+  'hist.close': 'Verlauf schließen',
+  'hist.grid': 'Aufnahmen',
+  'hist.search.label': 'Aufnahmen durchsuchen',
+  'hist.search.placeholder': 'Nach Titel oder Adresse suchen',
+  'hist.host.label': 'Website',
+  'hist.host.all': 'Alle Websites',
+  'hist.period.label': 'Zeitraum',
+  'hist.period.all': 'Gesamter Zeitraum',
+  'hist.period.today': 'Heute',
+  'hist.period.week': '7 Tage',
+  'hist.period.month': '30 Tage',
+  'hist.pinned.only': 'Nur angeheftete',
+  'hist.count.one': '{n} Aufnahme',
+  'hist.count.other': '{n} Aufnahmen',
+  'hist.found.one': '{n} Treffer',
+  'hist.found.other': '{n} Treffer',
+  'hist.more': 'Weitere werden geladen…',
+  'hist.hint.keys': 'Pfeiltasten: bewegen, Leertaste: auswählen, Eingabetaste: öffnen, P: anheften, Entf: löschen.',
+  'hist.footer.settings': 'Speichereinstellungen',
+  'hist.readonly': 'Dieser Tab ist schreibgeschützt: Schließe den anderen Obturo-Tab, um Aufnahmen zu öffnen, anzuheften oder zu löschen.',
+
+  // cards
+  'hist.card.select': 'Aufnahme vom {when} auswählen',
+  'hist.pin.card': 'Aufnahme vom {when} anheften',
+  'hist.pin.editor': 'Diese Aufnahme anheften',
+  'hist.pin.tip': 'Angeheftete Aufnahmen werden nie automatisch entfernt.',
+
+  // states
+  'hist.none.title': 'Keine passenden Aufnahmen',
+  'hist.none.hint': 'Versuche andere Wörter oder setze die Filter zurück.',
+  'hist.none.clear': 'Filter zurücksetzen',
+  'hist.error.title': 'Der Verlauf lässt sich nicht lesen',
+  'hist.error.hint': 'Die Datenbank ist nicht verfügbar. Lade die Seite neu; wenn das Problem bleibt, starte den Browser neu.',
+  'hist.error.retry': 'Noch einmal versuchen',
+
+  // selection bar
+  'hist.bulk.label': 'Aktionen für die Auswahl',
+  'hist.sel.one': '{n} ausgewählt',
+  'hist.sel.other': '{n} ausgewählt',
+  'hist.sel.all': 'Alle {n} Treffer auswählen',
+  'hist.sel.clear': 'Auswahl aufheben',
+  'hist.bulk.pin': 'Anheften',
+  'hist.bulk.unpin': 'Anheften aufheben',
+  'hist.bulk.delete': 'Löschen',
+
+  // deleting
+  'hist.cancel': 'Abbrechen',
+  'hist.del.title.one': 'Diese Aufnahme löschen?',
+  'hist.del.title.other': '{n} Aufnahmen löschen?',
+  'hist.del.body': 'Aufnahmen und ihre Versionen werden aus diesem Browser gelöscht. Das lässt sich nicht rückgängig machen.',
+  'hist.del.includes': 'Darunter: {pinned} angeheftet, {edited} bearbeitet.',
+  'hist.del.size': 'Das gibt {size} Speicherplatz frei.',
+  'hist.del.ok': 'Löschen',
+  'hist.del.progress': 'Wird gelöscht… {done} von {total}',
+  'hist.del.failed': 'Löschen fehlgeschlagen: Die Datenbank ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
+  'hist.status.deleted.one': '{n} Aufnahme gelöscht',
+  'hist.status.deleted.other': '{n} Aufnahmen gelöscht',
+  'hist.status.pinned.one': '{n} Aufnahme angeheftet',
+  'hist.status.pinned.other': '{n} Aufnahmen angeheftet',
+  'hist.status.unpinned.one': '{n} Aufnahme nicht mehr angeheftet',
+  'hist.status.unpinned.other': '{n} Aufnahmen nicht mehr angeheftet',
+  'hist.pin.failed': 'Die Aufnahme konnte nicht aktualisiert werden: Die Datenbank ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
+
+  // sizes
+  'hist.unit.b': 'B',
+  'hist.unit.kb': 'KB',
+  'hist.unit.mb': 'MB',
+  'hist.unit.gb': 'GB',
+  'hist.unit.tb': 'TB',
+
+  // settings block
+  'hist.set.title': 'Verlauf',
+  'hist.set.keep': 'Aufnahmen aufbewahren für',
+  'hist.keep.week': '7 Tage',
+  'hist.keep.month': '30 Tage',
+  'hist.keep.quarter': '90 Tage',
+  'hist.keep.year': '1 Jahr',
+  'hist.keep.forever': 'Unbegrenzt',
+  'hist.keep.custom': '{n}\u00A0T', // an abbreviation: a custom number of days can be 1, and "1 Tage" is wrong
+  'hist.set.cap': 'Größenlimit',
+  'hist.cap.half': '500\u00A0MB',
+  'hist.cap.single': '1\u00A0GB',
+  'hist.cap.double': '2\u00A0GB',
+  'hist.cap.five': '5\u00A0GB',
+  'hist.cap.ten': '10\u00A0GB',
+  'hist.cap.none': 'Kein Limit',
+  'hist.set.noTrace': 'Spurlos',
+  'hist.set.noTrace.note': 'Aufnahmen werden in die Zwischenablage kopiert und nirgends gespeichert: nichts im Verlauf, nichts zu bearbeiten. Die Aufnahmen, die du schon hast, bleiben. Das Obturo-Popup hat denselben Schalter, und das Symbol wird violett, solange er an ist.',
+  'hist.set.note': 'Angeheftete Aufnahmen werden nie automatisch entfernt. Bearbeitete Aufnahmen sind vom Alterslimit ausgenommen, können aber entfernt werden, wenn das Größenlimit erreicht ist.',
+  'hist.set.readonly': 'Dieser Tab ist schreibgeschützt: Schließe den anderen Obturo-Tab, um diese Einstellungen zu ändern oder Aufnahmen zu bereinigen oder zu löschen.',
+  'hist.meter.label': 'Vom Verlauf belegter Speicherplatz',
+  'hist.meter.cap': '{count}, {used} von {cap}',
+  'hist.meter.nocap': '{count}, {used}, kein Größenlimit',
+  'hist.meter.over': 'Allein die angehefteten Aufnahmen belegen mehr als das Limit.',
+  'hist.meter.unavailable': 'Speicherwerte nicht verfügbar.',
+  'hist.pending': 'Bei der nächsten Bereinigung (neue Aufnahme oder Öffnen der Bibliothek) werden entfernt: {what}.',
+  'hist.purge.btn': 'Jetzt bereinigen…',
+  'hist.wipe.btn': 'Alles löschen…',
+
+  // purge dialog
+  'hist.purge.title': 'Jetzt bereinigen',
+  'hist.purge.age': 'Aufnahmen löschen, die älter sind als',
+  'hist.purge.days': 'Tage',
+  'hist.purge.cap': 'Verlauf verkleinern auf höchstens',
+  'hist.purge.note': 'Angeheftete Aufnahmen bleiben immer. Bearbeitete Aufnahmen bleiben beim Bereinigen nach Alter.',
+  'hist.purge.none': 'Mit diesen Optionen gibt es nichts zu löschen.',
+  'hist.purge.some': 'Zu löschen: {what}, das gibt {size} frei.',
+  'hist.purge.kept': 'Behalten: {pinned} angeheftet, {edited} bearbeitet.',
+  'hist.purge.remaining': 'Es bleiben: {what} ({size}).',
+  'hist.purge.over': 'Das Größenlimit kann nicht erreicht werden: Allein die angehefteten Aufnahmen belegen mehr Speicherplatz.',
+  'hist.purge.run': 'Bereinigen',
+  'hist.purge.running': 'Wird bereinigt…',
+  'hist.purge.done': 'Gelöscht: {what}, {size} freigegeben.',
+  'hist.purge.failed': 'Die Bereinigung ist fehlgeschlagen: Die Datenbank ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
+
+  // delete everything
+  'hist.wipe.title': 'Den ganzen Verlauf löschen?',
+  'hist.wipe.body': 'Alles wird aus diesem Browser gelöscht: {what} ({size}), angeheftete und bearbeitete Aufnahmen eingeschlossen. Das lässt sich nicht rückgängig machen.',
+  'hist.wipe.type': 'Gib {word} ein, um zu bestätigen',
+  'hist.wipe.word': 'LÖSCHEN',
+  'hist.wipe.ok': 'Alles löschen',
+};

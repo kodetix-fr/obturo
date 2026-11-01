@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="theme-boot.js"></script> <!-- the theme of the settings on <html> before the first paint -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Obturo</title>
+  <link rel="stylesheet" href="chooser.css">
+  <script type="module" src="chooser.js"></script>
+</head>
+<body>
+  <!-- The page that asks what to do with a capture just taken (settings: "After a capture", "Ask what to do"), in a tab. Icons: one sprite,
+       24 px grid, 1.75 stroke, the same drawings as library.html and popup.html. -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-logo" viewBox="16 16 96 96">
+      <clipPath id="logo-disc"><circle cx="64" cy="64" r="48"/></clipPath>
+      <circle cx="64" cy="64" r="48" fill="#2563eb"/>
+      <g clip-path="url(#logo-disc)" stroke="#bfdbfe" stroke-width="4.48" stroke-linecap="round" fill="none">
+        <line x1="64" y1="42.4" x2="147.14" y2="90.4"/>
+        <line x1="82.71" y1="53.2" x2="82.71" y2="149.2"/>
+        <line x1="82.71" y1="74.8" x2="-0.43" y2="122.8"/>
+        <line x1="64" y1="85.6" x2="-19.14" y2="37.6"/>
+        <line x1="45.29" y1="74.8" x2="45.29" y2="-21.2"/>
+        <line x1="45.29" y1="53.2" x2="128.43" y2="5.2"/>
+      </g>
+      <polygon points="64,42.4 82.71,53.2 82.71,74.8 64,85.6 45.29,74.8 45.29,53.2" fill="#ffffff"/>
+    </symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M15.2 4.8l4 4L9 19l-4.8 1 1-4.8z"/><path d="M13.4 6.6l4 4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  </svg>
+
+  <div class="card">
+  <header class="head">
+    <svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg>
+    <h1 data-i18n="chooser.title"></h1>
+  </header>
+
+  <main>
+    <figure class="shot">
+      <div class="frame"><img id="preview" alt="" hidden></div>
+      <figcaption id="caption"></figcaption>
+    </figure>
+
+    <div class="actions" role="group" data-i18n-aria="chooser.actions">
+      <button type="button" id="edit" class="act primary" disabled>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg></span>
+        <span class="words"><b data-i18n="chooser.edit"></b><small data-i18n="chooser.editHint"></small></span>
+      </button>
+      <button type="button" id="copy" class="act" disabled>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></span>
+        <span class="words"><b id="copyLabel" data-i18n="chooser.copy"></b><small data-i18n="chooser.copyHint"></small></span>
+      </button>
+      <div class="act dl" role="group" aria-labelledby="dlLabel">
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></span>
+        <span class="words"><b id="dlLabel" data-i18n="chooser.download"></b>
+          <span class="formats">
+            <button type="button" class="fmt" data-format="png" disabled>PNG</button>
+            <button type="button" class="fmt" data-format="jpeg" disabled>JPEG</button>
+            <button type="button" class="fmt" data-format="webp" disabled>WebP</button>
+            <button type="button" class="fmt" data-format="pdf" disabled>PDF</button>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <p id="state" role="status"></p>
+  </main>
+
+  <footer>
+    <small data-i18n="chooser.saved"></small>
+    <button type="button" id="close" class="ghost" data-i18n="chooser.close"></button>
+  </footer>
+  </div>
+</body>
+</html>

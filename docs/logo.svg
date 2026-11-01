@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Obturo">
+  <!-- Same drawing as icons/icon128.png (scripts/make-icons.mjs): a six-blade shutter, 96 px disc inside a 16 px margin. -->
+  <defs>
+    <clipPath id="disc"><circle cx="64" cy="64" r="48"/></clipPath>
+  </defs>
+  <circle cx="64" cy="64" r="48" fill="#2563eb"/>
+  <g clip-path="url(#disc)" stroke="#bfdbfe" stroke-width="4.48" stroke-linecap="round" fill="none">
+    <line x1="64" y1="42.4" x2="147.14" y2="90.4"/>
+    <line x1="82.71" y1="53.2" x2="82.71" y2="149.2"/>
+    <line x1="82.71" y1="74.8" x2="-0.43" y2="122.8"/>
+    <line x1="64" y1="85.6" x2="-19.14" y2="37.6"/>
+    <line x1="45.29" y1="74.8" x2="45.29" y2="-21.2"/>
+    <line x1="45.29" y1="53.2" x2="128.43" y2="5.2"/>
+  </g>
+  <polygon points="64,42.4 82.71,53.2 82.71,74.8 64,85.6 45.29,74.8 45.29,53.2" fill="#ffffff"/>
+</svg>

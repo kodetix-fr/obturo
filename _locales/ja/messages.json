@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "スクリーンショットを撮影し、注釈を付けて保存。100% ローカル、アカウント不要。" },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "範囲をキャプチャ" },
+  "cmdCaptureVisible": { "message": "表示部分をキャプチャ" },
+  "cmdCaptureFull": { "message": "ページ全体をキャプチャ" },
+  "cmdOpenLibrary": { "message": "ライブラリを開く" },
+  "cmdCaptureAreaEdit": { "message": "範囲をキャプチャして編集" },
+  "cmdCaptureVisibleEdit": { "message": "表示部分をキャプチャして編集" },
+  "cmdCaptureFullEdit": { "message": "ページ全体をキャプチャして編集" }
+}

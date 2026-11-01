@@ -1,0 +1,135 @@
+// Brazilian Portuguese texts of the history: the full-screen view, its selection bar, and the history block of the settings
+// (keys 'hist.*'). Keys with a '.one' and a '.other' form are plurals (history-model.js, pluralForm). Key segments are
+// letters only, so that i18n.test.js can find the keys used by the code.
+/** @type {Record<string, string>} */
+export default {
+  // header button, strip shortcut
+  'hist.open': 'Histórico',
+  'hist.open.tip': 'Percorrer todas as capturas',
+  'hist.all': 'Todo o histórico',
+  'hist.all.aria': 'Abrir todo o histórico. Capturas: {n}',
+
+  // the view
+  'hist.title': 'Histórico',
+  'hist.close': 'Fechar o histórico',
+  'hist.grid': 'Capturas',
+  'hist.search.label': 'Pesquisar capturas',
+  'hist.search.placeholder': 'Pesquisar por título ou endereço',
+  'hist.host.label': 'Site',
+  'hist.host.all': 'Todos os sites',
+  'hist.period.label': 'Período',
+  'hist.period.all': 'Todo o período',
+  'hist.period.today': 'Hoje',
+  'hist.period.week': '7 dias',
+  'hist.period.month': '30 dias',
+  'hist.pinned.only': 'Somente fixadas',
+  'hist.count.one': '{n} captura',
+  'hist.count.other': '{n} capturas',
+  'hist.found.one': '{n} resultado',
+  'hist.found.other': '{n} resultados',
+  'hist.more': 'Carregando mais…',
+  'hist.hint.keys': 'Setas movem, Espaço seleciona, Enter abre, P fixa, Delete exclui.',
+  'hist.footer.settings': 'Configurações de armazenamento',
+  'hist.readonly': 'Esta aba é somente leitura: feche a outra aba do Obturo para abrir, fixar ou excluir capturas.',
+
+  // cards
+  'hist.card.select': 'Selecionar a captura de {when}',
+  'hist.pin.card': 'Fixar a captura de {when}',
+  'hist.pin.editor': 'Fixar esta captura',
+  'hist.pin.tip': 'Capturas fixadas nunca são removidas automaticamente.',
+
+  // states
+  'hist.none.title': 'Nenhuma captura encontrada',
+  'hist.none.hint': 'Tente outras palavras ou limpe os filtros.',
+  'hist.none.clear': 'Limpar os filtros',
+  'hist.error.title': 'Não foi possível ler o histórico',
+  'hist.error.hint': 'O banco de dados está indisponível. Recarregue a página; se o problema continuar, reinicie o navegador.',
+  'hist.error.retry': 'Tentar de novo',
+
+  // selection bar
+  'hist.bulk.label': 'Ações na seleção',
+  'hist.sel.one': '{n} selecionada',
+  'hist.sel.other': '{n} selecionadas',
+  'hist.sel.all': 'Selecionar os {n} resultados',
+  'hist.sel.clear': 'Limpar a seleção',
+  'hist.bulk.pin': 'Fixar',
+  'hist.bulk.unpin': 'Desafixar',
+  'hist.bulk.delete': 'Excluir',
+
+  // deleting
+  'hist.cancel': 'Cancelar',
+  'hist.del.title.one': 'Excluir esta captura?',
+  'hist.del.title.other': 'Excluir {n} capturas?',
+  'hist.del.body': 'As capturas excluídas são apagadas deste navegador, com suas versões. Isso não pode ser desfeito.',
+  'hist.del.includes': 'Inclui: fixadas ({pinned}), editadas ({edited}).',
+  'hist.del.size': 'Isso libera {size}.',
+  'hist.del.ok': 'Excluir',
+  'hist.del.progress': 'Excluindo… {done} de {total}',
+  'hist.del.failed': 'Falha ao excluir: o banco de dados está indisponível. Recarregue a página e tente de novo.',
+  'hist.status.deleted.one': '{n} captura excluída',
+  'hist.status.deleted.other': '{n} capturas excluídas',
+  'hist.status.pinned.one': '{n} captura fixada',
+  'hist.status.pinned.other': '{n} capturas fixadas',
+  'hist.status.unpinned.one': '{n} captura desafixada',
+  'hist.status.unpinned.other': '{n} capturas desafixadas',
+  'hist.pin.failed': 'Não foi possível atualizar a captura: o banco de dados está indisponível. Recarregue a página e tente de novo.',
+
+  // sizes
+  'hist.unit.b': 'B',
+  'hist.unit.kb': 'KB',
+  'hist.unit.mb': 'MB',
+  'hist.unit.gb': 'GB',
+  'hist.unit.tb': 'TB',
+
+  // settings block
+  'hist.set.title': 'Histórico',
+  'hist.set.keep': 'Manter as capturas por',
+  'hist.keep.week': '7 dias',
+  'hist.keep.month': '30 dias',
+  'hist.keep.quarter': '90 dias',
+  'hist.keep.year': '1 ano',
+  'hist.keep.forever': 'Para sempre',
+  'hist.keep.custom': '{n}\u00A0d', // an abbreviation: a custom number of days can be 1, and "1 dias" is wrong
+  'hist.set.cap': 'Limite de tamanho',
+  'hist.cap.half': '500\u00A0MB',
+  'hist.cap.single': '1\u00A0GB',
+  'hist.cap.double': '2\u00A0GB',
+  'hist.cap.five': '5\u00A0GB',
+  'hist.cap.ten': '10\u00A0GB',
+  'hist.cap.none': 'Sem limite',
+  'hist.set.noTrace': 'Sem rastro',
+  'hist.set.noTrace.note': 'As capturas são copiadas para a área de transferência e não são salvas em lugar nenhum: nada no histórico, nada para editar. As capturas que você já tem permanecem. O popup do Obturo tem o mesmo interruptor, e o ícone fica roxo enquanto ele está ativo.',
+  'hist.set.note': 'Capturas fixadas nunca são removidas automaticamente. Capturas editadas não são afetadas pelo limite de tempo, mas podem ser removidas quando o limite de tamanho é atingido.',
+  'hist.set.readonly': 'Esta aba é somente leitura: feche a outra aba do Obturo para alterar estas configurações, limpar ou excluir capturas.',
+  'hist.meter.label': 'Armazenamento usado pelo histórico',
+  'hist.meter.cap': '{count}, {used} de {cap}',
+  'hist.meter.nocap': '{count}, {used}, sem limite de tamanho',
+  'hist.meter.over': 'Só as capturas fixadas já ocupam mais do que o limite.',
+  'hist.meter.unavailable': 'Dados de armazenamento indisponíveis.',
+  'hist.pending': 'Na próxima limpeza (uma nova captura ou a abertura da biblioteca), serão removidas: {what}.',
+  'hist.purge.btn': 'Limpar agora…',
+  'hist.wipe.btn': 'Excluir tudo…',
+
+  // purge dialog
+  'hist.purge.title': 'Limpar agora',
+  'hist.purge.age': 'Excluir capturas com mais de',
+  'hist.purge.days': 'dias',
+  'hist.purge.cap': 'Reduzir o histórico para no máximo',
+  'hist.purge.note': 'Capturas fixadas são sempre mantidas. Capturas editadas são mantidas na limpeza por idade.',
+  'hist.purge.none': 'Nada a excluir com estas opções.',
+  'hist.purge.some': 'Serão excluídas: {what}, liberando {size}.',
+  'hist.purge.kept': 'Mantidas: fixadas ({pinned}), editadas ({edited}).',
+  'hist.purge.remaining': 'Restantes: {what} ({size}).',
+  'hist.purge.over': 'O limite de tamanho não pode ser atingido: só as capturas fixadas já ocupam mais espaço.',
+  'hist.purge.run': 'Limpar',
+  'hist.purge.running': 'Limpando…',
+  'hist.purge.done': 'Excluídas: {what}, {size} liberados.',
+  'hist.purge.failed': 'A limpeza falhou: o banco de dados está indisponível. Recarregue a página e tente de novo.',
+
+  // delete everything
+  'hist.wipe.title': 'Excluir todo o histórico?',
+  'hist.wipe.body': 'Tudo será apagado deste navegador: {what} ({size}), incluindo capturas fixadas e editadas. Isso não pode ser desfeito.',
+  'hist.wipe.type': 'Digite {word} para confirmar',
+  'hist.wipe.word': 'EXCLUIR',
+  'hist.wipe.ok': 'Excluir tudo',
+};

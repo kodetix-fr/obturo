@@ -1,0 +1,71 @@
+# Changelog
+
+Notable changes to Obturo. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows
+[semantic versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - unreleased
+
+First release. It has not been published yet; the date is set when it is.
+
+### Added
+
+- Capture of an area drawn with the mouse, of the visible part, or of the full
+  page of a tab. A full page is scrolled and stitched (at most 100 tiles and 32
+  million pixels), fixed and sticky elements show once, and a note on the page
+  says so when the image is not the whole page or the capture stopped. Each
+  capture also exists as *Capture and edit*, which opens the editor.
+- After a capture, a page opens next to the captured tab with a preview and the
+  actions: edit and annotate, copy to the clipboard, download as PNG, JPEG, WebP
+  or PDF. Nothing is put on the clipboard unasked. A setting copies every capture
+  straight away instead, and a badge on the icon says how it went.
+- Gestures: a click on the icon (area), four default shortcuts (`Alt+Shift+Z`,
+  `V`, `F` and `L`), three more commands without a default key (the *and edit*
+  ones), and the icon's right-click menu.
+- No-trace mode: a switch in the popup and in the settings. A capture is copied
+  and saved nowhere, and the icon turns violet.
+- Import of any image (a file, a paste with Ctrl+V, a drop) to edit it and keep
+  it in the history.
+- A history in IndexedDB with a retention (7 days, 30 days by default, 90 days,
+  1 year or forever) and a size limit (500 MB, 1 GB, 2 GB by default, 5 GB, 10 GB
+  or none). Pinned captures are never removed automatically, edited captures
+  escape the age limit, and unreadable settings remove nothing. The cleanup runs
+  by lots, a gauge shows what the history takes, *Purge now* shows what it would
+  remove, and *Delete everything* asks for a typed confirmation.
+- The history sheet: every capture as a grid, search in titles and addresses,
+  filters by site and period, pinned only, selection by mouse or keyboard, and
+  bulk pin, unpin, export and delete.
+- The library: a strip of the 12 latest captures, and one editing tab at a time
+  (a second tab is read-only).
+- A non-destructive editor (Fabric.js 6.9.1, vendored): arrow, outline, numbered
+  markers with an optional text, styled text, highlighter, spotlight, solid fill,
+  pixelation, blur and crop, with rectangle, rounded rectangle, ellipse or free
+  hand shapes, one color control, output scale, undo and redo, zoom and pan.
+- Versions of a capture: an immutable original, and variants that hold only
+  their annotations, their crop and their scale.
+- Download as PNG, JPEG, WebP or PDF, with a quality setting, an estimate of the
+  size, a file name template and, for a PDF, the page size and the picture
+  quality. Grouped export of the selected captures as a ZIP of images or a
+  multipage PDF.
+- An interface in nine languages (English, French, German, Spanish, Brazilian
+  Portuguese, Indonesian, Russian, Japanese and simplified Chinese) loaded when
+  chosen, and a light, dark or system theme.
+- Performance budgets, written down and measured by `npm run bench`.
+- Tests: `node --test` unit tests, end-to-end tests in the real extension
+  (`npm run test:e2e`), and a manual benchmark.
+- Development tooling: ESLint, type checking, a cross-platform packaging script
+  that checks the manifest texts in each language, continuous integration, a
+  security workflow (Semgrep, `npm audit`, Gitleaks) and a release workflow: a
+  `v*` tag publishes a GitHub release with the package zip and its SHA-256.
+- Documentation: README, architecture notes, privacy policy, contributing guide,
+  security policy, code of conduct, issue forms and a pull request template.
+
+### Security
+
+- Three permissions only (`activeTab`, `scripting`, `contextMenus`), no access to
+  websites, no `unlimitedStorage`, no network request, no remote code.
+
+[Unreleased]: https://github.com/kodetix-fr/obturo/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/kodetix-fr/obturo/releases/tag/v0.1.0

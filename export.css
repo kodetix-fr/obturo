@@ -1,0 +1,56 @@
+/* Obturo export: the format menu of the Download button and the dialog of the grouped export. Loaded when one of them opens
+   (export-ui.js), never at startup. The tokens, the buttons, the segmented controls and the dialog frame are library.css's. */
+
+/* ---------- the format menu ---------- */
+.dl-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; width: 300px; padding: 4px;
+  border: 1px solid var(--line-strong); border-radius: var(--r-l); background: var(--surface); color: var(--fg); box-shadow: var(--pop);
+}
+.dl-pop:focus { outline: none; }
+.dl-sec { padding: 8px 8px 6px; }
+.dl-sec + .dl-sec { border-top: 1px solid var(--line); }
+.dl-h { margin: 0; color: var(--muted); font-size: 12px; font-weight: 600; }
+.dl-sec > .dl-h { margin-bottom: 6px; }
+.dl-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dl-line + .dl-line { margin-top: 8px; }
+.dl-pct { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* The formats: a list of rows, one radio each (native arrows), the chosen one tinted and checked. */
+.dl-formats { display: grid; gap: 2px; }
+.dl-opt { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr) 18px; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-s); cursor: pointer; }
+.dl-opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.dl-opt:hover { background: var(--surface-2); }
+.dl-opt:has(input:checked) { background: var(--accent-soft); }
+.dl-opt:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
+.dl-name { font-weight: 650; }
+.dl-hint { overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.dl-opt .ic { color: var(--accent-ink); opacity: 0; }
+.dl-opt:has(input:checked) .ic { opacity: 1; }
+.dl-opt:has(input:checked) .dl-name { color: var(--accent-ink); }
+
+.dl-pop input[type="range"] { display: block; width: 100%; margin: 6px 0 0; }
+.dl-est { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.dl-est strong { color: var(--fg); font-weight: 650; font-variant-numeric: tabular-nums; }
+.dl-est strong[data-stale="1"] { opacity: .55; }
+.dl-est strong[data-idle="1"] { color: inherit; font-weight: 400; }
+.dl-foot { padding: 6px 4px 4px; }
+.dl-foot .btn { width: 100%; }
+
+/* ---------- the grouped export ---------- */
+.ex-dlg { width: min(480px, calc(100vw - 32px)); }
+.ex-count { margin: 0 0 10px; color: var(--muted); }
+.ex-note { margin: 12px 0 0; color: var(--muted); font-size: 12px; text-wrap: pretty; }
+.ex-warn, .ex-asis { margin: 12px 0 0; padding: 8px 12px; border-radius: var(--r-s); background: var(--warn-bg); color: var(--warn-fg); }
+.dl-slider { display: inline-flex; align-items: center; gap: 12px; }
+.dl-slider input { width: 160px; }
+.dl-slider .dl-pct { min-width: 40px; text-align: right; }
+.ex-dlg progress { display: block; width: 100%; height: 8px; margin: 14px 0 0; accent-color: var(--accent); }
+.ex-progress-text { margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
+.ex-summary { margin: 0; font-weight: 600; text-wrap: pretty; }
+.ex-summary::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 50%; background: var(--accent); }
+.ex-dlg:is([data-outcome="partial"], [data-outcome="error"], [data-outcome="canceled"]) .ex-summary::before { background: var(--warn-icon); }
+.ex-cause { margin: 6px 0 0; color: var(--muted); }
+.ex-fails { max-height: 168px; margin: 12px 0 0; padding: 0; overflow-y: auto; border-bottom: 1px solid var(--line); list-style: none; }
+.ex-fails li { padding: 7px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.ex-name { color: var(--fg); font-weight: 600; word-break: break-all; }
+.dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 6px 20px 18px; }

@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in the extension does not behave as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a security vulnerability, do not open an issue: follow
+        [SECURITY.md](https://github.com/kodetix-fr/obturo/blob/main/SECURITY.md).
+
+        Do not attach a capture that holds personal or confidential data.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what the extension did instead. If a badge showed on the icon (`OK`, `!`, `ERR`, ...), say which. For a full page capture, say whether the document scrolls or an inner container does.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a page ...
+        2. Press Alt+Shift+F
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Area capture
+        - Visible part capture
+        - Full page capture
+        - Clipboard copy
+        - Icon menu or toolbar popup
+        - Library
+        - History (search, pin, purge)
+        - Editor
+        - Versions
+        - Download or export (PNG, JPEG, WebP, PDF, ZIP)
+        - Settings or language
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: chrome
+    attributes:
+      label: Chrome version and system
+      description: From `chrome://version`.
+      placeholder: Chrome 143, Windows 11
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Obturo version or commit
+      description: Shown in `chrome://extensions`, or in `manifest.json`.
+      placeholder: 0.1.0, or the commit you loaded
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The console of the service worker (the "service worker" link on the extension's card in `chrome://extensions`) or of the library tab, if it logged something. Strip anything private.
+      render: text

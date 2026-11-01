@@ -1,0 +1,62 @@
+name: Release
+
+# A tag v* publishes the extension package, a zip and its SHA-256, as a GitHub Release. Uses the gh CLI shipped
+# with the runner rather than a third-party action. Tag the merge commit on main once CI is green.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+# Actions pinned to a commit; the comment carries the tag Dependabot tracks.
+jobs:
+  release:
+    name: Build and publish the package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      # The tag names the release and the zip carries the version of manifest.json: they must agree.
+      - name: Check the tag against the manifest
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          if [ "$TAG" != "v$version" ]; then
+            echo "Tag $TAG does not match the version $version of manifest.json" >&2
+            exit 1
+          fi
+
+      - name: Install (no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Package
+        run: npm run package
+
+      - name: Checksum
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd dist
+          sha256sum "obturo-${TAG#v}.zip" > "obturo-${TAG#v}.zip.sha256"
+
+      # Built before the release exists: a failed build leaves no empty release behind, and the job can simply be re-run.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --verify-tag --generate-notes
+
+      - name: Publish the package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" "dist/obturo-${TAG#v}.zip" "dist/obturo-${TAG#v}.zip.sha256"

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["chrome"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    // Fabric.js (vendor/) is a minified bundle without types: noResolve stops tsc from reading and checking it,
+    // types/fabric.d.ts declares it as `any`. Consequence: every file to check must be in "include".
+    "noResolve": true,
+    // ponytail: permissive mode, zero errors; turn on `strict` once the untyped parameters are annotated (`npx tsc -p tsconfig.json --strict` lists them).
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["*.js", "types/*.d.ts"],
+  "exclude": ["node_modules", "dist", "vendor", "scripts", "test", "eslint.config.js", "**/*.test.js"]
+}

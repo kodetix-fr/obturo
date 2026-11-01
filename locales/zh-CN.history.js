@@ -1,0 +1,135 @@
+// Simplified Chinese texts of the history: the full-screen view, its selection bar, and the history block of the settings (keys 'hist.*').
+// Keys with a '.one' and a '.other' form are plurals (history-model.js, pluralForm); Chinese does not inflect for number, so both
+// forms carry the same text. Key segments are letters only, so that i18n.test.js can find the keys used by the code.
+/** @type {Record<string, string>} */
+export default {
+  // header button, strip shortcut
+  'hist.open': '历史记录',
+  'hist.open.tip': '浏览所有截图',
+  'hist.all': '全部历史记录',
+  'hist.all.aria': '打开全部历史记录。截图数：{n}',
+
+  // the view
+  'hist.title': '历史记录',
+  'hist.close': '关闭历史记录',
+  'hist.grid': '截图',
+  'hist.search.label': '搜索截图',
+  'hist.search.placeholder': '按标题或网址搜索',
+  'hist.host.label': '网站',
+  'hist.host.all': '所有网站',
+  'hist.period.label': '时间段',
+  'hist.period.all': '全部时间',
+  'hist.period.today': '今天',
+  'hist.period.week': '7 天',
+  'hist.period.month': '30 天',
+  'hist.pinned.only': '仅显示已固定',
+  'hist.count.one': '{n} 张截图',
+  'hist.count.other': '{n} 张截图',
+  'hist.found.one': '{n} 条结果',
+  'hist.found.other': '{n} 条结果',
+  'hist.more': '正在加载更多…',
+  'hist.hint.keys': '方向键移动，空格键选择，Enter 打开，P 固定，Delete 删除。',
+  'hist.footer.settings': '存储设置',
+  'hist.readonly': '此标签页为只读：请关闭另一个 Obturo 标签页，再打开、固定或删除截图。',
+
+  // cards
+  'hist.card.select': '选择 {when} 的截图',
+  'hist.pin.card': '固定 {when} 的截图',
+  'hist.pin.editor': '固定此截图',
+  'hist.pin.tip': '已固定的截图永远不会被自动删除。',
+
+  // states
+  'hist.none.title': '没有匹配的截图',
+  'hist.none.hint': '试试其他关键词，或清除筛选条件。',
+  'hist.none.clear': '清除筛选条件',
+  'hist.error.title': '无法读取历史记录',
+  'hist.error.hint': '数据库不可用。请重新加载页面；如果问题仍然存在，请重启浏览器。',
+  'hist.error.retry': '重试',
+
+  // selection bar
+  'hist.bulk.label': '对所选内容的操作',
+  'hist.sel.one': '已选择 {n} 张',
+  'hist.sel.other': '已选择 {n} 张',
+  'hist.sel.all': '选择全部 {n} 条结果',
+  'hist.sel.clear': '清除选择',
+  'hist.bulk.pin': '固定',
+  'hist.bulk.unpin': '取消固定',
+  'hist.bulk.delete': '删除',
+
+  // deleting
+  'hist.cancel': '取消',
+  'hist.del.title.one': '要删除这张截图吗？',
+  'hist.del.title.other': '要删除这 {n} 张截图吗？',
+  'hist.del.body': '被删除的截图将连同各自的版本一起从此浏览器中清除。此操作无法撤销。',
+  'hist.del.includes': '其中已固定 {pinned} 张，已编辑 {edited} 张。',
+  'hist.del.size': '将释放 {size} 的空间。',
+  'hist.del.ok': '删除',
+  'hist.del.progress': '正在删除… {done} / {total}',
+  'hist.del.failed': '删除失败：数据库不可用。请重新加载页面后重试。',
+  'hist.status.deleted.one': '已删除 {n} 张截图',
+  'hist.status.deleted.other': '已删除 {n} 张截图',
+  'hist.status.pinned.one': '已固定 {n} 张截图',
+  'hist.status.pinned.other': '已固定 {n} 张截图',
+  'hist.status.unpinned.one': '已取消固定 {n} 张截图',
+  'hist.status.unpinned.other': '已取消固定 {n} 张截图',
+  'hist.pin.failed': '无法更新截图：数据库不可用。请重新加载页面后重试。',
+
+  // sizes
+  'hist.unit.b': 'B',
+  'hist.unit.kb': 'KB',
+  'hist.unit.mb': 'MB',
+  'hist.unit.gb': 'GB',
+  'hist.unit.tb': 'TB',
+
+  // settings block
+  'hist.set.title': '历史记录',
+  'hist.set.keep': '保留截图',
+  'hist.keep.week': '7 天',
+  'hist.keep.month': '30 天',
+  'hist.keep.quarter': '90 天',
+  'hist.keep.year': '1 年',
+  'hist.keep.forever': '永久',
+  'hist.keep.custom': '{n} 天', // a custom number of days; Chinese needs no abbreviation nor plural
+  'hist.set.cap': '大小上限',
+  'hist.cap.half': '500\u00A0MB',
+  'hist.cap.single': '1\u00A0GB',
+  'hist.cap.double': '2\u00A0GB',
+  'hist.cap.five': '5\u00A0GB',
+  'hist.cap.ten': '10\u00A0GB',
+  'hist.cap.none': '无上限',
+  'hist.set.noTrace': '不留痕',
+  'hist.set.noTrace.note': '截图会复制到剪贴板，但不会保存到任何地方：历史记录中没有，也无法编辑。你已有的截图会保留。Obturo 弹出窗口中有同样的开关，开启时图标会变为紫色。',
+  'hist.set.note': '已固定的截图永远不会被自动删除。已编辑的截图不会因超出保留期限而被删除，但达到大小上限时仍可能被删除。',
+  'hist.set.readonly': '此标签页为只读：请关闭另一个 Obturo 标签页，再更改这些设置、清理或删除截图。',
+  'hist.meter.label': '历史记录占用的存储空间',
+  'hist.meter.cap': '{count}，已用 {used}，上限 {cap}',
+  'hist.meter.nocap': '{count}，已用 {used}，无大小上限',
+  'hist.meter.over': '仅已固定的截图就已超过上限。',
+  'hist.meter.unavailable': '存储数据不可用。',
+  'hist.pending': '下次清理时（截取新截图或打开图库时）：将删除 {what}。',
+  'hist.purge.btn': '立即清理…',
+  'hist.wipe.btn': '全部删除…',
+
+  // purge dialog
+  'hist.purge.title': '立即清理',
+  'hist.purge.age': '删除超过以下天数的截图',
+  'hist.purge.days': '天',
+  'hist.purge.cap': '将历史记录缩减到最多',
+  'hist.purge.note': '已固定的截图始终保留。按时间清理时，已编辑的截图也会保留。',
+  'hist.purge.none': '使用这些选项没有可删除的内容。',
+  'hist.purge.some': '将删除：{what}，释放 {size}。',
+  'hist.purge.kept': '保留：已固定 {pinned} 张，已编辑 {edited} 张。',
+  'hist.purge.remaining': '剩余：{what}（{size}）。',
+  'hist.purge.over': '无法达到大小上限：仅已固定的截图就占用了更多空间。',
+  'hist.purge.run': '清理',
+  'hist.purge.running': '正在清理…',
+  'hist.purge.done': '已删除：{what}，释放了 {size}。',
+  'hist.purge.failed': '清理失败：数据库不可用。请重新加载页面后重试。',
+
+  // delete everything
+  'hist.wipe.title': '要删除全部历史记录吗？',
+  'hist.wipe.body': '所有内容都将从此浏览器中删除：{what}（{size}），包括已固定和已编辑的截图。此操作无法撤销。',
+  'hist.wipe.type': '输入“{word}”以确认',
+  'hist.wipe.word': '删除',
+  'hist.wipe.ok': '全部删除',
+};

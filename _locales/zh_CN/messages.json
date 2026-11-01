@@ -1,0 +1,12 @@
+{
+  "extName": { "message": "Obturo" },
+  "extDescription": { "message": "截取、标注并保存你的截图。100% 本地，无需账号。" },
+  "actionTitle": { "message": "Obturo" },
+  "cmdCaptureArea": { "message": "截取区域" },
+  "cmdCaptureVisible": { "message": "截取可见区域" },
+  "cmdCaptureFull": { "message": "截取整个页面" },
+  "cmdOpenLibrary": { "message": "打开图库" },
+  "cmdCaptureAreaEdit": { "message": "截取区域并编辑" },
+  "cmdCaptureVisibleEdit": { "message": "截取可见区域并编辑" },
+  "cmdCaptureFullEdit": { "message": "截取整个页面并编辑" }
+}

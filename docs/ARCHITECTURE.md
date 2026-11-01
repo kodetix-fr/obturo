@@ -1,0 +1,285 @@
+# Obturo architecture
+
+Obturo is a Chrome Manifest V3 extension with no build step: the repository folder is the extension. This document describes the components, the capture flow, the icon menu, the databases, the history and its retention, the version model, the downloads, the languages, the constraints of the project, the performance budgets and the ideas that were turned down or not done yet. It follows the code: when in doubt, the code is right.
+
+## Overview
+
+```
+user gesture (icon, shortcut, icon right-click menu)
+  |
+  +-- area ---------> overlay.js (in the tab) --message "area"--> sw.js
+  +-- visible part -------------------------------------------------> sw.js
+  +-- full page ---> fullpage.js (in the tab) <--calls--> sw.js (loop, one tile at a time)
+                                                                  |
+                          chrome.tabs.captureVisibleTab -> PNG -> OffscreenCanvas
+                          (crop of an area, or stitching of the tiles) -> final PNG
+                                                                  |
+                  +-----------------------+-----------------------+
+                  |                                               |
+   copy: scripting.executeScript                      db.js: addShot (IndexedDB)
+   in the tab -> navigator.clipboard                  shots + originals + catalog,
+                  |                                   then one lot of retention
+                  +------------ badge OK / ! / ERR --------------+
+                                          |
+                  "and edit" variants: the library opens on the new capture
+
+library.html + library.js: strip of the 12 latest captures, editing lock (one tab only)
+  +-- history-view.js (the whole history), settings-ui.js (settings): loaded on first use
+  +-- dynamic import of editor.js (Fabric.js) after the first paint of the strip
+        +-- panel.js, dom.js, history.js (undo), output.js, versions.js, view.js, saver.js, shapes.js
+        +-- export-ui.js (on first use) -> encode.js, pdf.js, zip.js, export-batch.js, export-pure.js
+writes go through db.js (updateShot, setPinned, deleteShots, purgeNow...)
+```
+
+## Components
+
+| File | Role |
+|---|---|
+| `manifest.json` | Manifest V3. Permissions `activeTab`, `scripting`, `contextMenus`. Service worker of type module. Seven commands: `capture-area` (Alt+Shift+Z), `capture-visible` (Alt+Shift+V), `capture-full` (Alt+Shift+F), `open-library` (Alt+Shift+L), and `capture-area-edit`, `capture-visible-edit`, `capture-full-edit` with no suggested key (Chrome accepts four). Name, description, tooltip and command names are `__MSG_key__` references to `_locales/`. Chrome 116 minimum (`chrome.runtime.getContexts`). |
+| `_locales/<lang>/messages.json` | The texts Chrome reads from the manifest (name, description, tooltip, names of the commands), in English (the default) and French. |
+| `sw.js` | Service worker. Receives the gestures (icon click, commands, context menu) through one dispatch table and the message of the overlay. Runs the three captures, one at a time (the others are ignored, grey badge). Copies the image to the clipboard and writes it to IndexedDB. Builds the icon menu and sets the tooltip in the language of the settings. Opens the library on request (see below). Imports `db.js`, `pure.js`, `gestures.js`, `i18n.js` and `settings.js` (and what they import): Fabric is never loaded there. At load time: constants and listeners, plus the rebuild of the icon menu, which is asynchronous and off the capture path, because the service worker restarts often. |
+| `gestures.js` | Pure. The shape of the icon menu (`MENU`, `menuItems`) and where a gesture sends the user (`libraryTarget`: the address and the message for a capture to open, or for the settings). |
+| `import.js` | Loaded on first use by `library.js`. `importFiles` adds the images of a file picker, a paste or a drop to the history, one at a time: decoded with `createImageBitmap`, after the size its header declares (`declaredSize`: PNG, GIF, BMP, JPEG, WebP) has been checked against `importFits`, so that a small file declaring billions of pixels is never decoded, a PNG kept as it is (`isPng` on its first 8 bytes), anything else written again as a PNG on an `OffscreenCanvas`; title from the file name (`importTitle`), no address. A refused file is skipped and the first refusal reported with the key of its text. The events are in `library.js`: the `paste` event (files read during the event, ignored in a field, behind a dialog and in a read-only tab), `dragover` and `drop` (always taken, so that the browser never opens a dropped file and leaves the library), and the import button. |
+| `chooser.html`, `chooser.js`, `chooser.css` | The page that asks what to do with a capture (setting `afterCapture`, `ask` by default). `sw.js` (`save`) keeps the capture in the history, does NOT copy it, and opens the page with `chrome.tabs.create` (no permission) at `chooser.html#shot=<id>`, active, next to the captured tab, which is its `openerTabId` (a window of its own was tried: the browser keeps its toolbar and address bar around it, and its size and position are the browser's to refuse); not for "Capture and edit" (`editing`, the editor is the answer) and not in the no-trace mode (nothing is kept to ask about). The page reads the capture from the history and offers *Edit* (a `chooser-edit` message that `sw.js` accepts only from this page, `cleanChooserEdit`, then `openLibrary`), *Copy* (a PNG, written from the page on a click) and *Download* as PNG (the original as it is), JPEG, WebP or PDF, through `download` of `export-ui.js`, the editor's own (the format settings and the file name template as they are at the click). A choice that worked closes the tab (a fixed 0.5 s after a copy, 1.5 s after a download, which the browser needs to take the blob of the page), shows the captured page again (`tabs.update` on the opener, then `tabs.remove`) and nothing more is taken meanwhile. |
+| `notice.js` | `showNotice`, serialized into the tab by `sw.js`: a box at the bottom right, for the time it takes to read it (8 to 15 s) or until it is clicked, that says what a full-page image is not (cut at the limits, reduced, held by a frame) or why the capture stopped. Blue for a remark, red for a failure: the light values of the tokens of `library.css`, fixed, since the host page has no theme of ours. Removed when the next capture starts, so that it is never in an image. |
+| `overlay.js` | Injected on demand by `sw.js` into the active tab. Selects an area with the mouse: one style write per frame, no layout read while dragging. Sends `{ type: 'area', rect, vw, vh, url, title, edit }` to the service worker, two frames after removing the overlay. Esc cancels. |
+| `fullpage.js` | Injected on demand before a full-page capture. Exposes `begin`, `aim`, `go(y, phase)`, `size` and `end` in the isolated world of the extension. `begin` lists the elements that scroll (hit tests at nine points of the window, open shadow roots followed) and `aim` takes the one the service worker picked. Freezes smooth scrolling and scroll snapping, blocks the wheel, touch and scroll keys during the capture (Esc cancels). On every tile `go` puts the page back as it is, scrolls, waits for it to settle (two frames, 120 ms, then the images in view that still load and the animations in view that end, 1.5 s at most, then the wait of the settings), and looks for the fixed and sticky elements again in the state the page now has (a header that turns fixed once scrolled; open shadow roots included): fixed elements at the top stay on the first tile only, those at the bottom on the last only (all hidden with the *Hide* setting), sticky elements go back to their natural place from the second tile. A 15 s timer restores the page if the service worker disappears. |
+| `pure.js` | Pure functions, testable without a browser: `cropRect`, `cleanArea` (validation of the overlay message), `pngSize` (reads the PNG header without decoding), `decodeDataUrl` and `base64Bytes`, `planTiles`, `maxTiles`, `canvasSize`, `tileDest` (position of a tile, seam included), `thumbPlan` (thumbnail size), `versionsKey`, `clamp`, and the constants `MAX_TILES`, `MAX_DIM`, `MAX_PIXELS`. |
+| `idb.js` | The two IndexedDB helpers (`wait` on a request, `done` on a transaction) that `db.js` and `settings.js` share. |
+| `db.js` | IndexedDB access to the history: `addShot`, `updateShot`, `storeThumb`, `setPinned`, `setPinnedMany`, `deleteShots`, `purgeNow`, `previewPurge`, `runRetention`, and the reads `latestShots`, `queryShots`, `countShots`, `getShot`, `getShots`, `getOriginal`, `listEntries`, `listHosts`, `storageUsage`. Imported by the service worker and by the library. |
+| `catalog.js` | Pure. The catalog: one light entry per capture, kept in buckets, with the search and the filters, and the limits on the title and the address. |
+| `retention.js` | Pure. `planPurge` (which captures to delete, given the settings) and `previewPlan` (what a purge would do, for the preview). |
+| `settings.js` | The settings database `obturo-settings`, the validation of the settings (`normalizeSettings`), the captures the open library holds, the copy of the language and the theme in `localStorage`, and the notification of a change. |
+| `languages.js` | The languages of the extension (code and autonym) and `resolveLanguage`, the one a setting and the browser lead to; `pluralForm`, the plural format that depends on the language alone (`i18n.js` builds `pluralKey` on it). Tiny: the popup reads it without the dictionaries. |
+| `i18n.js`, `locales/` | The translation: `t`, `setLanguage`, `loadLanguage` (a language on demand, the pages), `addTexts` (the service worker), number and date formats, sizes (`fmtBytes`) and plurals (`plural`, `pluralKey`). `locales/<code>.<part>.js` are the texts, six parts per language; `locales/<code>.js` gathers them; `locales/sw.js` gathers the `sw` part of every language for the service worker. Four parts per language, `<code>.ui.js`, `<code>.sw.js`, `<code>.history.js` and `<code>.export.js`, gathered by `<code>.js`. |
+| `dom-i18n.js` | Translation of the page: an element carries its key in a `data-i18n*` attribute, and a change of language retranslates everything displayed. Builds the icons from the SVG sprite. |
+| `theme-boot.js` | A plain script run while `library.html` is parsed: puts the theme of the settings on `<html>` before the first paint, from the copy in `localStorage`. |
+| `db-warm.js` | A plain script run while `library.html` is parsed: opens the history database and lets go of it, so that it is ready when `db.js` asks. It never creates or upgrades anything. |
+| `library.html`, `library.css`, `library.js` | The library page: strip of the 12 latest captures (newest on the left), lazy thumbnails, deletion, pin, opening in the editor, language and theme, startup. A Web Locks lock (`obturo-lib`) reserves editing for one tab: a second tab is read-only. Refreshes the list when the tab gets focus back. |
+| `history-view.js`, `history-model.js` | The history sheet (a large modal dialog): windowed grid, search, filters, selection and keyboard, bulk actions. `history-model.js` is its pure logic. Loaded on first use. |
+| `history-dialogs.js`, `history-settings.js`, `settings-ui.js` | The confirmation dialog (every confirmation of the page goes through it: the history, the strip, the versions of the editor) and the deletion with a progress, the "Purge now" and "Delete everything" flows, the history block of the settings (gauge, retention selects), and the settings dialog. Loaded on first use. |
+| `editor.js` | Controller of the Fabric.js 6.9.1 editor: canvas and view, drawing tools, versions, crop, saving, life cycle of an open capture. Imported dynamically by `library.js`. |
+| `panel.js` | The controls of `library.html`: what the editor shows there (active tool, settings of the selected object, versions, output size) and the events it gets from them, passed to the editor as actions. |
+| `dom.js` | The elements of `library.html` that the editor drives, typed, looked up once. A missing id, or one of another kind, throws a clear error at import. |
+| `history.js` | Undo and redo history (50 levels): a stack of JSON snapshots and a cursor. Pure. Not to be mistaken for the history of the captures, which is `history-*.js`. |
+| `output.js` | Full-resolution rendering of a version: the exported image, the thumbnail of the strip, and the hook that makes the editor write what is on screen before a grouped export reads the database. |
+| `shapes.js` | Fabric objects specific to Obturo: `Arrow`, `Marker` (a numbered disc and its optional legend: the height is the diameter, the width is the disc plus the pill of the legend, `fit` sets it around the disc, which does not move; a color in `fill`, its number in `n`, its legend in `label`, the side of the legend in `side` and `sideAuto` (nobody chose it yet); `parts` and `partAt` say where the disc and the pill are; `bakeScale` bakes a resize into the size so that it stays a circle), `Highlight` (a rectangle multiplied with the image, at `HIGHLIGHT_OPACITY` so that it never hides: its own `globalCompositeOperation`, so every renderer draws it alike; with points it is a pen stroke, one stroke of `brush` px), `Spot` (the shade of a spotlight: painted over the whole image, once, by the first of them, with every area as a clip, and the clips add up as an intersection; never skipped for being off screen; sent to the back by the editor), `PixelRegion` / `BlurRegion` (hiding regions, which read the original image back to draw themselves, inside the clip of their shape) and `Lasso` (a free outline or solid fill: a Rect that holds a polygon). The shape of every rectangle is its corner radii (`rx`, `ry`: none, a quarter of the short side, half the sides) or, for a free one, `pts`: the points as fractions of the box, so that a resize stretches the shape (`shape-pure.js`, `applyShape`, `tracePath`). |
+| `highlight-pure.js`, `spot-pure.js` | Pure. The color of the highlighter (any opaque color, the yellow of the palette otherwise) and its strength; the shade of the spotlight. |
+| `shape-pure.js` | Pure. The shapes of an area (`rect`, `round`, `ellipse`, `free`): the corner radii that draw each one in a box (`shapeRadii`), the shape a box is (`shapeOf`), and the free ones: `simplify` (Ramer-Douglas-Peucker, a hand drawn path of thousands of points becomes a few dozens), `freeGeometry` (the box of a path and its points as fractions of it, the box widened by the half width of a pen). |
+| `marker-edit.js` | The in-place editor of a marker: `editMarker` lays an `<input>` over the number or the legend (in the colors, the ring and the font of the marker, scaled by the zoom; `place()` follows the zoom and the pan), applies what is typed to the marker live, and ends on Enter (keep), Esc (put back) or blur (keep). The editor (`openMarkerEdit`) saves quietly while typing, gives the history ONE step when the field closes, and puts an unplaced legend on the left of the disc if it would leave the image (`autoSide`). Opened by a new marker, a double click (`partAt` says disc or text), Enter on a selected marker, or the *Edit text* button. |
+| `marker-pure.js` | Pure. The next number of a marker (`nextMarkerNumber`: the smallest free one), its diameter from the width of the image and the thin / medium / thick setting (`markerDiameter`), the ink of the number (`markerInk`: white up to a relative luminance of 0.3, else near black), its font size, and the legend (`cleanLegend`: one line, 60 characters; `legendBox`: the pill for a disc and a text width), the number typed (`cleanMarkerNumber`: 1 to 999) and the side of the legend (`cleanSide`; `boxLeft` and `discCenterX` keep the disc where it is whatever the legend does; `autoSide`: left when the legend would leave the image on the right and fits on the left). |
+| `versions.js`, `view.js`, `saver.js` | Version model and the crop and scale calculations; mathematics of the editor view (fit, zoom around a point, pan); debounced single-write save. Pure. |
+| `export-ui.js`, `export.css` | The Download button's menu (format, quality with a live size estimate, PDF options), the single download, and the dialog of the grouped export. Loaded on first use. |
+| `export-batch.js`, `export-pure.js` | The grouped export engine, which renders the displayed version of several captures without opening the editor, and the pure logic of the exports (formats, size text, estimate scheduler, error classes, limits). |
+| `encode.js`, `pdf.js`, `zip.js` | The encoders: PNG, JPEG or WebP from a canvas; a raster PDF written without a library; a stored ZIP written without a library. |
+| `vendor/` | Fabric.js 6.9.1, minified and unmodified, its full MIT licence and its provenance sheet (checksums, verification). |
+| `icons/`, `scripts/make-icons.mjs` | The icons (a six-blade shutter) and the deterministic script that generates them, with no dependency. |
+| `*.test.js` | `node --test` tests of the pure modules, of the texts and of the manifest. |
+| `test/e2e/` | End-to-end tests (`npm run test:e2e`): the real extension in the Chromium of Playwright, throwaway profile. See "Tests". |
+| `scripts/package.mjs` | Builds `dist/obturo-<version>.zip` (see `CONTRIBUTING.md`). |
+| `scripts/bench.mjs` | Manual benchmark of the performance budgets (`npm run bench`). |
+
+## Capture flow
+
+1. **Gesture.** The name of a manifest command is also the id of its entry in the icon menu, and `sw.js` has one table for both (`capture-area`, `capture-visible`, `capture-full`, their `-edit` twins, `open-library`, `open-settings`). The icon click starts the area capture. `capture-area` injects `overlay.js`; `capture-visible` starts the capture directly; `capture-full` starts a full page; `open-library` and `open-settings` open `library.html`.
+2. **Area.** The user drags a rectangle (at least 5 px). The overlay goes away, then sends the `area` message. The service worker accepts it only from the main frame of a tab and runs it through `cleanArea` (finite numbers, positive sizes) before any calculation. It captures the tab (`captureVisibleTab`, PNG), reads the size from the header, converts the rectangle to image pixels (`cropRect`, which absorbs `devicePixelRatio` and the browser zoom), decodes the already-cropped image once (`createImageBitmap` with the rectangle) and encodes the final PNG in an `OffscreenCanvas`.
+3. **Visible part.** Same path, without the crop: the PNG from `captureVisibleTab` is kept as it is (its data URL is decoded directly, which is faster than `fetch`).
+4. **Full page.** `fullpage.js` measures the page (`begin`). `planTiles` computes the scroll positions. For each tile, `go` scrolls and waits for the page to settle; the service worker keeps 550 ms between two starts of `captureVisibleTab` (Chrome allows 2 calls per second), checks before and after each capture that the tab is still active in the same window, then pastes the tile into the final canvas and frees its bitmap at once (never more than one tile decoded at a time). The last tile is aligned with the bottom of the page and overlaps the previous one. At a fractional display scale (125%, 150%) the browser snaps scrolling to the physical pixel and the rounding can leave an empty line between two tiles: `tileDest` then stretches the next tile one line upwards to fill it. The page is restored (`end`) before the encoding, which can take a while. The settings `fullPageWait` and `fullPageFixed` are read when the capture starts and given to `begin`. What the image is not is collected on the way (`isCut` on the height reached, the scale of the canvas, `unscrolledKey` for a big frame) and a failure is classified (`failureKey`); `sw.js` says it on the page with `notice.js`, in the language of the settings. A window that is resized, a zoom that changes or a tab change on the way stops the capture; Esc cancels it.
+5. **Output.** `save` starts the clipboard copy and the IndexedDB write at the same time. With the `noTrace` setting on (read at every capture, `false` if unreadable) only the copy happens: nothing is written, the badge is violet, a copy that fails is red and said on the page, and `save` answers "nothing saved" so that no capture opens in the library. `run` refuses the "and edit" gestures in that mode with a note on the page; `buildMenu` greys the "Capture and edit" entry and puts the violet icon (`icons/notrace16.png`, `notrace32.png`, made by `scripts/make-icons.mjs`) and a tooltip that says it. The popup shows the switch from the copy of the settings in `localStorage` (no database, `readAppearance` keeps `noTrace` in it), writes that copy when it is flipped, and sends `{ type: 'popup-notrace', value }` (checked by `cleanNoTrace`, accepted only from the popup page) for the worker to store it. The copy goes through `chrome.scripting.executeScript` in the tab (there is no clipboard in a service worker), the image being passed as base64. The badge gives the result: green `OK`, orange `!` (saved but not copied, typically for lack of focus), red `ERR` (the copy is reported first, then `ERR` if the write failed).
+6. **"Capture and edit".** The `edit` flag travels with the capture: for an area it is written on the overlay element (`data-edit`) and comes back in the `area` message, because the service worker may be stopped while the user is still selecting. Once the capture is saved, `openLibrary` opens the library on it. A capture that was cancelled or that failed to save opens nothing.
+
+## The icon menu and the commands
+
+`gestures.js` holds the menu as data: *Capture* and *Capture and edit* (each a parent with *Area*, *Visible part*, *Full page*), then *Open the library* and *Settings*. That is four top-level entries; Chrome shows at most six (`ACTION_MENU_TOP_LEVEL_LIMIT`) in the menu of the icon and silently ignores the rest, and submenus do not count. A test keeps the menu under the limit and checks that every manifest command is an entry of the menu.
+
+`sw.js` rebuilds the menu (`removeAll`, then `create`) at every start of the worker, which covers the installation, an update, a reload and the first event after a restart of the browser, and again when the settings change, since the titles follow the language. Rebuilds run one at a time. A `BroadcastChannel` message reaches only a worker that is awake, so `setSettings` also sends a runtime message, which wakes a stopped one. The tooltip of the icon is set the same way (the manifest's one follows the language of the browser only). The extension's description and the names of the shortcuts are read by Chrome from the manifest alone, so they keep the language of the browser.
+
+## Library: one editing tab, tab brought to the front, strip, thumbnails
+
+- **Editing lock.** Saving rewrites all the versions of a capture: two tabs open on the same library would overwrite each other (the last writer wins). `library.js` therefore takes a `navigator.locks` lock (`obturo-lib`, `ifAvailable`), held as long as the tab lives. Four tries 120 ms apart, because a reload releases the lock of the old document a moment later. If the lock is held elsewhere, the tab is **read-only**: the strip and the history are shown, a message explains, the editor (and Fabric) is never loaded, and opening, pinning, deleting, purging or changing the retention is refused.
+- **One library tab.** "Open the library" (icon menu or `Alt+Shift+L`) goes through `openLibrary` in `sw.js`: it looks for the tab that is already open with `chrome.runtime.getContexts({ contextTypes: ['TAB'] })` (address compared without query or hash), activates it (`chrome.tabs.update`) and raises its window (`chrome.windows.update`); it creates one only if there is none. A new tab gets what to show in its address (`#shot=<id>`, `#settings`); a tab already open gets it as a `BroadcastChannel` message (`open-shot`, `open-settings`). Without the reuse, the second tab would be read-only. No extra permission (not `tabs`); Chrome 116 at least.
+- **The strip** holds the 12 latest captures (a cursor over the `shots` store, nothing else), newest on the left. The total count comes after the first paint.
+- **Thumbnails.** A capture that was never edited gets its thumbnail on demand, when its element becomes visible: one decode at a time, a resized `createImageBitmap` (240 px wide, the top only for a full page), WebP persisted in the `shots` row. An edited capture is not redrawn from its original (that would show what the annotations hide): the editor writes its thumbnail at each save, rendered from the **displayed version** (`output.js`). A flat black therefore hides the strip too. A thumbnail never counts as an edit, and a late one is refused if the capture changed meanwhile (`storeThumb` compares `versionsKey`).
+- **Startup.** `db-warm.js` and `theme-boot.js` run while the page is parsed; the language and the theme come from the copy in `localStorage`, confirmed against the settings database after the paint; the strip is read and painted; then the lock, the editor, the retention pass of the settings (the open capture is spared) and, at idle, the history module.
+
+## Storage
+
+Three places, all private to the extension and to the browser profile.
+
+**Database `obturo`, version 3, three stores:**
+
+| Store | Key | Content |
+|---|---|---|
+| `shots` | `id` (auto-increment), index `host` | `url`, `title`, `w`, `h`, `createdAt`, `versions`, `active`, `host`, `bytes` (size of the original), `pinned`, and `thumb` (WebP thumbnail 240 px wide, created on demand). Small, rewritten often by the autosave. |
+| `originals` | the `id` of the capture | The original PNG Blob. Written once, never rewritten. |
+| `catalog` | the number of a bucket | One light entry per capture (`id`, `createdAt`, `bytes`, `pinned`, `edited`, `host`, and `q`, the title and the address folded to lower case without accents), in buckets of 512 consecutive ids, each stored as one JSON text. |
+
+The splits are measured. Rewriting a row that holds a 20 MB Blob costs about 20 ms, against about 0 ms when the Blob is in its own store. A scan of 5,000 `shots` rows costs 150 to 400 ms (each holds a thumbnail Blob and the versions), where 5,000 catalog entries read back in about 7 ms: the cost is per stored object, not per byte. So search, filters, totals and the retention read the catalog and never the shots.
+
+- **Add** (`addShot`): one transaction over the three stores (the row, the original, the catalog bucket), then one lot of the retention (see below). A retention that fails does not fail the capture. The title is cut to 300 characters and the address to 2,048 here, the only place where they enter the database.
+- **Update** (`updateShot`, `storeThumb`, `setPinned`): reads the EXISTING row and its catalog bucket in one round trip, merges a patch, writes, and asks for the commit at once. It returns `false` if the capture no longer exists: a capture removed meanwhile is never recreated by a late save. The catalog is written only when something it keeps changed (an autosave or a thumbnail changes nothing there).
+- **Delete** (`deleteShots`): the rows, the originals and the catalog entries in one transaction. Chromium deletes one file per Blob and a capture holds two (original and thumbnail), so removing 1,000 captures takes about 1 to 2 seconds whatever the number of requests.
+- **Version upgrade.** Version 3 added the catalog, the `host` index and the `host`, `bytes` and `pinned` fields. A version 2 database is upgraded in place, without loss: each row gets the new fields, computed from the row and its original, and the catalog is built from them. A database older than version 2 (never published) is dropped and recreated. The connection closes on `versionchange`, so it never blocks an upgrade.
+- **Repair.** If the catalog and the `shots` ever disagree (they should not), the library's retention pass compares their ids and rebuilds the catalog from the rows.
+
+**Database `obturo-settings`, version 1, store `kv`**, kept apart so that its schema never depends on the history. The key `settings` holds the settings, validated on every read and write by `normalizeSettings`: a value that is unknown, of the wrong type or out of range falls back to its default. The key `openShots` holds the ids of the captures the open library holds (see below). Defaults: language `auto`, theme `auto`, retention 30 days, size limit 2 GB, download format `png`, quality 0.9, PDF pages `fit`, PDF pictures `flate`. A change is announced to the other contexts on a `BroadcastChannel` (`obturo`, message `settings-changed`) and by a runtime message to the service worker.
+
+**`localStorage`**, key `obturo.appearance`: a copy of the language and the theme, written by `setSettings` and by the library. The library reads it synchronously to paint its first frame in the right language and theme; opening the settings database costs about 10 ms, a tenth of the budget of the strip. IndexedDB stays the truth, and the page confirms the copy a moment later. The service worker has no `localStorage` and does not need it.
+
+## The history and its retention
+
+**Looking at it.** The strip shows the 12 latest captures. The history sheet shows all of them, in pages of 72 read from the most recent, with a grid of which only the rows in view (and two on each side) exist in the DOM. A search, a period or a pinned-only filter reads the catalog; a site filter alone reads the `host` index; without any filter the page is read straight from the `shots` store. The text searched is folded (case and accents ignored) and every word must be in the title or the address.
+
+**The policy** (`retention.js`, `planPurge`), given the catalog entries, the date, the two settings and the captures to spare:
+
+- A **pinned** capture is never removed, nor a capture in the set to spare: the one just added, and the ones a live library has open.
+- **Age**: an unpinned, unedited capture older than `retentionDays` goes (`0` = never). An **edited** capture escapes it.
+- **Size**: while the total is above `maxBytes` (`0` = no cap), the oldest unpinned unedited captures go first, then the oldest unpinned edited ones. If nothing removable is left and the total is still above the cap, nothing more is done and the pass says the cap is still exceeded (`overCap`), which the settings show.
+
+**When it runs.** After every capture (`addShot`, one lot at most, so a backlog never keeps a capture waiting); when the library opens (`runRetention`, after the first paint, which also repairs the catalog if needed and finishes a backlog); and on request (`purgeNow`). Always by lots of 50 captures, one transaction each: the plan is made again at every lot, in the transaction that deletes, so a capture pinned, edited or opened meanwhile is spared, and the stores agree between two lots. Between lots the worker yields, so an autosave or a capture queued meanwhile runs first.
+
+**The open capture.** The library tab that holds the editing lock publishes the ids it holds (the one on screen and the one the editor may still be saving) in `openShots`, and the retention reads them. Whether a library is alive is asked of Web Locks (`navigator.locks.query`): a tab that crashed or was killed has let go of its lock, and what it published protects nothing any more. Without Web Locks, the ids are trusted: keeping a capture costs less than losing one.
+
+**Settings that cannot be read.** The retention then runs with no age limit and no cap: the defaults would delete what the user chose to keep ("forever", "no limit"). A stored value that is corrupted is another matter: `normalizeSettings` replaces it by its default.
+
+**By hand.** *Purge now* (age in days, size in MB or GB, or both) calls `previewPurge` as the options change, and shows what would go, what is left, how many pinned and edited captures it spares and whether the cap can be met, before *Purge* runs `purgeNow`. *Delete everything* asks to type a word, then deletes by chunks of 250 with a progress bar. Deleting a selection tells the page first (`obturo:history-deleting`), so the editor lets go of a capture that is among them, and afterwards the page redraws (`obturo:history-changed`).
+
+## Version model
+
+```
+shot.versions = [{ name, crop, scale, objects }, ...]
+shot.active   = index of the displayed version, -1 = the original
+```
+
+- **The original is immutable**: the Blob in `originals` is never rewritten, and the original is exported without re-encoding.
+- **A version is JSON, with no image**: `name` (`V1`, `V2`...), `crop` (`{ x, y, w, h }` or `null`), `scale` (1 = original size) and `objects` (the Fabric serialisation of the annotations). `PixelRegion` reads the original image back to draw itself, the flat black is a plain solid rectangle: neither stores pixels.
+- **Creation**: the first real change to an original (first object added, crop, scale change) creates `V1` automatically. "New version" copies the displayed state. The name is the smallest free `Vn`.
+- **Deletion**: falls back to the previous version, or the next one if it was the first, or the original if none is left.
+- **Output caps**: 16,384 px a side and 100 million pixels. `capScale` brings the scale down to the cap and the editor says so.
+- Every function of `versions.js` takes `{ versions, active }` and returns a new state without changing anything.
+
+The editor keeps its undo history (`history.js`, 50 levels) as JSON of objects, never pixels, and saves with `saver.js` 500 ms after the last change, one write at a time (what changes during a write goes out right after; a write that fails is retried at the next change or on close). The versions are written first, alone, in a short transaction; the thumbnail of the displayed version follows in a transaction of its own. The pending change is flushed as soon as the page may go away (tab hidden, `beforeunload`, `pagehide`). A page that closes gives its write only a few milliseconds (a read, then the writes and the commit): it fits almost always, and a change made less than about 25 ms before the tab goes can still be lost on a busy machine.
+
+## How the editor is split
+
+`editor.js` is the controller: it owns the state (open capture, Fabric canvas, tool, view, crop) and chains the actions. The rest sits in modules that each have one responsibility:
+
+| Module | Responsibility | Depends on |
+|---|---|---|
+| `panel.js` | Controls of `library.html`: display and events | `dom.js`, `shapes.js`, Fabric (to recognise texts) |
+| `dom.js` | Elements of `library.html`, typed | nothing |
+| `history.js` | Undo and redo stack | nothing (pure, tested) |
+| `output.js` | Rendering of a version, thumbnail rendering | `versions.js`, `pure.js` |
+| `shapes.js` | `Arrow`, `Marker`, `Highlight`, `Spot`, `PixelRegion`, `BlurRegion`, `Lasso` | Fabric, `mask-pure.js`, `marker-pure.js`, `highlight-pure.js`, `spot-pure.js`, `shape-pure.js` |
+| `versions.js`, `view.js`, `saver.js` | Version model, view mathematics, debounced save | nothing (pure, tested) |
+| `export-ui.js` | The Download menu and the grouped export dialog | `encode.js`, `pdf.js`, `export-batch.js` (loaded when needed) |
+
+To add a setting (the opacity of a stroke, say): the control in `library.html`, its entry in `dom.js`, its display and its event in `panel.js`, its effect on the objects in `editor.js` (`make`) or `shapes.js`, and its texts in `locales/*.ui.js`.
+
+## Downloads and exports
+
+- **The Download button** saves the displayed version in the format of the settings (the choice is written beside the button). Its caret opens a menu: format (PNG, JPEG, WebP, PDF), quality (JPEG, WebP, and the pictures of a light PDF), and for a PDF the pages (`fit` or `a4`) and the pictures (`flate`, lossless, or `jpeg`). Every choice is saved to the settings. An unedited capture downloaded as PNG is the original Blob, not re-encoded; otherwise the displayed version is rendered (`output.js`) and encoded.
+- **The size estimate** exists for JPEG and WebP. Nothing is computed when the menu opens: the first move of the quality slider starts it, 250 ms after the last move, on the whole image or, above 4 million pixels, on a band of full width taken from the middle, multiplied up (shown with "~"). None is shown above 36 million pixels. A light PDF shows no size.
+- **`encode.js`** encodes through the canvas of Chrome. A format that the browser cannot write comes back as a PNG, which `encodeImage` turns into an error. JPEG has no transparency: the scratch canvas is filled white first. The file is named from the `filenameTemplate` setting (`suggestedFilename`; default `{host}_{date}_{time}`, words `{host}`, `{title}`, `{date}`, `{time}` replaced in one pass, anything else in braces kept as typed): safe on Windows whatever the template and the title (forbidden characters become `-`, no leading or trailing dot or space, no device name, 120 characters), and the title only when the template says `{title}`. `settings.js` repeats the default instead of importing it, so the service worker does not load `encode.js`; `settings.test.js` keeps the two equal. The single download reads the template when it runs (`download` in `export-ui.js`), the grouped export when its dialog opens (`runBatch` option `template`); the file of a group stays `obturo_<date>_<time>` (`batchFilename`).
+- **`pdf.js`** writes a PDF with no library: one raster image per page. `fit`: the page has the size of the image at 96 dpi, cut into equal pages past 14,400 pt. `a4`: the image is scaled to the width of an A4 page and cut into A4 slices; a sliced image is stored once, and the MediaBox does the cutting. The pixels travel as Blobs by reference and are read back in strips of about 512 KB. At most 100 million pixels per image. A page is a picture: the text is not selectable.
+- **`zip.js`** writes a ZIP of stored entries (the captures are already compressed), with a CRC-32 read in chunks, unique file names, and no ZIP64 (at most 65,535 entries, 4 GiB).
+- **The grouped export** (`export-ui.js`, `export-batch.js`): the History sheet's selection bar has *Export...*. The dialog offers a ZIP of images (PNG, JPEG or WebP) or a multipage PDF. The engine first makes the editor write what is on screen, reads the rows asked for, and renders **the displayed version** of each capture on a Fabric `StaticCanvas` that draws the original under the objects (the same rendering as the editor's export), one capture at a time, giving the main thread back between two. A capture that is edited yet set to show its original goes out without its changes, and the dialog counts those first. At most 200 captures and 256 MiB of output (the captures after that are reported as "limit reached"); Cancel stops after the capture in progress and builds nothing; a capture that fails is listed with its cause and the others go on. Nothing is written to the history. The file is `obturo_<date>_<time>.zip` or `.pdf`.
+
+The URL of a download is revoked after 10 seconds. `chrome.downloads` would say when it is safe, at the cost of a permission.
+
+## Languages
+
+Nine languages: English and French, written by the author, and German, Spanish, Brazilian Portuguese, Indonesian, Russian, Japanese and simplified Chinese, assisted translations. `languages.js` lists them (code and autonym) and resolves the one to use: the setting when it names a language, else the browser language, an exact match first (`pt-BR`), then another region of the same language (`pt-PT` reads `pt-BR`, `zh-TW` reads `zh-CN` until a traditional Chinese exists), then the bare language, else English. It is tiny and alone so that the popup reads it without the dictionaries.
+
+`i18n.js` holds one flat key to text dictionary per loaded language and the language in use; `t()` is synchronous. English is always loaded: it is the fallback of every other language (a missing key falls back to English, then to the key itself, visible on screen and in the tests but never an exception). Another language is loaded when it is needed: the pages import `locales/<code>.js` on demand (`loadLanguage`, a dynamic `import()`, which the content security policy allows as a script of the extension; `fetch` of a JSON would not be, `connect-src` is `'none'`); the service worker, which cannot `import()` on demand, imports the small `sw` part of every language at once (`locales/sw.js`, about 2 KB each) and gives them to `addTexts`; the popup imports the `sw` and `popup` parts of its language while it reads the shortcuts. Numbers and dates use `Intl` with the language in use, so do the sizes (`fmtBytes`) and the plurals (`plural`, `pluralKey`, from `Intl.PluralRules`). A text that depends on a count is a `.one` and `.other` pair, two forms only: a language with more (Russian) words those texts so that the noun does not agree with the number.
+
+Each language has six parts, so that parallel work never collides: `ui` (library and editor), `sw` (icon menu, tooltip, notices), `popup`, `history`, `export`, `chooser`. `i18n.test.js` checks that every language has the same keys, in the same order, with the same placeholders as English, that no key is in two parts, that the plural pairs are complete, that every key is used by the code and every key used exists, that `library.html` holds no visible text of its own, and that the French says "tu" and never "vous"; `settings-layout.e2e.mjs` opens the settings in every language and checks that no choice is cut. The language picker is a `<select>` (nine entries do not fit a segmented control). How to add a language is in `CONTRIBUTING.md`.
+
+## Tests
+
+- **Unit** (`npm test`, `node --test`): everything that is calculation, in pure modules, plus the texts and the manifest. Fast, no browser; part of `npm run check`.
+- **End to end** (`npm run test:e2e`): `test/e2e/` drives the Chromium of Playwright (`playwright-core`, exact version) with the extension loaded, headless, at concurrency 1 (one file at a time). The loaded extension is a copy of its runtime files (the same list as the package) in a temporary folder; the browser profile is throwaway and removed at the end, by its exact path. The scenarios: the captures of the real extension (visible part, area, full page, cancel, tab change, zoom), the injected scripts (`fullpage.js`, `overlay.js`), the icon menu and what its entries and the shortcuts do, the editor (tools, masking, versions, crop, persistence), regressions (concurrent writes, database failures, two tabs, caps), the reactivation of the library tab, the languages and the theme, the database (versions and the upgrade from version 2, reads, writes, purge, retention, repair, several contexts), the history sheet (also at 5,000 captures), the integrity of the history (the open capture is never removed, a read-only tab changes nothing, a change followed by a reload or a close is saved, unreadable settings, large purges), and the export (the encoders and the Download menu and the grouped export). The `E2E_DPR` variable (1, 1.5, 2...) simulates a display scale. They are not part of `npm run check`, which stays fast.
+- **Benchmark** (`npm run bench`): see "Performance budgets". Manual, not run in CI.
+
+## Project constraints
+
+- **No new permission without a discussion.** The manifest declares `activeTab`, `scripting` and `contextMenus`, which shows no warning at install. Any permission added must be discussed, and justified in `docs/store-listing.md` and in the privacy policy. `unlimitedStorage` is not declared: see "Ideas turned down / not yet".
+- **No remote code.** No script, module or WebAssembly loaded from the network, no `eval` or `new Function`. All the code is in the package, Fabric.js included (pinned version, checksums in `vendor/README.md`). The extension makes no network request.
+- **No HTML parsing.** Strings from the captured page (title, address) flow through the interface. Neither `innerHTML`, nor `outerHTML`, nor `insertAdjacentHTML`, nor `document.write` is used: only `textContent`, `createElement` and `replaceChildren`. ESLint forbids them.
+- **Validated boundaries.** The overlay message is checked (main frame, shape, finite numbers) before any calculation. The title (300 characters) and the address (2,048) are cut where a capture enters the database. The settings are validated on every read.
+- **No build, no runtime dependency.** The `devDependencies` only check the code and are not in the package.
+- **The history keeps what it should.** The retention never removes a pinned capture, the one just added or one the library has open, and removes nothing when the settings cannot be read.
+- **No text in the code.** The texts of the interface are in `locales/` and `_locales/`, in every language.
+- **Everything that is logic is testable without a browser.** Calculations live in pure modules (no `chrome.*`, IndexedDB or DOM) covered by `node --test`. Code that calls `chrome.*`, IndexedDB or the DOM is covered by the end-to-end tests (`test/e2e/`).
+- **The service worker stays light**: at load time, constants and listeners only (and the off-path rebuild of the icon menu).
+
+## Performance budgets
+
+The aim is an extension that is very fast, with budgets in numbers. They are targets; `npm run bench` measures them (a manual script, outside CI: the durations depend on the hardware; it prints a table of budget, target, measured, verdict). The detailed measures behind a design choice are also in the comments of the code (`db.js`, `catalog.js`, `shapes.js`, `sw.js`, `pure.js`).
+
+The table is the output of the last run (2026-10-02), on Windows with Node 24.11 and the Chromium of Playwright (143), 5,000 captures in the history where it says so. **30 of the 32 budgets were met.** An earlier run on an idle machine met 31 of 32, the purge of 1,000 captures being the only one over (1.1 s for 500 ms). The figures move from run to run: in the later run the purge took longer (2.3 s) and the strip with 5,000 captures landed just above its target. A run of 2026-10-03 on an idle machine, after the `modulepreload` lists were removed, met 33 of the 34 budgets the bench now counts (the purge again, 0.86 s): strip painted in 40 ms (max 47.9), and in 59.9 ms (max 71.7) with 5,000 captures.
+
+| Budget | Target | Measured |
+|---|---|---|
+| Strip painted (median of 9 loads) | < 100 ms | 59.8 ms (max 89.7) |
+| Fabric loaded after the first paint | yes | yes |
+| Full-size PNGs decoded before the paint | 0 | 0 |
+| Thumbnails generated without counting as an edit | yes | yes |
+| Opening, click to usable editor (HD, 4K, full page) | < 150 ms | 3840x2160 80.5, 1920x1080 81.2, 1920x16384 147.6, 1280x720 30.8 ms |
+| Smoothness: 60 frames/s (zoom, scroll, drag, autosave) | < 2% of frames over 20 ms | 0% at worst, p95 16.8 ms, 12 scenarios |
+| Autosave (`updateShot`) | < 20 ms | 3.2 ms, 0.5 ms with an original of 31.8 MB |
+| Strip read (`latestShots`, 12 captures) | < 20 ms | 0.9 ms |
+| Edited PNG export (HD, full page) | < 500 ms | HD 242 ms, full page 472 ms |
+| Edited PNG export, 4K with a 32 MB original | < 1500 ms | 572 ms |
+| Export of the original (no re-encoding) | < 300 ms | 151 ms |
+| Leaks after 20 openings: JS heap | < 1 MB | +0.04 MB |
+| Leaks: listeners, DOM nodes | +0, < +50 | +0, +9 |
+| Leaks: live bitmaps, live URLs | <= 1, <= thumbnails + 1 | 1, 11 (11 thumbnails) |
+| Fabric editors left in the page | 1 (2 canvases) | 2 canvases |
+| Visible part capture (gesture to OK badge) | < 400 ms | 85 ms warm, 172 ms cold |
+| Area capture (release to OK badge) | < 500 ms | 117 ms warm, 115 ms cold |
+| Full page: duration per tile (imposed floor: 550 ms) | < 700 ms | 557 ms (13 tiles, 7,245 ms in total) |
+| History: first page (`queryShots`, 5,000 captures) | < 30 ms | 12.8 ms (max 14.6); first call after a reload 29.9 ms, which includes opening the database |
+| History: search (5,000 captures) | < 50 ms | 13.5 ms (max 19.2), 834 matches; accents 9.3 ms, no match 6.7 ms |
+| History: `addShot` with the retention (5,000 captures) | < 30 ms added | +10 ms (add alone 10 ms, with retention 20 ms) |
+| History: `addShot` at the size cap, removing one | < 30 ms added | +6.7 ms (with retention 16.7 ms; 5,020 to 5,020 captures after 10 adds) |
+| **History: purge of 1,000 captures** | < 500 ms | **Over budget**: 2,282.6 ms in this run (1,000 removed, 4,100 KB); 1.1 s on the idle machine |
+| History: an autosave during that purge | < 300 ms | 135.5 ms at worst over 21 writes |
+| History: library pass (`runRetention`, 5,000 captures) | < 100 ms | 14.8 ms (max 23.2) |
+| **Strip painted, 5,000 captures in the history** (median of 9 loads) | < 100 ms | **Over budget, by a hair**: 102.5 ms (max 139.3) |
+| History sheet: click to first cards painted (5,000 captures) | < 150 ms | 36.6 ms (max 39, first 36.6) |
+| History sheet: scrolling (wheel, fling) | < 2% of frames over 20 ms | wheel 1/646, p95 16.8 ms; fling 0/300, p95 16.8 ms |
+| History sheet: cards in the DOM while scrolling | <= 200 | 54 |
+| History sheet: live object URLs after the scroll | <= cards + strip + 2 | 60 (48 cards, 12 in the strip) |
+| History sheet: search, keystroke to results painted (including the 150 ms wait) | < 300 ms | worst 193 ms (facture 193, café été 174.1, billing report 176.4, no match 184.7, cleared 181.1) |
+| History sheet: select all 5,000 results | < 100 ms | 27.8 ms |
+
+Not measured by the bench, and checked by hand or by the code:
+
+| Budget | Value | How it is met |
+|---|---|---|
+| Memory, full page | 32 million pixels at most (`MAX_PIXELS`) | One tile decoded at a time, canvas reset to 0 x 0 after the encoding. Peak measured in the extension process (Chromium 143): about 400 MB with 1080p tiles, about 680 MB with 4K tiles, released at the end of the capture. |
+| Duration, full page | about 550 ms per tile, 100 tiles at most (`MAX_TILES`) | Chrome allows 2 calls per second to `captureVisibleTab`. |
+| Output size of the editor | 16,384 px a side, 100 million pixels | `capScale`. |
+| Grouped export | 200 captures, 256 MiB | One capture rendered at a time; the encoded files are kept until the single file is built. Peak memory measured on Chromium 143: +230 MB for 20 captures of 1080p as a ZIP, +850 MB for 20 captures of 4K. |
+| Package weight | a warning for any file over 500 KB outside `vendor/` | `scripts/package.mjs`. |
+
+How the budgets are met:
+
+- **Strip and startup.** The editor and Fabric are imported after the first paint of the strip. The strip reads only the 12 latest captures, with a cursor, and no count. Lazy thumbnails (one at a time, visible elements only), never a full-size PNG decode to show a thumbnail. `db-warm.js` opens the database while the page is parsed, `theme-boot.js` sets the theme before the stylesheet, and the language and the theme come from the copy in `localStorage` instead of waiting for the settings database. The retention pass and the history module come after the paint. Marks `obturo:strip-rendered`, `obturo:strip-painted` and `obturo:editor-loaded` check it.
+- **Editor.** The canvas is the size of the screen, never the size of the image: zoom and scroll go through a view matrix. The image is drawn from an `ImageBitmap`, not as a Fabric object. Renders are batched per frame (`requestRenderAll`). The image is decoded once on opening, and the annotations are read back from JSON.
+- **Autosave.** The `shots` row is separate from the original and never holds it, so a write costs a few milliseconds whatever the size of the capture.
+- **Captures.** The PNG of the visible part is not decoded (the size comes from the header), the copy and the IndexedDB write start in parallel; an area is one decode, already cropped.
+- **The history at 5,000 captures.** The catalog in buckets answers the search, the totals and the retention in a few milliseconds; the retention works by lots of 50, so a save waits 50 to 150 ms at most behind a purge. The purge of 1,000 captures stays over its budget because Chromium deletes one file per Blob and a capture holds two; the ways to halve it (keep the thumbnail inline in the row, or delete the originals in a later transaction) are noted in `db.js`.
+- **The history sheet.** A windowed grid with recycled cards (never more than a couple of hundred in the DOM) and their object URLs revoked as soon as they leave the window; the thumbnails that do not exist yet are made two at a time, for the visible cards only.
+
+## Ideas turned down / not yet
+
+| Idea | Why |
+|---|---|
+| `chrome.debugger` (full page capture without scrolling) | Turned down. The `debugger` permission cannot be optional and shows "Read and change all your data on all websites" at install. That goes against the aim of zero warnings and the promise of minimal access. Scrolling and stitching, with its known limits, is the price chosen. |
+| OCR (text recognition in the captures, selectable text in the PDFs) | Turned down. Outside the purpose of the extension (capture, annotate, keep). It would need a shipped engine and its models (weight and memory, against the performance aim) or downloading them (remote code, forbidden). |
+| Cloud sync | Turned down. Contradicts the central promise: no server, no account, nothing leaves the computer. It would also bring network permissions and a privacy policy of another kind. |
+| Firefox | Turned down. Chrome only. A port needs its own manifest and code paths (different APIs and service worker), so twice the surface to test, with no gain for the current aim. Open again if someone ports it and maintains the port. |
+| `unlimitedStorage` | Not added. The storage quota measured for the extension is far above the default size limit of the history (2 GB), so the permission would be one more line to justify in the store for no gain. A user who sets the limit to 10 GB or to none can still meet the quota: a write that the browser refuses shows the red `ERR` badge. |
+| Capture of several tabs, or of a list of addresses | Not yet: the decision is pending and nothing is coded. It needs a permission to access websites, which Obturo does not have today. If it is done, that permission would be asked for when the feature is used, never at install, so that the install keeps showing no access to websites. |
