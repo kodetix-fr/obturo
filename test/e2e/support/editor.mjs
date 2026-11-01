@@ -132,13 +132,13 @@ export const tool = (page, name) => page.click(`[data-tool="${name}"]`);
 // ---------------------------------------------------------------- mouse
 
 /** Mapping between document coordinates (image px) and screen coordinates, for the fitted view. */
-export async function mapper(page, docW, docH) {
+export async function mapper(page, docW, docH, keep) {
   const [cw, ch] = await page.evaluate(() => {
     const stage = document.getElementById('stage');
     return [stage.clientWidth, stage.clientHeight];
   });
   const box = await page.locator('#stage').boundingBox();
-  const v = fitView(cw, ch, docW, docH);
+  const v = fitView(cw, ch, docW, docH, keep); // `keep`: the part of the document kept in sight (the capture and its beautify look)
   return { v, pt: (x, y) => [box.x + v.tx + x * v.z, box.y + v.ty + y * v.z] };
 }
 

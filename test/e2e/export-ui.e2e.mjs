@@ -583,9 +583,9 @@ describe('export: the grouped export', () => {
     assert.equal(await page.locator('#exQuality').isVisible(), false, 'PNG: no quality');
     const file = await downloadAfter(page, () => page.click('#exStart'));
     await batchDone(page);
-    // Nothing is kept: the bitmaps are closed, the canvases of the export are gone (the editor's two remain).
+    // Nothing is kept: the bitmaps are closed, the canvases of the export are gone (the editor's three remain: Fabric's two and the backdrop of the look).
     assert.equal(await page.evaluate(() => window.__c.bmp - window.__c.bmpClosed), before, 'bitmaps left open');
-    assert.equal(await page.evaluate(() => document.querySelectorAll('canvas').length), 2, 'canvases left in the page');
+    assert.equal(await page.evaluate(() => document.querySelectorAll('canvas').length), 3, 'canvases left in the page');
     assert.equal(await text('#exSummary'), 'Captures exported: 4 of 4. The file is downloading.');
     assert.match(file.name, /^obturo_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.zip$/);
     assert.ok(isFormat.zip(file.buf));
