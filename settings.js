@@ -5,7 +5,7 @@ import { LANGUAGES } from './languages.js';
 import { CAPTURE_DELAYS } from './gestures.js';
 import { done, wait } from './idb.js';
 
-/** @typedef {{ language: string, theme: string, retentionDays: number, maxBytes: number, downloadFormat: string, downloadQuality: number, pdfLayout: string, pdfEncoding: string, filenameTemplate: string, afterCapture: string, fullPageWait: number, fullPageFixed: string, noTrace: boolean, captureDelay: number }} Settings */
+/** @typedef {{ language: string, theme: string, retentionDays: number, maxBytes: number, downloadFormat: string, downloadQuality: number, pdfLayout: string, pdfEncoding: string, filenameTemplate: string, afterCapture: string, fullPageWait: number, fullPageFixed: string, noTrace: boolean, captureDelay: number, redactSensitive: boolean }} Settings */
 
 /** @type {Readonly<Settings>} */
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   fullPageFixed: 'edges', // full page: 'edges' (a fixed bar shows once, at the top or at the bottom of the image) | 'hide' (none shows)
   noTrace: false,         // no trace: a capture is copied to the clipboard and saved nowhere (nothing in the history)
   captureDelay: 0,        // seconds to wait before a capture (CAPTURE_DELAYS), the icon counting down; 0 = none
+  redactSensitive: false, // every capture covers in black the e-mails, phone numbers, IBANs, card numbers and keys found in the text of the page (redact.js)
 });
 
 const THEMES = ['auto', 'light', 'dark'];
@@ -63,6 +64,7 @@ export function normalizeSettings(raw) {
     fullPageFixed: FULL_PAGE_FIXED.includes(r.fullPageFixed) ? r.fullPageFixed : d.fullPageFixed,
     noTrace: typeof r.noTrace === 'boolean' ? r.noTrace : d.noTrace,
     captureDelay: CAPTURE_DELAYS.includes(r.captureDelay) ? r.captureDelay : d.captureDelay,
+    redactSensitive: typeof r.redactSensitive === 'boolean' ? r.redactSensitive : d.redactSensitive,
   };
 }
 

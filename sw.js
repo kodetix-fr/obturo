@@ -1,7 +1,7 @@
 import { addShot } from './db.js';
 import { cropRect, cleanArea, pngSize, planTiles, growPlan, pickScroller, clipBox, canvasSize, tileDest, decodeDataUrl, isCut, unscrolledKey, failureKey } from './pure.js';
 import { menuItems, libraryTarget, cleanNoTrace, cleanDelay, cleanPopupRun, cleanChooserEdit } from './gestures.js';
-import { t, addTexts, setLanguage, resolveLanguage } from './i18n.js';
+import { t, plural, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
 import { DEFAULT_SETTINGS, getSettings, setSettings } from './settings.js';
 import { showNotice } from './notice.js';
@@ -169,9 +169,10 @@ async function grabTabPng(tab) {
   return { blob: new Blob([bytes], { type: 'image/png' }), b64 };
 }
 
-/** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] An area, absent for the visible part. */
-async function shoot(tab, area) {
+/** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] An area, absent for the visible part. @param {boolean} [covered] The sensitive text is covered: it is uncovered as soon as the image is taken. */
+async function shoot(tab, area, covered) {
   let { blob, b64 } = await grabTabPng(tab);
+  if (covered) await uncover(tab);
   let { w, h } = await pngSize(blob); // PNG header, no decoding
   if (area) {
     const c = cropRect(area.rect, area.vw, area.vh, w, h);
@@ -189,7 +190,51 @@ async function shoot(tab, area) {
   return save(tab, blob, w, h, b64);
 }
 /** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] @param {boolean} [edit] */
-const capture = (tab, area, edit) => exclusive(() => shoot(tab, area), edit);
+const capture = (tab, area, edit) => exclusive(() => hiding(tab, (covered) => shoot(tab, area, covered), area?.rect), edit);
+
+// ---------- sensitive text ----------
+
+// With "Hide sensitive text" on, redact.js covers in black what sensitive.js finds in the text of the page, for the length of one image.
+// An image is never taken with the text showing: when the cover cannot be put up, the capture fails (red badge).
+/** Calls a method of redact.js in the page of the tab. @param {Tab} tab @param {'apply' | 'clear' | 'result'} method @param {...unknown} args */
+function callRedact(tab, method, ...args) {
+  return chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: /** @param {'apply' | 'clear' | 'result'} m @param {any[]} a */ (m, a) => /** @type {any} */ (window).__obturoRedact[m](...a),
+    args: [method, args],
+  }).then(([r]) => r?.result);
+}
+const injectRedact = (tab) => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['sensitive.js', 'redact.js'] });
+// The page goes back to what it was; a tab that is gone has nothing to put back.
+const uncover = (tab) => callRedact(tab, 'clear').catch(() => {});
+
+/** What the capture tells the user about the hiding: how many items, that there were none, that the search was cut short. @param {Tab} tab */
+async function redactNote(tab) {
+  const r = await callRedact(tab, 'result').catch(() => null);
+  if (!r) return [];
+  return [r.hidden ? plural(r.hidden, 'sw.redact.one', 'sw.redact.other') : t('sw.redact.none'), ...(r.incomplete ? [t('sw.redact.partial')] : [])];
+}
+
+/**
+ * Runs a capture of one image, `job(covered)`, with the sensitive text covered when the settings ask for it, then says what was hidden.
+ * @param {Tab} tab @param {(covered: boolean) => Promise<unknown>} job @param {import('./versions.js').Rect} [region] The part of the window the image keeps (an area).
+ */
+async function hiding(tab, job, region) {
+  const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (nothing hidden)
+  if (!settings.redactSensitive) return job(false);
+  setLanguage(resolveLanguage(settings.language, chrome.i18n.getUILanguage()));
+  await injectRedact(tab);
+  await callRedact(tab, 'apply', region);
+  let saved;
+  try {
+    saved = await job(true);
+  } finally {
+    await uncover(tab);
+  }
+  const lines = await redactNote(tab);
+  if (lines.length) await notice(tab, lines);
+  return saved;
+}
 
 // ---------- full page ----------
 
@@ -325,6 +370,7 @@ function createStitcher(first, m, covered) {
 /** @param {Tab} tab @param {import('./settings.js').Settings} settings @param {string[]} notes */
 async function fullPageTiles(tab, settings, notes) {
   try {
+    if (settings.redactSensitive) await injectRedact(tab);
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['fullpage.js'] });
     const scan = /** @type {FullPageScan} */ (await callPage(tab, 'begin', { wait: settings.fullPageWait, fixed: settings.fullPageFixed }));
     const pick = pickScroller(scan.cands, scan.doc, scan.vw, scan.vh);
@@ -336,7 +382,8 @@ async function fullPageTiles(tab, settings, notes) {
     if (plan.ys.length < 2) { // no vertical overflow: the visible part, and a word if the page looks like it has more
       const key = unscrolledKey(scan);
       if (key) notes.push(t(key));
-      return await shoot(tab);
+      if (settings.redactSensitive) await callRedact(tab, 'apply');
+      return await shoot(tab, undefined, settings.redactSensitive);
     }
 
     const tol = 1 / m.dpr + 1; // the browser snaps a scroll to a device pixel
@@ -376,6 +423,7 @@ async function fullPageTiles(tab, settings, notes) {
       // the page settling (go) already covered part of the wait; max(0): a huge negative delay
       // (lastCallAt = 0 on the 1st tile) is converted to a 32-bit integer by setTimeout and never ends
       await sleep(Math.max(0, lastCallAt + TILE_INTERVAL_MS - Date.now()));
+      if (settings.redactSensitive) await callRedact(tab, 'apply'); // content that loaded while the page scrolled is covered too; before lastCallAt: the search does not count in the two calls a second
       lastCallAt = Date.now();
       const bmp = await createImageBitmap(await grabTabPngChecked(tab));
       try {
@@ -399,6 +447,7 @@ async function fullPageTiles(tab, settings, notes) {
     return await save(tab, blob, w, h);
   } finally {
     await callPage(tab, 'end').catch(() => {}); // idempotent: safety net if an error interrupted the loop
+    if (settings.redactSensitive) await uncover(tab);
   }
 }
 
@@ -428,6 +477,7 @@ async function fullPage(tab) {
     await notice(tab, [t(failureKey(e))], 'error');
     throw e;
   }
+  if (saved !== undefined && settings.redactSensitive) notes.push(...await redactNote(tab));
   if (notes.length) await notice(tab, notes);
   return saved;
 }

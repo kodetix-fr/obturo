@@ -23,4 +23,9 @@ export default {
   'sw.full.fail.tab': 'Página completa interrumpida: otra pestaña o ventana pasó al primer plano durante la captura. No se guardó nada.',
   'sw.full.fail.page': 'Página completa interrumpida: la página cambió o dejó de responder durante la captura. No se guardó nada.',
   'sw.full.fail.other': 'La captura de página completa falló. No se guardó nada. Inténtalo de nuevo.',
+  // what a capture says on the page when the sensitive text was hidden (redact.js)
+  'sw.redact.one': '{n} elemento sensible oculto en la captura. Obturo puede pasar por alto alguno: revisa antes de compartir.',
+  'sw.redact.other': '{n} elementos sensibles ocultos en la captura. Obturo puede pasar por alto alguno: revisa antes de compartir.',
+  'sw.redact.none': 'No se encontró ninguna dirección de correo, número de teléfono, IBAN, número de tarjeta ni clave en el texto de la página. Revisa antes de compartir.',
+  'sw.redact.partial': 'La página es demasiado grande para revisarla entera: puede quedar texto visible.',
 };
