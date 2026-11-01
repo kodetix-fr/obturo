@@ -6,6 +6,39 @@ import { launchExtension } from './support/browser.mjs';
 import { resetLibrary, seedSettings } from './support/editor.mjs';
 import { LANGUAGES } from '../../languages.js';
 
+describe('settings: the close button stays in view', () => {
+  let h, page;
+
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, []);
+  });
+  after(() => h?.close());
+
+  it('in a short window, scrolled to the bottom, the title and the close button are still at the top of the dialog and a click closes it', async () => {
+    await page.goto(h.url('manifest.json'));
+    await seedSettings(page, { language: 'en' });
+    await page.setViewportSize({ width: 800, height: 420 });
+    await page.goto(h.url('library.html#settings'));
+    await page.waitForSelector('dialog#settings[open]');
+    const reach = await page.evaluate(() => {
+      const dialog = /** @type {HTMLElement} */ (document.getElementById('settings'));
+      dialog.scrollTop = dialog.scrollHeight;
+      return { scrollable: dialog.scrollHeight > dialog.clientHeight + 40, scrolled: dialog.scrollTop > 40 };
+    });
+    assert.deepEqual(reach, { scrollable: true, scrolled: true }, 'the dialog really scrolls in a short window');
+    const where = await page.evaluate(() => {
+      const dialog = document.getElementById('settings').getBoundingClientRect();
+      const button = document.querySelector('#settings .dlg-head button').getBoundingClientRect();
+      return { fromTop: Math.round(button.top - dialog.top), inside: button.bottom <= dialog.bottom && button.top >= dialog.top };
+    });
+    assert.ok(where.inside && where.fromTop < 24, `the close button sits at the top of the dialog (${where.fromTop} px from it)`);
+    await page.click('#settings .dlg-head button');
+    await page.waitForFunction(() => !(/** @type {HTMLDialogElement} */ (document.getElementById('settings'))).open);
+  });
+});
+
 describe('settings: the choices keep their shape', () => {
   let h, page;
 
