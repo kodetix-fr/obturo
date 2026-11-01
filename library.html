@@ -63,6 +63,7 @@
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.2v.1"/></symbol>
     <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5"/><path d="M3.5 9.5h17"/></symbol>
     <symbol id="i-shape-rect" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="11" rx=".5"/></symbol>
     <symbol id="i-shape-round" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="11" rx="4"/></symbol>
     <symbol id="i-shape-ellipse" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="5.5"/></symbol>
@@ -247,6 +248,8 @@
       <span id="out" aria-live="polite"></span>
       <span id="outNote" role="status"></span>
       <button type="button" id="cropClear" class="btn sm ghost" data-i18n-title="crop.clear.tip"><span data-i18n="crop.clear"></span></button>
+      <!-- The beautify panel: beautify-ui.js builds it inside #beWrap on first use. -->
+      <span id="beWrap" class="be-wrap"><button type="button" id="beautify" class="btn sm" aria-haspopup="dialog" aria-expanded="false" data-i18n-title="be.tip"><svg class="ic" aria-hidden="true"><use href="#i-frame"/></svg><span data-i18n="be.btn"></span></button></span>
       <span class="sep"></span>
       <div class="zoom">
         <span id="zoomLabel"></span>

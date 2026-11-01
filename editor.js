@@ -14,11 +14,12 @@ import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applySh
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
-import { createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
+import { blankVersion, createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
+import { normalizeBeautify, styleOf } from './beautify-pure.js';
 import { fitView, clampView, zoomAt, panBy } from './view.js';
 import { createSaver } from './saver.js';
 import { createHistory } from './history.js';
-import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
+import { editorSync, renderCanvas, renderPng, renderPreview, renderThumb } from './output.js';
 import { getSettings } from './settings.js';
 import { clamp, versionsKey } from './pure.js';
 import { t } from './i18n.js';
@@ -378,7 +379,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     let capped = false;
     if (v) {
       const area = v.crop ?? { w: W, h: H };
-      const r = capScale(area.w, area.h, v.scale);
+      const r = capScale(area.w, area.h, v.scale, styleOf(v));
       v.scale = r.scale;
       capped = r.capped;
     }
@@ -387,7 +388,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   const snapshot = () => {
     const v = cur();
-    return JSON.stringify([v.objects, v.crop, v.scale]);
+    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null]);
   };
   const syncHistory = () => panel.showHistory(history);
 
@@ -460,8 +461,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     const snap = cur() && history.step(delta);
     if (!snap) return;
-    const [objs, crop, scale] = JSON.parse(snap);
-    Object.assign(cur(), { objects: objs, crop, scale });
+    const [objs, crop, scale, beautify] = JSON.parse(snap);
+    Object.assign(cur(), { objects: objs, crop, scale, beautify });
     await loadObjects(objs);
     syncOutput();
     syncHistory();
@@ -479,6 +480,14 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     const target = px || W;
     ensureVersion();
     cur().scale = scaleForWidth(cur().crop?.w ?? W, target);
+    syncOutput();
+    commit();
+  }
+
+  // The beautify look of the displayed version, null to turn it off. Like any other change, the first one to an original creates V1.
+  function setBeautify(style) {
+    ensureVersion();
+    cur().beautify = normalizeBeautify(style);
     syncOutput();
     commit();
   }
@@ -579,6 +588,33 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     } catch (e) {
       console.error('Obturo: download menu', e);
       warn('export.err.generic');
+    }
+  }
+
+  // ---------- beautify ----------
+  // The panel is in beautify-ui.js, imported on first use. It reads and changes the look of the displayed version through the context below.
+
+  let beautifyUi = null; // the module, once imported
+  let beautifyLoad = null;
+  const loadBeautifyUi = () => beautifyLoad ??= import('./beautify-ui.js').then((m) => (beautifyUi = m)).catch((e) => { beautifyLoad = null; throw e; });
+
+  /** The look of the displayed version, how to change it, and a preview of a look in a box (a canvas that the caller owns); null if nothing is open. */
+  function beautifyContext() {
+    if (!ready()) return null;
+    endPendingEdit();
+    return {
+      style: () => styleOf(cur()),
+      apply: setBeautify,
+      preview: (style, width, height) => renderPreview(canvas, { ...(cur() ?? blankVersion()), beautify: style }, W, H, width, height),
+    };
+  }
+
+  async function beautifyMenu() {
+    try {
+      (await loadBeautifyUi()).toggle({ context: beautifyContext });
+    } catch (e) {
+      console.error('Obturo: beautify panel', e);
+      warn('be.err');
     }
   }
 
@@ -735,13 +771,13 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   panel.bindControls({
     ready, setTool, showVersion: show, newVersion, removeVersion, enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu,
+    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 
   document.addEventListener('keydown', (e) => {
     if (!ready() || /** @type {Element} */ (e.target).closest?.('input:not([type="radio"]):not([type="range"]), select, textarea') || canvas.getActiveObject()?.isEditing) return; // radios and sliders (swatches, stroke, strength) leave Delete and Ctrl+Z to the editor
-    if (document.querySelector('dialog[open]') || exportUi?.isMenuOpen?.()) return; // a modal dialog (settings), or the format menu, has the keyboard
+    if (document.querySelector('dialog[open]') || exportUi?.isMenuOpen?.() || beautifyUi?.isOpen?.()) return; // a modal dialog (settings), the format menu or the beautify panel has the keyboard
     const k = e.key.toLowerCase();
     if (k === 'delete' || k === 'backspace') { e.preventDefault(); deleteSelection(); }
     else if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey) { e.preventDefault(); step(-1); }

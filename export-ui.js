@@ -10,7 +10,7 @@
 import { DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FORMAT_NAMES, PDF_ENCODINGS, PDF_LAYOUTS, getSettings, setSettings } from './settings.js';
 import { fmtBytes, pluralKey, t } from './i18n.js';
 import { getShots } from './db.js';
-import { applyDom, icon, setAria, setI18n } from './dom-i18n.js';
+import { applyDom, h, icon, setAria, setI18n } from './dom-i18n.js';
 import {
   ESTIMATE_DELAY_MS, IMAGE_FORMATS, MAX_ITEMS, batchDefaults, canEstimate, classifyExportError, countShownAsOriginal, createLatest,
   estimateBand, imageFilename, isLossy, usesQuality,
@@ -37,27 +37,6 @@ const REVOKE_DELAY_MS = 10_000;
 
 const $ = (id) => document.getElementById(id);
 const valueOf = (/** @type {Event} */ e) => /** @type {HTMLInputElement} */ (e.target).value;
-
-/**
- * Builds an element. `attrs`: `class`, `text` (textContent), `on<event>` (listener), anything else an attribute; false and
- * undefined are skipped. The kids are nodes or strings. No HTML is ever parsed.
- * @param {string} tag
- * @param {Record<string, any>} [attrs]
- * @param {...(Node | string)} kids
- * @returns {any}
- */
-function h(tag, attrs = {}, ...kids) {
-  const node = document.createElement(tag);
-  for (const [name, value] of Object.entries(attrs)) {
-    if (value === undefined || value === false) continue;
-    if (name === 'class') node.className = value;
-    else if (name === 'text') node.textContent = value;
-    else if (name.startsWith('on')) node.addEventListener(name.slice(2), value);
-    else node.setAttribute(name, value === true ? '' : value);
-  }
-  node.append(...kids);
-  return node;
-}
 
 let stylesheet = null;
 /** export.css, loaded when a menu or a dialog opens. */

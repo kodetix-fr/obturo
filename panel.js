@@ -8,6 +8,7 @@ import { DEFAULT_FILL, PALETTE, solidColor } from './mask-pure.js';
 import { cleanSide, markerDiameter } from './marker-pure.js';
 import { highlightColor } from './highlight-pure.js';
 import { outputSize, MAX_SIDE, MAX_PIXELS } from './versions.js';
+import { styleOf } from './beautify-pure.js';
 import { clamp } from './pure.js';
 import { formatNumber } from './i18n.js';
 import { FORMAT_NAMES } from './settings.js';
@@ -191,6 +192,7 @@ export function showOutput(version, W, H, capped) {
   dom.scaleW.value = String(Math.floor(crop.w * scale + 1e-6));
   setI18n(dom.out, 'out.size', { w: size.w, h: size.h });
   dom.cropClear.disabled = !version?.crop;
+  dom.beautify.toggleAttribute('data-on', !!styleOf(version));
 }
 
 /** The language changed: redraws what holds a number formatted for the previous one (applyDom did the rest). */
@@ -287,6 +289,7 @@ export function bindControls(actions) {
   dom.copy.addEventListener('click', () => ready() && actions.copyImage());
   dom.download.addEventListener('click', () => ready() && actions.downloadImage());
   dom.downloadMenu.addEventListener('click', () => ready() && actions.downloadMenu());
+  dom.beautify.addEventListener('click', () => ready() && actions.beautifyMenu());
 
   // Style: the preview follows the typing ('input'); history and saving follow the validation ('change').
   const live = (el, fn) => el.addEventListener('input', () => actions.restyle(fn));

@@ -23,14 +23,17 @@ test('normalizeBeautify: each field falls back alone, numbers are clamped to the
   assert.equal(normalizeBeautify({ padding: '48' }).padding, DEFAULT_BEAUTIFY.padding, 'a string is not a number');
   assert.deepEqual(normalizeBeautify({ bg: { type: 'gradient', index: GRADIENTS.length } }).bg, DEFAULT_BEAUTIFY.bg);
   assert.deepEqual(normalizeBeautify({ bg: { type: 'gradient', index: 2 } }).bg, { type: 'gradient', index: 2 });
-  assert.equal(normalizeBeautify({ bg: { type: 'color', color: '#ABCDEF' } }).bg.color, '#abcdef', 'lower case');
+  assert.deepEqual(normalizeBeautify({ bg: { type: 'color', color: '#ABCDEF' } }).bg, { type: 'color', color: '#abcdef' }, 'lower case');
 });
 
 test('normalizeBeautify never hands out the default object itself', () => {
   const a = normalizeBeautify({});
-  a.bg.index = 5;
-  assert.equal(DEFAULT_BEAUTIFY.bg.index, 0);
-  assert.equal(normalizeBeautify({}).bg.index, 0);
+  a.bg = { type: 'gradient', index: 5 };
+  assert.deepEqual(DEFAULT_BEAUTIFY.bg, { type: 'gradient', index: 0 });
+  assert.deepEqual(normalizeBeautify({}).bg, { type: 'gradient', index: 0 });
+  const b = normalizeBeautify({});
+  const c = normalizeBeautify({});
+  assert.notEqual(b.bg, c.bg);
 });
 
 test('styleOf reads the style of a version, null when it has none', () => {

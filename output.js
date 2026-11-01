@@ -1,8 +1,10 @@
 // Full-resolution rendering of a version of the shot: the image to export (the clipboard, the downloads) and the strip thumbnail. The functions
 // receive the Fabric canvas, the version and the size of the original; they touch neither the UI nor the editor
 // state. No pixel is computed before it is asked for (export, save).
-import { outputSize } from './versions.js';
-import { thumbPlan, THUMB_QUALITY } from './pure.js';
+import { innerSize } from './versions.js';
+import { thumbPlan, THUMB_QUALITY, THUMB_WIDTH } from './pure.js';
+import { framedSize, styleOf } from './beautify-pure.js';
+import { drawBeautified } from './beautify.js';
 
 // Renders the region of the document starting at `from` (x, y), at scale `scale`, into a w x h px canvas. The view
 // is reset to the identity for the duration of the call: we export in document coordinates, not screen ones.
@@ -18,8 +20,18 @@ function renderRegion(canvas, from, scale, w, h) {
   }
 }
 
+// The capture drawn inside its beautify look, or as it is without one; `inner` is given back to the browser either way.
+function framed(inner, style, k) {
+  if (!style) return inner;
+  try {
+    return drawBeautified(inner, style, k);
+  } finally {
+    inner.width = inner.height = 0;
+  }
+}
+
 /**
- * The displayed version rendered, crop and scale applied, as a canvas that belongs to the caller (it sets its width and
+ * The displayed version rendered, crop, scale and beautify look applied, as a canvas that belongs to the caller (it sets its width and
  * height to 0 once it is done, to give the pixels back). Synchronous: the canvas of the editor, or any Fabric canvas that
  * draws the original under the objects, is not touched after the call. Used by every export, single or grouped.
  * @param {any} canvas Fabric canvas that holds the objects of the version (and draws the original in before:render).
@@ -30,9 +42,35 @@ function renderRegion(canvas, from, scale, w, h) {
  */
 export function renderCanvas(canvas, version, W, H) {
   const crop = version.crop ?? { x: 0, y: 0, w: W, h: H };
-  const size = outputSize(W, H, version);
-  return renderRegion(canvas, crop, version.scale, size.w, size.h);
+  const size = innerSize(W, H, version);
+  return framed(renderRegion(canvas, crop, version.scale, size.w, size.h), styleOf(version), 1);
 }
+
+// The version drawn small, look included, in a box of `width` x `height` at most and never larger than the output. `top`: a full
+// page keeps its top only (see thumbPlan).
+function renderSmall(canvas, version, W, H, width, height, top) {
+  const area = version?.crop ?? { x: 0, y: 0, w: W, h: H };
+  const scale = version?.scale ?? 1;
+  const style = styleOf(version);
+  const keepH = top ? thumbPlan(area.w, area.h).keepH : area.h;
+  const full = framedSize(Math.floor(area.w * scale + 1e-6), Math.floor(keepH * scale + 1e-6), style);
+  const ratio = Math.min(width / full.w, height / full.h, 1 / scale); // the output px -> this drawing's px
+  const k = scale * ratio; // the px of the original -> this drawing's px
+  return framed(renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k))), style, ratio);
+}
+
+/**
+ * What the displayed version looks like, in a box of `width` x `height` at most: the preview of the beautify panel. A canvas that
+ * belongs to the caller. `version` absent = the original.
+ * @param {any} canvas
+ * @param {import('./versions.js').Version | undefined} version
+ * @param {number} W
+ * @param {number} H
+ * @param {number} width
+ * @param {number} height
+ * @returns {HTMLCanvasElement}
+ */
+export const renderPreview = (canvas, version, W, H, width, height) => renderSmall(canvas, version, W, H, width, height, false);
 
 /**
  * PNG of a version, crop and scale applied.
@@ -69,7 +107,9 @@ export const editorSync = { flush: () => Promise.resolve() };
 export async function renderThumb(canvas, version, W, H) { // async: a thumbnail failure must never prevent saving the versions
   const area = version?.crop ?? { x: 0, y: 0, w: W, h: H };
   const { keepH, k } = thumbPlan(area.w, area.h);
-  const el = renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k)));
+  const el = styleOf(version)
+    ? renderSmall(canvas, version, W, H, THUMB_WIDTH, Infinity, true)
+    : renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k)));
   try {
     return await new Promise((done) => el.toBlob(done, 'image/webp', THUMB_QUALITY));
   } finally {

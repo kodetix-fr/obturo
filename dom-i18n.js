@@ -67,6 +67,27 @@ export function setAria(el, key, vars) {
   el.setAttribute('aria-label', t(key, vars));
 }
 
+/**
+ * Builds an element. `attrs`: `class`, `text` (textContent), `on<event>` (listener), anything else an attribute; false and
+ * undefined are skipped. The kids are nodes or strings. No HTML is ever parsed.
+ * @param {string} tag
+ * @param {Record<string, any>} [attrs]
+ * @param {...(Node | string)} kids
+ * @returns {any}
+ */
+export function h(tag, attrs = {}, ...kids) {
+  const node = document.createElement(tag);
+  for (const [name, value] of Object.entries(attrs)) {
+    if (value === undefined || value === false) continue;
+    if (name === 'class') node.className = value;
+    else if (name === 'text') node.textContent = value;
+    else if (name.startsWith('on')) node.addEventListener(name.slice(2), value);
+    else node.setAttribute(name, value === true ? '' : value);
+  }
+  node.append(...kids);
+  return node;
+}
+
 /** An inline icon of the sprite in library.html (`#i-<name>`). @param {string} name */
 export function icon(name) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

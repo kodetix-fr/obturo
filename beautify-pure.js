@@ -22,8 +22,7 @@ export const RADIUS = { min: 0, max: 48, step: 2 };
 export const SHADOWS = Object.freeze({ none: null, soft: { blur: 24, dy: 8, alpha: 0.25 }, strong: { blur: 40, dy: 16, alpha: 0.45 } });
 export const BAR_HEIGHT = 36;
 
-/** @type {Beautify} */
-export const DEFAULT_BEAUTIFY = Object.freeze({ bg: { type: 'gradient', index: 0 }, padding: 48, radius: 12, shadow: 'soft', frame: 'none' });
+export const DEFAULT_BEAUTIFY = /** @type {Beautify} */ (Object.freeze({ bg: { type: 'gradient', index: 0 }, padding: 48, radius: 12, shadow: 'soft', frame: 'none' }));
 
 const snap = (n, { min, max, step }, fallback) => (Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n / step) * step)) : fallback);
 

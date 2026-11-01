@@ -155,6 +155,8 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 #out { color: var(--fg); font-variant-numeric: tabular-nums; }
 #outNote { padding: 1px 9px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-fg); }
 #outNote:empty { display: none; }
+.be-wrap { position: relative; display: inline-flex; }
+#beautify[data-on] { background: var(--accent-soft); color: var(--accent-ink); }
 .zoom { display: inline-flex; align-items: center; gap: 8px; }
 .zbtns { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--surface-2); }
 .zbtns .btn { height: 24px; border-radius: 7px; }
