@@ -5,7 +5,7 @@
 //
 // A click sends { type: 'popup-run', id, tab } to the service worker and closes the popup; the worker waits for the page to get
 // its focus back, then runs the action (sw.js).
-import { POPUP_ICONS, popupGroups, popupLanguage, shortcutKeys } from './gestures.js';
+import { CAPTURE_DELAYS, POPUP_ICONS, popupGroups, popupLanguage, shortcutKeys } from './gestures.js';
 import TEXTS from './locales/popup.js';
 
 // The texts of the rows are the 'menu.*' ones of the icon menu, with the 'popup.*' ones: only these two small parts of each language
@@ -26,13 +26,15 @@ function icon(name) {
   return svg;
 }
 
-const COPY_KEY = 'obturo.appearance'; // the copy of the settings in localStorage (settings.js): the language, the theme, the no-trace mode
+const COPY_KEY = 'obturo.appearance'; // the copy of the settings in localStorage (settings.js): the language, the theme, the no-trace mode, the delay
 const menu = /** @type {HTMLElement} */ (document.getElementById('menu'));
 /** @type {HTMLButtonElement[]} */
 const items = [];
 let sent = false; // one click is enough: the popup closes right after it
 let noTrace = false; // the no-trace switch: from the copy at opening, then what the person flips
 let flipping = false; // a flip is being stored
+let delay = 0; // the delay before a capture, in seconds: from the copy at opening, then what the person picks
+let picking = false; // a choice of delay is being stored
 
 /** @param {string} id The action. */
 async function run(id) {
@@ -129,13 +131,18 @@ function paintNoTrace(on) {
   }
 }
 
+/** @param {Record<string, unknown>} patch */
+function writeCopy(patch) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(COPY_KEY) ?? 'null');
+    localStorage.setItem(COPY_KEY, JSON.stringify({ ...(raw && typeof raw === 'object' ? raw : {}), ...patch }));
+  } catch { /* no localStorage, or not JSON: the worker has the setting all the same */ }
+}
+
 /** @param {boolean} on */
 function setNoTrace(on) {
   noTrace = on;
-  try {
-    const raw = JSON.parse(localStorage.getItem(COPY_KEY) ?? 'null');
-    localStorage.setItem(COPY_KEY, JSON.stringify({ ...(raw && typeof raw === 'object' ? raw : {}), noTrace: on }));
-  } catch { /* no localStorage, or not JSON: the worker has the setting all the same */ }
+  writeCopy({ noTrace: on });
   paintNoTrace(on);
 }
 
@@ -183,6 +190,63 @@ function noTraceGroup() {
   return box;
 }
 
+// The delay before a capture, under the switch: one row that goes through the choices (none, 3, 5, 10 s) at each click, stored the same way
+// as the switch. The popup stays open: the delay only matters for the next capture.
+/** @param {number} seconds */
+function paintDelay(seconds) {
+  const button = /** @type {HTMLElement} */ (document.querySelector('[data-id="capture-delay"]'));
+  const value = seconds ? t('popup.delayValue').replace('{n}', String(seconds)) : t('popup.delayOff');
+  /** @type {HTMLElement} */ (button.querySelector('.value')).textContent = value;
+  button.setAttribute('aria-label', `${t('popup.delay')}: ${value}`);
+  button.classList.toggle('on', seconds > 0);
+}
+
+/** @param {number} seconds */
+function setDelay(seconds) {
+  delay = seconds;
+  writeCopy({ captureDelay: seconds });
+  paintDelay(seconds);
+}
+
+async function nextDelay() {
+  if (picking) return;
+  picking = true;
+  const was = delay;
+  const wanted = CAPTURE_DELAYS[(CAPTURE_DELAYS.indexOf(was) + 1) % CAPTURE_DELAYS.length];
+  setDelay(wanted);
+  let taken = false;
+  try {
+    taken = (await chrome.runtime.sendMessage({ type: 'popup-delay', value: wanted })) === true;
+  } catch (e) {
+    console.error('Obturo:', e);
+  }
+  if (!taken) setDelay(was);
+  picking = false;
+}
+
+function delayGroup() {
+  const box = document.createElement('div');
+  box.className = 'group';
+  box.setAttribute('role', 'group');
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'item';
+  button.dataset.id = 'capture-delay';
+  button.setAttribute('role', 'menuitem');
+  button.tabIndex = -1;
+  const label = document.createElement('span');
+  label.className = 'label';
+  label.textContent = t('popup.delay');
+  const value = document.createElement('span');
+  value.className = 'value';
+  value.setAttribute('aria-hidden', 'true'); // read through aria-label
+  button.append(icon('timer'), label, value);
+  button.addEventListener('click', nextDelay);
+  items.push(button);
+  box.append(button);
+  return box;
+}
+
 // Arrows, Home and End move between the rows (the list is one tab stop); Enter and Space click, as on any button; Escape closes.
 document.addEventListener('keydown', (e) => {
   document.documentElement.classList.remove('mouse', 'idle');
@@ -211,7 +275,11 @@ async function init() {
   let copy = null;
   try { copy = localStorage.getItem(COPY_KEY); } catch { /* no localStorage: the browser's language */ }
   lang = popupLanguage(copy, chrome.i18n.getUILanguage());
-  try { noTrace = JSON.parse(copy ?? 'null')?.noTrace === true; } catch { /* not JSON: off */ }
+  try {
+    const saved = JSON.parse(copy ?? 'null');
+    noTrace = saved?.noTrace === true;
+    delay = CAPTURE_DELAYS.includes(saved?.captureDelay) ? saved.captureDelay : 0;
+  } catch { /* not JSON: off */ }
   document.documentElement.lang = lang;
   menu.setAttribute('aria-label', t('popup.menu'));
   /** @type {Record<string, string>} */
@@ -243,9 +311,10 @@ async function init() {
     }
     frame.append(box);
   }
-  frame.append(noTraceGroup());
+  frame.append(noTraceGroup(), delayGroup());
   menu.replaceChildren(frame);
   paintNoTrace(noTrace);
+  paintDelay(delay);
   links();
   items[0].tabIndex = 0;
   document.documentElement.classList.add('idle');

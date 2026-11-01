@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'Les captures sont seulement copiées, jamais enregistrées. «\u00a0Capturer et éditer\u00a0» est indisponible.', // sous l'interrupteur
   'popup.manage': 'Gérer les extensions', // ouvre la page du navigateur qui liste les extensions
   'popup.shortcuts': 'Raccourcis clavier', // ouvre la page où se règlent les raccourcis des extensions
+  'popup.delay': 'Délai',
+  'popup.delayOff': 'Aucun',
+  'popup.delayValue': '{n} s',
 };

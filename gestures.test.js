@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MENU, POPUP_ICONS, POPUP_IDS, cleanChooserEdit, cleanNoTrace, cleanPopupRun, libraryTarget, menuItems, popupGroups, popupLanguage, shortcutKeys } from './gestures.js';
+import { CAPTURE_DELAYS, MENU, POPUP_ICONS, POPUP_IDS, cleanChooserEdit, cleanDelay, cleanNoTrace, cleanPopupRun, libraryTarget, menuItems, popupGroups, popupLanguage, shortcutKeys } from './gestures.js';
 import en from './locales/en.js';
 import fr from './locales/fr.js';
 
@@ -106,6 +106,12 @@ test('cleanNoTrace: the state asked for by the switch of the popup, a boolean, n
   assert.equal(cleanNoTrace({ type: 'popup-notrace', value: false }), false);
   for (const bad of [null, undefined, 'popup-notrace', {}, { type: 'popup-notrace' }, { type: 'popup-notrace', value: 'true' }, { type: 'popup-notrace', value: 1 },
     { type: 'popup-notrace', value: null }, { type: 'popup-run', value: true }, { type: 'settings-changed', value: true }]) assert.equal(cleanNoTrace(bad), null, JSON.stringify(bad));
+});
+
+test('cleanDelay: one of the delays of the settings, nothing else (0 is a delay, not an absence)', () => {
+  for (const value of CAPTURE_DELAYS) assert.equal(cleanDelay({ type: 'popup-delay', value }), value);
+  for (const bad of [null, undefined, 'popup-delay', {}, { type: 'popup-delay' }, { type: 'popup-delay', value: 4 }, { type: 'popup-delay', value: '3' }, { type: 'popup-delay', value: -1 },
+    { type: 'popup-delay', value: null }, { type: 'popup-notrace', value: 3 }, { type: 'settings-changed', value: 3 }]) assert.equal(cleanDelay(bad), null, JSON.stringify(bad));
 });
 
 test('cleanPopupRun: a known action, and a tab with whole-number ids for a capture', () => {

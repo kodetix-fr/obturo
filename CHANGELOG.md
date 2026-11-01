@@ -8,6 +8,10 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **A delay before a capture** (*Settings*, *Capture*, *Delay before capture*: none, 3, 5 or 10 s, and a row of
+  the popup that goes through the choices). The icon counts the seconds down and the page stays usable, so a
+  menu, a tooltip or a hover state can be opened before the capture. Any capture gesture during the wait cancels
+  it, and so does leaving the tab. For an area, the selection starts when the delay ends. No new permission.
 - **Save the file after a capture** (*Settings*, *Capture*, *After a capture*, third choice next to
   *Ask what to do* and *Copy it*). The capture is kept in the history, then downloaded as a file with the
   format, the quality and the file name template of the *Download* section. It is written by a tab that opens

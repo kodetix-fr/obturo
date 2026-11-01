@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'Aufnahmen werden nur kopiert, nie gespeichert. „Aufnehmen und bearbeiten“ ist nicht verfügbar.', // under the switch
   'popup.manage': 'Erweiterungen verwalten', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'Tastenkürzel', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': 'Verzögerung',
+  'popup.delayOff': 'Aus',
+  'popup.delayValue': '{n} s',
 };

@@ -74,6 +74,8 @@ html.pending body { visibility: hidden; animation: reveal 0s 1s forwards; }
 [aria-checked="true"] > .switch { border-color: var(--notrace); background: var(--notrace); }
 [aria-checked="true"] > .switch::after { left: 14px; background: #fff; }
 [aria-checked="true"] > .ic { color: var(--notrace); }
+.value { flex: none; color: var(--muted); font-size: 12px; }
+.item.on .value { color: var(--icon); font-weight: 600; }
 .group-hint { margin: 2px 0 0; padding: 0 16px 2px 46px; color: var(--muted); font-size: 11.5px; line-height: 1.35; }
 .group-hint[hidden] { display: none; }
 

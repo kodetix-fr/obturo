@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': '截图只会被复制，不会保存。“截图并编辑”不可用。', // under the switch
   'popup.manage': '管理扩展程序', // opens the page of the browser that lists the extensions
   'popup.shortcuts': '键盘快捷键', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': '延迟',
+  'popup.delayOff': '无',
+  'popup.delayValue': '{n} 秒',
 };

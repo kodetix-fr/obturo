@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'Tangkapan hanya disalin, tidak pernah disimpan. "Tangkap dan edit" tidak tersedia.', // under the switch
   'popup.manage': 'Kelola ekstensi', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'Pintasan keyboard', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': 'Jeda',
+  'popup.delayOff': 'Nonaktif',
+  'popup.delayValue': '{n}\u00A0dtk',
 };

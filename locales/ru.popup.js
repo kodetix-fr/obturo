@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'Снимки только копируются и никогда не сохраняются. Пункт «Снимок с редактированием» недоступен.', // under the switch
   'popup.manage': 'Управление расширениями', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'Сочетания клавиш', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': 'Задержка',
+  'popup.delayOff': 'Нет',
+  'popup.delayValue': '{n} с',
 };

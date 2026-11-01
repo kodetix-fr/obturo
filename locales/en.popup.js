@@ -7,4 +7,7 @@ export default {
   'popup.noTraceHint': 'Captures are only copied, never saved. "Capture and edit" is unavailable.', // under the switch
   'popup.manage': 'Manage extensions', // opens the page of the browser that lists the extensions
   'popup.shortcuts': 'Keyboard shortcuts', // opens the page where the shortcuts of the extensions are set
+  'popup.delay': 'Delay',
+  'popup.delayOff': 'Off',
+  'popup.delayValue': '{n} s',
 };
