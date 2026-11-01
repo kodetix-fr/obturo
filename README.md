@@ -200,9 +200,10 @@ Non-destructive: the original of a capture is never changed.
   soft, strong) and an optional **window bar** with the three dots above the
   capture. The editor shows the capture inside its look while it is on, and you
   keep drawing, selecting, cropping, zooming and panning on the capture itself
-  (the look steps aside while you edit a crop). A preview in the panel shows the
-  result as you change it, and the *Output* size counts what the look adds (the
-  scale comes down if the result would pass the ceilings). It belongs to a
+  (the look steps aside while you edit a crop). The panel opens as a column next
+  to the editing area, which stays in sight and follows the controls as they
+  move; the *Output* size counts what the look adds (the scale comes down if the
+  result would pass the ceilings). It belongs to a
   version: the original is untouched, it can be turned off, a new version starts
   without it, and the last look is offered when you turn it on for another
   version. The editor, its copy and download, the grouped export, the PDF and the
