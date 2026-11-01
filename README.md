@@ -92,6 +92,18 @@ opens the new capture in the editor.
   shortcut, the menu or the popup) cancels the wait, and so does leaving the tab.
   It applies to the visible part, the full page and *Capture and edit*; for an
   area, the selection starts when the delay ends.
+- **Hide sensitive text**: *Settings*, *Capture*, *Hide sensitive text* (off by
+  default). Before each image of a capture (area, element, visible part, full
+  page, and their *and edit* variants), Obturo covers in solid black the e-mail
+  addresses, phone numbers, IBANs, card numbers and keys it finds in the text of
+  the page, takes the image, and puts the page back as it was: no node is added
+  and no text changes, the cover is a CSS highlight that follows a panel that
+  scrolls. A full page looks again at each tile, so what loads while the page
+  scrolls is covered too. A note on the page then says how many items were
+  hidden, or that none was found. It is best effort, not a guarantee: look at
+  the image before you share it. If the cover cannot be put up, no image is
+  taken (red badge). What is looked for, and what is not, is under *Known
+  limits*.
 - **Clipboard**: with *Copy it*, every capture is copied and saved. A badge on the icon says how
   it went: `OK` (green) copied and saved, `!` (orange) saved but not copied,
   `ERR` (red) failed, `...` (grey) ignored because another capture is running,
@@ -278,6 +290,17 @@ full page is scrolled and stitched instead, with the limits below.
 
 ## Known limits
 
+- **Hide sensitive text** reads the text of the page, so it does not see what is
+  not text: images, canvases, the content of frames, closed shadow DOM and what
+  is typed in a field (the value of an input or a textarea). It looks for
+  e-mail addresses, phone numbers (international and French forms), IBANs and
+  card numbers (both with their checksum), and the keys of a few services
+  (Stripe, GitHub, AWS, Slack, Google, a JWT, a private key block); a name, an
+  address, an amount or a key of another shape is left as it is. A page of
+  more than 200,000 text nodes, or a search that takes more than 0.4 s per
+  image, is searched only as far as that goes, and the note says so. Open
+  shadow roots are searched; the note is a box on the page, so with *Ask what
+  to do* it is on the captured tab, behind the page of actions.
 - **Full page**: one scrolling area per capture, the document or the panel that
   shows the most: a second column or a sidebar that scrolls is not in the image,
   and what a frame shows is captured as it shows, not scrolled. A page that
@@ -342,7 +365,7 @@ Two things to know before sharing a capture:
 | Permission | Why |
 |---|---|
 | `activeTab` | Capture the active tab, only after a gesture from you (icon click, shortcut, menu). No access to websites in general. |
-| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, and write the image to the clipboard from there; after a full-page capture, show a short note on the page when the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
+| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, the one that covers the sensitive text while the image is taken (only with *Hide sensitive text* on), and write the image to the clipboard from there; after a full-page capture, show a short note on the page when the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
 | `contextMenus` | The icon's right-click menu: *Capture* and *Capture and edit* (submenus), *Open the library* and *Settings*. |
 
 Obturo asks for no access to websites, reads the clipboard only when you paste
@@ -382,6 +405,9 @@ databases, the retention, the version model and the budgets.
   selection, and the page driver of a full-page capture. `notice.js` is the
   short note a full-page capture leaves on the page when it is not the whole
   page or stops.
+- `sensitive.js`, `redact.js`: injected together when *Hide sensitive text* is
+  on. The first finds what to hide in a text (a pure function, tested without a
+  browser); the second covers it for the length of an image.
 - `db.js`, `catalog.js`, `retention.js`: IndexedDB access, the catalog that
   search and retention read, and the retention policy. `db-warm.js` opens the
   database while the library page is still being parsed.
