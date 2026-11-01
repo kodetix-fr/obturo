@@ -872,7 +872,7 @@ describe('history view', () => {
       await viewWhere(L, (x) => /r\u00e9sultats$/.test(x.count), 'French results');
       assert.equal(await L.getAttribute('#hvQuery', 'placeholder'), 'Rechercher un titre ou une adresse');
       assert.notEqual(await L.locator('#hvGrid .hv-sub').first().textContent(), en, 'the dates are written in French');
-      assert.match(await L.locator('#hvGrid .hv-sub').first().textContent(), /oct/);
+      assert.match(await L.locator('#hvGrid .hv-sub').first().textContent(), /·\s+\d+\s+(janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)/);
       assert.equal(await L.getAttribute('#hvGrid .hv-card:first-child .pin', 'aria-label').then((x) => x.startsWith('\u00c9pingler la capture du')), true);
       assert.equal(await L.locator('#hvPinned span').textContent(), `\u00c9pingl${E1}es seulement`);
       await L.click('#hvGrid .hv-card:first-child input[type=checkbox]', { force: true });
