@@ -395,9 +395,9 @@ is discussed first, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Install
 
-Chrome Web Store: not published yet.
+[Add Obturo to Chrome](https://chromewebstore.google.com/detail/obturo/kaafiicmlbdchfalaljmbeoblihjbnih) from the Chrome Web Store.
 
-Meanwhile, in developer mode, with Chrome 116 or newer and no tooling:
+To run the code instead, in developer mode, with Chrome 116 or newer and no tooling:
 
 1. Get this repository (clone or archive) into a folder. From a
    [release](https://github.com/kodetix-fr/obturo/releases) instead, unzip
