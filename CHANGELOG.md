@@ -41,9 +41,9 @@ Notable changes to Obturo. The format follows
   the download fails. The no-trace mode keeps copying only, and *Capture and edit* still opens the editor. No
   new permission.
 
-## [0.1.0] - unreleased
+## [0.1.0] - 2026-11-02
 
-First release. It has not been published yet; the date is set when it is.
+First release.
 
 ### Added
 
