@@ -23,4 +23,9 @@ export default {
   'sw.full.fail.tab': 'Full page stopped: another tab or window took the focus during the capture. Nothing was saved.',
   'sw.full.fail.page': 'Full page stopped: the page changed or stopped answering during the capture. Nothing was saved.',
   'sw.full.fail.other': 'Full page failed. Nothing was saved. Try again.',
+  // what a capture says on the page when the sensitive text was hidden (redact.js)
+  'sw.redact.one': '{n} sensitive item hidden in the capture. Obturo can miss some: check before you share.',
+  'sw.redact.other': '{n} sensitive items hidden in the capture. Obturo can miss some: check before you share.',
+  'sw.redact.none': 'No e-mail address, phone number, IBAN, card number or key found in the text of the page. Check before you share.',
+  'sw.redact.partial': 'The page is too big to be searched in full: some text may still show.',
 };

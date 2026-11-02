@@ -23,4 +23,9 @@ export default {
   'sw.full.fail.tab': "Page entière interrompue\u00a0: un autre onglet ou une autre fenêtre a pris le premier plan pendant la capture. Rien n'a été enregistré.",
   'sw.full.fail.page': "Page entière interrompue\u00a0: la page a changé ou ne répondait plus pendant la capture. Rien n'a été enregistré.",
   'sw.full.fail.other': "La page entière a échoué. Rien n'a été enregistré. Réessaie.",
+  // what a capture says on the page when the sensitive text was hidden (redact.js)
+  'sw.redact.one': '{n} élément sensible masqué dans la capture. Obturo peut en manquer : vérifie avant de partager.',
+  'sw.redact.other': '{n} éléments sensibles masqués dans la capture. Obturo peut en manquer : vérifie avant de partager.',
+  'sw.redact.none': 'Aucune adresse e-mail, aucun numéro de téléphone, IBAN, numéro de carte ni clé trouvé dans le texte de la page. Vérifie avant de partager.',
+  'sw.redact.partial': 'La page est trop grande pour être parcourue en entier : du texte peut rester visible.',
 };

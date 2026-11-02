@@ -18,6 +18,13 @@ Notable changes to Obturo. The format follows
   and the thumbnails draw it from the same geometry, so they agree to the pixel; the scale ceilings count the
   padding and the bar, and the background *None* is transparent in PNG and WebP and white in JPEG and PDF.
   No new permission.
+- **Hide sensitive text** (*Settings*, *Capture*, off by default). Before each image of a capture, Obturo covers in
+  solid black the e-mail addresses, phone numbers, IBANs, card numbers and keys found in the text of the page, then
+  puts the page back: a CSS highlight, so no node is added, no text changes and the cover follows a scrolling panel.
+  Open shadow roots are searched. A full page looks again at each tile. A note on the page says how many items were
+  hidden, or that none was found, or that the page was too big to be searched in full. When the cover cannot be put
+  up, no image is taken. Best effort: images, canvases, frames, closed shadow DOM and the value of a field are not
+  seen. No new permission.
 - **Element capture**: a fourth kind next to *Area*, *Visible part* and *Full page*, in the popup, in both
   submenus of the icon menu and as two commands without a default key (*Capture an element*, *Capture an
   element and edit*). A box follows the pointer over the innermost element, a click captures its part inside

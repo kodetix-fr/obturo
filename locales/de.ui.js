@@ -71,6 +71,8 @@ export default {
   'settings.capture.delay.five': '5 s',
   'settings.capture.delay.ten': '10 s',
   'settings.capture.delay.hint': 'Während der Verzögerung zählt das Symbol herunter und die Seite bleibt benutzbar: Öffne das Menü, den Tooltip oder die Liste, die du aufnehmen willst. Starte eine Aufnahme erneut, um abzubrechen. Bei einem Bereich oder einem Element beginnt die Auswahl erst nach der Verzögerung.',
+  'settings.capture.redact': 'Sensiblen Text ausblenden',
+  'settings.capture.redact.hint': 'Vor jedem Bild einer Aufnahme deckt Obturo E-Mail-Adressen, Telefonnummern, IBANs, Kartennummern und Schlüssel, die es im Text der Seite findet, schwarz ab und stellt die Seite danach wieder her. Bilder, Canvas, Frames, geschlossenes Shadow DOM und Eingaben in Feldern sieht es nicht, und es kann Text übersehen: Prüfe vor dem Teilen.',
   'prop.strength': 'Stärke',
   'prop.textHint': 'Für Text besser eine Vollfläche.',
   'prop.hl': 'Textmarker',
