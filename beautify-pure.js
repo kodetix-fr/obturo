@@ -85,6 +85,14 @@ export function layout(w, h, style, k = 1) {
     bar: bar ? { x: pad, y: pad, w, h: bar } : null,
     shot: { x: pad, y: pad + bar, w, h },
     radius: Math.min(Math.round(style.radius * k), Math.floor(Math.min(win.w, win.h) / 2)),
-    shadow: shadow && { blur: Math.round(shadow.blur * k), dy: Math.round(shadow.dy * k), alpha: shadow.alpha },
+    shadow: shadow && fitShadow(shadow, k, pad),
   };
+}
+
+/** The shadow at scale k, shrunk so that its reach (blur and offset) never goes past the padding, where the image would cut it. @param {{ blur: number, dy: number, alpha: number }} shadow @param {number} k @param {number} pad */
+function fitShadow(shadow, k, pad) {
+  const blur = Math.round(shadow.blur * k);
+  const dy = Math.round(shadow.dy * k);
+  const fit = blur + dy > pad ? pad / (blur + dy) : 1;
+  return { blur: Math.floor(blur * fit), dy: Math.floor(dy * fit), alpha: shadow.alpha };
 }

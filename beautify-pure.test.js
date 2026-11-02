@@ -79,6 +79,21 @@ test('layout: no frame, no bar; no shadow, no shadow; the capture fills the wind
   assert.deepEqual([l.w, l.h], [300, 200]);
 });
 
+test('layout: the shadow shrinks to fit the padding and keeps its strength', () => {
+  const room = (shadow, padding) => layout(1000, 600, style({ padding, shadow })).shadow;
+  assert.deepEqual(room('strong', 96), { blur: 40, dy: 16, alpha: 0.45 });
+  assert.deepEqual(room('strong', 20), { blur: 14, dy: 5, alpha: 0.45 });
+  assert.deepEqual(room('soft', 20), { blur: 15, dy: 5, alpha: 0.25 });
+  for (const shadow of ['soft', 'strong']) {
+    for (let padding = 0; padding <= PADDING.max; padding++) {
+      for (const k of [1, 0.5, 0.25]) {
+        const s = layout(1000, 600, style({ padding, shadow }), k).shadow;
+        assert.ok(s.blur + s.dy <= Math.round(padding * k), `${shadow} ${padding} ${k}`);
+      }
+    }
+  }
+});
+
 test('layout: the radius never exceeds half of the shortest side of the window', () => {
   assert.equal(layout(40, 30, style({ radius: 48 })).radius, 15);
   assert.equal(layout(1000, 600, style({ radius: 48 })).radius, 48);
@@ -88,7 +103,7 @@ test('layout at scale k: the same look, smaller, and everything stays inside the
   const full = layout(1000, 600, style({ padding: 48, frame: 'window', shadow: 'strong' }));
   const small = layout(250, 150, style({ padding: 48, frame: 'window', shadow: 'strong' }), 0.25);
   assert.deepEqual([small.w, small.h], [250 + 24, 150 + 24 + 9]);
-  assert.deepEqual(small.shadow, { blur: 10, dy: 4, alpha: 0.45 });
+  assert.deepEqual(small.shadow, { blur: 8, dy: 3, alpha: 0.45 });
   for (const l of [full, small]) {
     assert.ok(l.shot.x + l.shot.w <= l.w && l.shot.y + l.shot.h <= l.h);
     assert.ok(l.win.x + l.win.w <= l.w && l.win.y + l.win.h <= l.h);
