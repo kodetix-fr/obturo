@@ -54,6 +54,7 @@ export const dom = {
   download: byId('download', HTMLButtonElement),
   downloadFmt: byId('downloadFmt'), // the format a click on Download produces (export)
   downloadMenu: byId('downloadMenu', HTMLButtonElement), // the caret that opens the format menu (export)
+  beautify: byId('beautify', HTMLButtonElement), // opens the beautify panel; marked when the displayed version has a look
   // Versions, crop, scale, zoom
   versions: byId('versions'),
   newVersion: byId('newVersion', HTMLButtonElement),

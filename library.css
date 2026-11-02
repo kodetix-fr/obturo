@@ -50,9 +50,9 @@
 html, body { height: 100%; margin: 0; }
 body {
   display: grid;
-  grid-template-columns: var(--rail) minmax(0, 1fr);
+  grid-template-columns: var(--rail) minmax(0, 1fr) var(--pane, 0px);
   grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
-  grid-template-areas: "appbar appbar" "rail props" "rail banner" "rail stage" "rail status" "strip strip";
+  grid-template-areas: "appbar appbar appbar" "rail props props" "rail banner banner" "rail stage pane" "rail status status" "strip strip strip";
   font: 13px/1.4 system-ui, "Segoe UI", sans-serif;
   background: var(--bg); color: var(--fg);
 }
@@ -155,6 +155,7 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 #out { color: var(--fg); font-variant-numeric: tabular-nums; }
 #outNote { padding: 1px 9px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-fg); }
 #outNote:empty { display: none; }
+#beautify[data-on] { background: var(--accent-soft); color: var(--accent-ink); }
 .zoom { display: inline-flex; align-items: center; gap: 8px; }
 .zbtns { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--surface-2); }
 .zbtns .btn { height: 24px; border-radius: 7px; }

@@ -215,7 +215,7 @@ test('locales: the French addresses the reader as "tu" everywhere, never "vous"'
 // Typos in a key show up on screen as the key itself; this finds them before. Every literal that looks like a key of the
 // interface dictionary ('strip.open') in the sources of the library must exist, and every key must be used somewhere.
 test('interface keys: every key used by the code or the page exists, every key is used', () => {
-  const sources = ['library.html', 'library.js', 'panel.js', 'editor.js', 'mask-pure.js', 'highlight-pure.js', 'settings-ui.js', 'dom-i18n.js', 'export-ui.js', 'history-view.js', 'history-dialogs.js', 'history-settings.js', 'import.js', 'popup.js', 'popup.html'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'));
+  const sources = ['library.html', 'library.js', 'panel.js', 'editor.js', 'mask-pure.js', 'highlight-pure.js', 'settings-ui.js', 'dom-i18n.js', 'export-ui.js', 'beautify-ui.js', 'history-view.js', 'history-dialogs.js', 'history-settings.js', 'import.js', 'popup.js', 'popup.html'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'));
   const namespaces = new Set(Object.keys(enUi).map((k) => k.split('.')[0]));
   const used = new Set();
   for (const text of sources) {

@@ -8,6 +8,16 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **Beautify** (the button in the bar under the editor): a background (none, a color of the palette or a
+  free one, or one of six gradients), a padding, rounded corners, a shadow and an optional window bar around
+  the capture. The editor shows the capture inside its look while it is on, and editing keeps working on the
+  capture itself (zoom, pan, crop and annotations included); the panel is a column next to the editing area,
+  which follows its controls as they move. It is a property of a version, so the original stays untouched and
+  it can be turned off; a new version starts without it, and the last look is offered when it is turned on
+  for another version. The stage, the copy and the download of the editor, the grouped export (ZIP and PDF)
+  and the thumbnails draw it from the same geometry, so they agree to the pixel; the scale ceilings count the
+  padding and the bar, and the background *None* is transparent in PNG and WebP and white in JPEG and PDF.
+  No new permission.
 - **Hide sensitive text** (*Settings*, *Capture*, off by default). Before each image of a capture, Obturo covers in
   solid black the e-mail addresses, phone numbers, IBANs, card numbers and keys found in the text of the page, then
   puts the page back: a CSS highlight, so no node is added, no text changes and the cover follows a scrolling panel.

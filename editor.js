@@ -15,6 +15,8 @@ import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
 import { createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
+import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
+import { paintBackdrop } from './beautify.js';
 import { fitView, clampView, zoomAt, panBy } from './view.js';
 import { createSaver } from './saver.js';
 import { createHistory } from './history.js';
@@ -50,7 +52,7 @@ const SCALE_RANGE = { min: 0.01, max: 10 }; // output scale as typed: 1 % to 100
  *   the dictionaries, so that the banner follows the language.
  */
 export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onError }) {
-  let holder, canvas, bitmap, original, shot, W = 0, H = 0;
+  let holder, backdrop, canvas, bitmap, original, shot, W = 0, H = 0;
   let tool = 'select', view = { z: 1, tx: 0, ty: 0 }, fitMode = true;
   let ticket = 0, loadSeq = 0, cropBox = null, drawing = null;
   let pressed = false; // the mouse button is down on the canvas: a gesture is in progress
@@ -96,7 +98,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   function drawCrop({ ctx }) {
     if (!canvas) return;
     const r = cropNow();
-    if (!r || ctx !== canvas.getContext()) return;
+    if (!r || ctx !== canvas.getContext() || lookOf()) return; // with a look, what is outside the crop is not shown at all
     const v = canvas.viewportTransform;
     const x = r.x * v[0] + v[4], y = r.y * v[3] + v[5], w = r.w * v[0], h = r.h * v[3];
     ctx.save();
@@ -111,20 +113,68 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     ctx.restore();
   }
 
+  // The look of the displayed version, while the stage shows it: the capture (the crop, or the whole image), the look and the part of
+  // the document that the view keeps in sight (the capture and the look around it, in document px: the look is in output px).
+  // null when the version has none, and while a crop is edited (the whole image shows then).
+  function lookOf() {
+    const v = ready() && !cropBox ? cur() : null;
+    const style = styleOf(v);
+    if (!v || !style) return null;
+    const area = v.crop ?? { x: 0, y: 0, w: W, h: H };
+    const { pad, bar } = extraOf(style);
+    const padding = pad / v.scale, header = bar / v.scale;
+    return { style, area, scale: v.scale, box: { x: area.x - padding, y: area.y - header - padding, w: area.w + 2 * padding, h: area.h + header + 2 * padding } };
+  }
+
+  // The look is drawn BEHIND the canvas, by the code that draws it in the exports, from the same geometry at the scale of the view; the
+  // canvas is clipped to the capture, with the rounded corners of the window. Nothing of the capture moves, so the pointer
+  // coordinates, the zoom, the pan and the objects are the ones they always were.
+  function paintLook() {
+    if (!backdrop || !canvas) return;
+    const ratio = window.devicePixelRatio || 1;
+    const w = canvas.width, h = canvas.height;
+    if (backdrop.width !== Math.round(w * ratio) || backdrop.height !== Math.round(h * ratio)) {
+      backdrop.width = Math.round(w * ratio);
+      backdrop.height = Math.round(h * ratio);
+    }
+    const ctx = /** @type {CanvasRenderingContext2D} */ (backdrop.getContext('2d'));
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, backdrop.width, backdrop.height);
+    const look = lookOf();
+    if (!look) {
+      canvas.lowerCanvasEl.style.clipPath = '';
+      return;
+    }
+    const cap = { x: view.tx + look.area.x * view.z, y: view.ty + look.area.y * view.z, w: look.area.w * view.z, h: look.area.h * view.z };
+    const l = layout(cap.w, cap.h, look.style, view.z / look.scale); // output px -> screen px
+    ctx.setTransform(ratio, 0, 0, ratio, (cap.x - l.shot.x) * ratio, (cap.y - l.shot.y) * ratio);
+    paintBackdrop(ctx, l, look.style);
+    const top = l.bar ? 0 : l.radius; // under a bar the capture starts square
+    canvas.lowerCanvasEl.style.clipPath = `inset(${cap.y}px ${w - cap.x - cap.w}px ${h - cap.y - cap.h}px ${cap.x}px round ${top}px ${top}px ${l.radius}px ${l.radius}px)`;
+  }
+
   function setView(v) {
     view = v;
     markerEdit?.place(); // the field of a marker follows the zoom and the pan
     canvas.setViewportTransform([v.z, 0, 0, v.z, v.tx, v.ty]);
+    paintLook();
     canvas.requestRenderAll();
     panel.showZoom(v.z);
   }
 
-  const refit = () => { fitMode = true; setView(fitView(canvas.width, canvas.height, W, H)); };
+  const viewBox = () => lookOf()?.box;
+  const refit = () => { fitMode = true; setView(fitView(canvas.width, canvas.height, W, H, viewBox())); };
+
+  // The look, the crop or the scale changed: so did the part of the image that must stay in sight, and the look to draw.
+  function relayoutLook() {
+    if (!canvas) return;
+    setView(fitMode ? fitView(canvas.width, canvas.height, W, H, viewBox()) : clampView(view, canvas.width, canvas.height, W, H, viewBox()));
+  }
 
   function actualSize() {
     if (!canvas) return;
     fitMode = false;
-    setView(zoomAt(view, 1 / view.z, canvas.width / 2, canvas.height / 2, canvas.width, canvas.height, W, H));
+    setView(zoomAt(view, 1 / view.z, canvas.width / 2, canvas.height / 2, canvas.width, canvas.height, W, H, viewBox()));
   }
 
   function onWheel({ e }) {
@@ -133,8 +183,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     e.stopPropagation();
     fitMode = false;
     const { width: cw, height: ch } = canvas;
-    if (e.ctrlKey || e.metaKey) setView(zoomAt(view, Math.exp(-e.deltaY * WHEEL_ZOOM_RATE), e.offsetX, e.offsetY, cw, ch, W, H));
-    else setView(panBy(view, e.shiftKey ? -e.deltaY : -e.deltaX, e.shiftKey ? 0 : -e.deltaY, cw, ch, W, H));
+    if (e.ctrlKey || e.metaKey) setView(zoomAt(view, Math.exp(-e.deltaY * WHEEL_ZOOM_RATE), e.offsetX, e.offsetY, cw, ch, W, H, viewBox()));
+    else setView(panBy(view, e.shiftKey ? -e.deltaY : -e.deltaX, e.shiftKey ? 0 : -e.deltaY, cw, ch, W, H, viewBox()));
   }
 
   // ---------- objects ----------
@@ -378,16 +428,17 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     let capped = false;
     if (v) {
       const area = v.crop ?? { w: W, h: H };
-      const r = capScale(area.w, area.h, v.scale);
+      const r = capScale(area.w, area.h, v.scale, styleOf(v));
       v.scale = r.scale;
       capped = r.capped;
     }
     panel.showOutput(v, W, H, capped);
+    relayoutLook();
   }
 
   const snapshot = () => {
     const v = cur();
-    return JSON.stringify([v.objects, v.crop, v.scale]);
+    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null]);
   };
   const syncHistory = () => panel.showHistory(history);
 
@@ -460,8 +511,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     const snap = cur() && history.step(delta);
     if (!snap) return;
-    const [objs, crop, scale] = JSON.parse(snap);
-    Object.assign(cur(), { objects: objs, crop, scale });
+    const [objs, crop, scale, beautify] = JSON.parse(snap);
+    Object.assign(cur(), { objects: objs, crop, scale, beautify });
     await loadObjects(objs);
     syncOutput();
     syncHistory();
@@ -483,6 +534,15 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     commit();
   }
 
+  // The beautify look of the displayed version, null to turn it off. Like any other change, the first one to an original creates V1.
+  // Not `final`: a control of the panel is still moving, the stage follows and nothing is kept yet.
+  function setBeautify(style, final = true) {
+    ensureVersion();
+    cur().beautify = normalizeBeautify(style);
+    syncOutput();
+    if (final) commit();
+  }
+
   // ---------- crop ----------
 
   function enterCrop() {
@@ -497,6 +557,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     for (const o of canvas.getObjects()) o.set({ selectable: false, evented: false });
     canvas.add(cropBox);
     canvas.setActiveObject(cropBox);
+    relayoutLook(); // the whole image shows while the crop is edited
     panel.showCropButtons(true);
     canvas.requestRenderAll();
   }
@@ -514,6 +575,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       cur().crop = clampCrop(r, W, H);
       syncOutput();
       commit();
+    } else {
+      relayoutLook();
     }
     canvas.requestRenderAll();
   }
@@ -582,6 +645,32 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     }
   }
 
+  // ---------- beautify ----------
+  // The panel is in beautify-ui.js, imported on first use. It reads and changes the look of the displayed version through the context below.
+
+  let beautifyUi = null; // the module, once imported
+  let beautifyLoad = null;
+  const loadBeautifyUi = () => beautifyLoad ??= import('./beautify-ui.js').then((m) => (beautifyUi = m)).catch((e) => { beautifyLoad = null; throw e; });
+
+  /** The look of the displayed version and how to change it; null if nothing is open. */
+  function beautifyContext() {
+    if (!ready()) return null;
+    endPendingEdit();
+    return {
+      style: () => styleOf(cur()),
+      apply: setBeautify,
+    };
+  }
+
+  async function beautifyMenu() {
+    try {
+      (await loadBeautifyUi()).toggle({ context: beautifyContext });
+    } catch (e) {
+      console.error('Obturo: beautify panel', e);
+      warn('be.err');
+    }
+  }
+
   // The format shown on the button follows the settings (the menu, the settings dialog, another tab).
   const showFormat = () => getSettings().then((s) => panel.showFormat(s.downloadFormat)).catch(() => {});
   showFormat();
@@ -639,8 +728,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   function mount() {
     holder = document.createElement('div');
     holder.style.cssText = 'position:absolute;inset:0';
+    backdrop = document.createElement('canvas'); // the beautify look, under the canvas (paintLook)
+    backdrop.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
+    backdrop.setAttribute('aria-hidden', 'true');
     const el = document.createElement('canvas');
-    holder.append(el);
+    holder.append(backdrop, el);
     stage.append(holder);
     canvas = new Canvas(el, {
       width: stage.clientWidth, height: stage.clientHeight,
@@ -720,7 +812,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       canvas = null; // renders that are already scheduled find a null canvas and stop
       try { await c.dispose(); } catch (e) { console.error('Obturo: dispose', e); }
       holder.remove();
-      holder = null;
+      holder = backdrop = null;
       bitmap.close();
       bitmap = null;
       source.img = null;
@@ -735,13 +827,13 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   panel.bindControls({
     ready, setTool, showVersion: show, newVersion, removeVersion, enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu,
+    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 
   document.addEventListener('keydown', (e) => {
     if (!ready() || /** @type {Element} */ (e.target).closest?.('input:not([type="radio"]):not([type="range"]), select, textarea') || canvas.getActiveObject()?.isEditing) return; // radios and sliders (swatches, stroke, strength) leave Delete and Ctrl+Z to the editor
-    if (document.querySelector('dialog[open]') || exportUi?.isMenuOpen?.()) return; // a modal dialog (settings), or the format menu, has the keyboard
+    if (document.querySelector('dialog[open]') || exportUi?.isMenuOpen?.() || beautifyUi?.isOpen?.()) return; // a modal dialog (settings), the format menu or the beautify panel has the keyboard
     const k = e.key.toLowerCase();
     if (k === 'delete' || k === 'backspace') { e.preventDefault(); deleteSelection(); }
     else if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey) { e.preventDefault(); step(-1); }
@@ -753,7 +845,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   new ResizeObserver(() => {
     if (!canvas) return;
     canvas.setDimensions({ width: stage.clientWidth, height: stage.clientHeight });
-    setView(fitMode ? fitView(canvas.width, canvas.height, W, H) : clampView(view, canvas.width, canvas.height, W, H));
+    setView(fitMode ? fitView(canvas.width, canvas.height, W, H, viewBox()) : clampView(view, canvas.width, canvas.height, W, H, viewBox()));
   }).observe(stage);
 
   // The versions are written first; the caller that waits (the history view) gets the thumbnail too.

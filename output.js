@@ -1,8 +1,10 @@
 // Full-resolution rendering of a version of the shot: the image to export (the clipboard, the downloads) and the strip thumbnail. The functions
 // receive the Fabric canvas, the version and the size of the original; they touch neither the UI nor the editor
 // state. No pixel is computed before it is asked for (export, save).
-import { outputSize } from './versions.js';
-import { thumbPlan, THUMB_QUALITY } from './pure.js';
+import { innerSize } from './versions.js';
+import { thumbPlan, THUMB_QUALITY, THUMB_WIDTH } from './pure.js';
+import { framedSize, styleOf } from './beautify-pure.js';
+import { drawBeautified } from './beautify.js';
 
 // Renders the region of the document starting at `from` (x, y), at scale `scale`, into a w x h px canvas. The view
 // is reset to the identity for the duration of the call: we export in document coordinates, not screen ones.
@@ -18,8 +20,18 @@ function renderRegion(canvas, from, scale, w, h) {
   }
 }
 
+// The capture drawn inside its beautify look, or as it is without one; `inner` is given back to the browser either way.
+function framed(inner, style, k) {
+  if (!style) return inner;
+  try {
+    return drawBeautified(inner, style, k);
+  } finally {
+    inner.width = inner.height = 0;
+  }
+}
+
 /**
- * The displayed version rendered, crop and scale applied, as a canvas that belongs to the caller (it sets its width and
+ * The displayed version rendered, crop, scale and beautify look applied, as a canvas that belongs to the caller (it sets its width and
  * height to 0 once it is done, to give the pixels back). Synchronous: the canvas of the editor, or any Fabric canvas that
  * draws the original under the objects, is not touched after the call. Used by every export, single or grouped.
  * @param {any} canvas Fabric canvas that holds the objects of the version (and draws the original in before:render).
@@ -30,8 +42,20 @@ function renderRegion(canvas, from, scale, w, h) {
  */
 export function renderCanvas(canvas, version, W, H) {
   const crop = version.crop ?? { x: 0, y: 0, w: W, h: H };
-  const size = outputSize(W, H, version);
-  return renderRegion(canvas, crop, version.scale, size.w, size.h);
+  const size = innerSize(W, H, version);
+  return framed(renderRegion(canvas, crop, version.scale, size.w, size.h), styleOf(version), 1);
+}
+
+// The thumbnail of a version that has a look: the top of the capture (see thumbPlan) inside its look, reduced to the width of a thumbnail
+// and never larger than the output.
+function renderFramedThumb(canvas, version, W, H) {
+  const area = version.crop ?? { x: 0, y: 0, w: W, h: H };
+  const style = styleOf(version);
+  const { keepH } = thumbPlan(area.w, area.h);
+  const full = framedSize(Math.floor(area.w * version.scale + 1e-6), Math.floor(keepH * version.scale + 1e-6), style);
+  const ratio = Math.min(THUMB_WIDTH / full.w, 1 / version.scale); // the output px -> this drawing's px
+  const k = version.scale * ratio; // the px of the original -> this drawing's px
+  return framed(renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k))), style, ratio);
 }
 
 /**
@@ -69,7 +93,9 @@ export const editorSync = { flush: () => Promise.resolve() };
 export async function renderThumb(canvas, version, W, H) { // async: a thumbnail failure must never prevent saving the versions
   const area = version?.crop ?? { x: 0, y: 0, w: W, h: H };
   const { keepH, k } = thumbPlan(area.w, area.h);
-  const el = renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k)));
+  const el = styleOf(version)
+    ? renderFramedThumb(canvas, version, W, H)
+    : renderRegion(canvas, area, k, Math.max(1, Math.floor(area.w * k)), Math.max(1, Math.floor(keepH * k)));
   try {
     return await new Promise((done) => el.toBlob(done, 'image/webp', THUMB_QUALITY));
   } finally {

@@ -301,7 +301,7 @@ export function importTitle(name, fallback) {
 
 // --- Strip thumbnail ---
 
-const THUMB_WIDTH = 240; // px
+export const THUMB_WIDTH = 240; // px
 // ponytail: a very tall shot (full page) gets a thumbnail of its top only, its height capped at 2/3 of the width; a scaled-down overview of the whole page if the top is not enough.
 const THUMB_MAX_RATIO = 2 / 3; // max height / width
 export const THUMB_QUALITY = 0.8; // WebP
