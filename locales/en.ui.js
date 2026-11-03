@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': 'Keep at the top and the bottom',
   'settings.full.fixed.hide': 'Hide',
   'settings.full.fixed.note': 'A fixed bar at the top shows once, at the top of the image; one at the bottom shows once, at the bottom. Hide removes them all.',
+  'settings.about': 'About',
+  'settings.support.note': 'Obturo is free and will stay free. If it is useful to you, you can support Kodetix, which builds it. The link opens a page of kodetix.fr in a new tab; Obturo itself sends nothing.',
+  'settings.support': 'Support Kodetix',
   'settings.saveFailed': "This setting couldn't be saved: the settings database is unavailable. Reload the page and try again.",
   'settings.readFailed': "The settings couldn't be read: what is shown may not be what is in use. Reload the page and try again.",
 

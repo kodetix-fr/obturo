@@ -8,6 +8,9 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **Support link** (*Settings*, last section): a *Support Kodetix* link that opens a page of kodetix.fr in a new
+  tab. It is a plain link: Obturo itself sends nothing and loads nothing before the click, and it stays free.
+  No new permission.
 - **Beautify** (the button in the bar under the editor): a background (none, a color of the palette or a
   free one, or one of six gradients), a padding, rounded corners, a shadow and an optional window bar around
   the capture. The editor shows the capture inside its look while it is on, and editing keeps working on the

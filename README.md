@@ -478,6 +478,10 @@ The logo lives in `docs/logo.svg`; the icons in `icons/` are the same drawing,
 rendered by `npm run icons`. `docs/social-preview.png` is the 1280x640 card for
 the repository's social preview, rendered from `docs/social-preview.html`.
 
+## Support
+
+Obturo is free and will stay free. To support Kodetix, which builds it: https://kodetix.fr/soutenir
+
 ## Contributing
 
 Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the local

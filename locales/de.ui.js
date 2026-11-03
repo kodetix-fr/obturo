@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': 'Oben und unten behalten',
   'settings.full.fixed.hide': 'Ausblenden',
   'settings.full.fixed.note': 'Eine fixierte Leiste oben erscheint einmal, am oberen Rand des Bilds; eine unten erscheint einmal, am unteren Rand. „Ausblenden“ entfernt sie alle.',
+  'settings.about': 'Über Obturo',
+  'settings.support.note': 'Obturo ist kostenlos und bleibt es. Wenn es dir nützt, kannst du Kodetix unterstützen, das es entwickelt. Der Link öffnet eine Seite von kodetix.fr in einem neuen Tab; Obturo selbst sendet nichts.',
+  'settings.support': 'Kodetix unterstützen',
   'settings.saveFailed': 'Diese Einstellung konnte nicht gespeichert werden: Die Einstellungsdatenbank ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
   'settings.readFailed': 'Die Einstellungen konnten nicht gelesen werden: Die Anzeige entspricht womöglich nicht den aktiven Werten. Lade die Seite neu und versuche es noch einmal.',
 

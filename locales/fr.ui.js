@@ -207,6 +207,9 @@ export default {
   'settings.full.fixed.edges': 'Garder en haut et en bas',
   'settings.full.fixed.hide': 'Masquer',
   'settings.full.fixed.note': "Une barre fixe en haut apparaît une fois, en haut de l'image\u00a0; une barre en bas apparaît une fois, en bas. Masquer les retire toutes.",
+  'settings.about': "À propos",
+  'settings.support.note': "Obturo est gratuit et le restera. Si elle te sert, tu peux soutenir Kodetix, qui la développe. Le lien ouvre une page de kodetix.fr dans un nouvel onglet\u00a0; Obturo n'envoie rien lui-même.",
+  'settings.support': "Soutenir Kodetix",
   'settings.saveFailed': "Ce paramètre n'a pas pu être enregistré\u00a0: la base des paramètres est indisponible. Recharge la page et réessaie.",
   'settings.readFailed': "Les paramètres n'ont pas pu être lus\u00a0: ce qui est affiché n'est peut-être pas ce qui s'applique. Recharge la page et réessaie.",
 
