@@ -193,23 +193,23 @@ describe('manifest texts in the real browser', () => {
     }
   }
 
-  it('loaded unpacked, in English: the extension is called Obturo, texts resolved', async () => {
+  it('loaded unpacked, in English: the name starts with Obturo, texts resolved', async () => {
     const s = await shown('en-US');
     assert.match(s.ui, /^en/);
-    assert.equal(s.name, 'Obturo');
-    assert.deepEqual(s.listed, { name: 'Obturo', description: s.manifest.description }, 'chrome://extensions');
-    assert.equal(s.manifest.name, 'Obturo');
-    assert.equal(s.manifest.description, 'Capture, annotate and keep your screenshots. 100% local, no account.');
+    assert.equal(s.name, 'Obturo: Screenshot & Annotate');
+    assert.deepEqual(s.listed, { name: s.manifest.name, description: s.manifest.description }, 'chrome://extensions');
+    assert.equal(s.manifest.name, 'Obturo: Screenshot & Annotate');
+    assert.equal(s.manifest.description, 'Full-page, area or element screenshots, annotated and beautified. 100% local, no account, free and open source.');
     assert.equal(s.manifest.action.default_title, 'Obturo');
     assert.equal(s.manifest.commands['capture-full-edit'].description, 'Capture the full page and edit');
   });
 
-  it('in a French browser: still Obturo, description and commands in French', async () => {
+  it('in a French browser: name, description and commands in French', async () => {
     const s = await shown('fr');
     assert.match(s.ui, /^fr/);
-    assert.deepEqual(s.listed, { name: 'Obturo', description: s.manifest.description }, 'chrome://extensions');
-    assert.equal(s.manifest.name, 'Obturo');
-    assert.match(s.manifest.description, /^Capture, annote et garde tes captures/);
+    assert.deepEqual({ ...s.listed, name: s.listed.name.replace(/\s/g, ' ') }, { name: s.manifest.name.replace(/\s/g, ' '), description: s.manifest.description }, 'chrome://extensions');
+    assert.equal(s.manifest.name, "Obturo\u00a0: capture d'écran et annotation");
+    assert.match(s.manifest.description, /^Capture d'écran de page entière/);
     assert.equal(s.manifest.commands['capture-area-edit'].description, 'Capturer une zone et éditer');
   });
 });
