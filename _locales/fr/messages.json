@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "Capture, annote et garde tes captures d'écran. 100\u00a0% local, sans compte." },
+  "extName": { "message": "Obturo\u00a0: capture d'écran et annotation" },
+  "extDescription": { "message": "Capture d'écran de page entière, zone ou élément, avec annotations. 100\u00a0% local, sans compte, gratuit et open source." },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "Capturer une zone" },
   "cmdCaptureVisible": { "message": "Capturer la partie visible" },

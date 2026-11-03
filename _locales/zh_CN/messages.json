@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "截取、标注并保存你的截图。100% 本地，无需账号。" },
+  "extName": { "message": "Obturo：截图与标注" },
+  "extDescription": { "message": "截取整页、区域或元素的截图并添加标注。100% 本地，无需账号，免费开源。" },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "截取区域" },
   "cmdCaptureVisible": { "message": "截取可见区域" },

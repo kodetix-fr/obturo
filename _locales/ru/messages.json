@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "Делайте скриншоты, добавляйте пометки и храните их. 100 % локально, без аккаунта." },
+  "extName": { "message": "Obturo: скриншоты и пометки" },
+  "extDescription": { "message": "Скриншоты всей страницы, области или элемента, с пометками. 100 % локально, без аккаунта, бесплатно, с открытым кодом." },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "Сделать снимок области" },
   "cmdCaptureVisible": { "message": "Сделать снимок видимой части" },

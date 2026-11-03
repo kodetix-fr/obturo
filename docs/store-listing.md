@@ -29,32 +29,37 @@ Findings:
 
 ## 2. Name
 
-Obturo (6 characters, limit 75).
+The brand first, then a short descriptor in the words people search in each language (the store forbids stuffing the name with keywords). It comes from `extName` in `_locales/<language>/messages.json`; the tooltip of the icon stays "Obturo" (`actionTitle`). What ships, with the character count (limit 75):
+
+| Language | Name in the package | Characters |
+|---|---|---|
+| English (default) | Obturo: Screenshot & Annotate | 29 |
+| French | Obturo : capture d'écran et annotation | 38 |
+| German | Obturo: Screenshot & Anmerkungen | 32 |
+| Spanish | Obturo: Captura de pantalla y anotaciones | 41 |
+| Portuguese (Brazil) | Obturo: Captura de tela e anotações | 35 |
+| Indonesian | Obturo: Tangkapan Layar & Anotasi | 33 |
+| Russian | Obturo: скриншоты и пометки | 27 |
+| Japanese | Obturo: スクリーンショットと注釈 | 20 |
+| Chinese (simplified) | Obturo：截图与标注 | 12 |
 
 ## 3. Short summary (limit 132)
 
-The store takes the summary from the manifest `description`, which comes from `extDescription` in `_locales/<language>/messages.json`. What ships today, with the character count of each:
+The store takes the summary from the manifest `description`, which comes from `extDescription` in `_locales/<language>/messages.json`. What ships, with the character count of each:
 
 | Language | Text in the package | Characters |
 |---|---|---|
-| English (default) | Capture, annotate and keep your screenshots. 100% local, no account. | 68 |
-| French | Capture, annote et garde tes captures d'écran. 100 % local, sans compte. | 72 |
-| German | Screenshots aufnehmen, beschriften und behalten. 100 % lokal, ohne Konto. | 73 |
-| Spanish | Haz capturas de pantalla, anótalas y consérvalas. 100 % local, sin cuenta. | 74 |
-| Portuguese (Brazil) | Capture, anote e guarde suas capturas de tela. 100% local, sem conta. | 69 |
-| Indonesian | Tangkap, beri anotasi, dan simpan tangkapan layar Anda. 100% lokal, tanpa akun. | 79 |
-| Russian | Делайте скриншоты, добавляйте пометки и храните их. 100 % локально, без аккаунта. | 81 |
-| Japanese | スクリーンショットを撮影し、注釈を付けて保存。100% ローカル、アカウント不要。 | 41 |
-| Chinese (simplified) | 截取、标注并保存你的截图。100% 本地，无需账号。 | 26 |
+| English (default) | Full-page, area or element screenshots, annotated and beautified. 100% local, no account, free and open source. | 111 |
+| French | Capture d'écran de page entière, zone ou élément, avec annotations. 100 % local, sans compte, gratuit et open source. | 117 |
+| German | Screenshots der ganzen Seite, eines Bereichs oder Elements, mit Anmerkungen. 100 % lokal, ohne Konto, kostenlos und Open Source. | 128 |
+| Spanish | Capturas de pantalla de página completa, zona o elemento, con anotaciones. 100 % local, sin cuenta, gratis y de código abierto. | 127 |
+| Portuguese (Brazil) | Capturas de tela da página inteira, de uma área ou de um elemento, com anotações. 100% local, sem conta, grátis e de código aberto. | 131 |
+| Indonesian | Tangkapan layar halaman penuh, area, atau elemen, lengkap dengan anotasi. 100% lokal, tanpa akun, gratis dan open source. | 121 |
+| Russian | Скриншоты всей страницы, области или элемента, с пометками. 100 % локально, без аккаунта, бесплатно, с открытым кодом. | 118 |
+| Japanese | ページ全体・範囲・要素のスクリーンショットに注釈を付けて保存。100% ローカル、アカウント不要、無料のオープンソース。 | 60 |
+| Chinese (simplified) | 截取整页、区域或元素的截图并添加标注。100% 本地，无需账号，免费开源。 | 37 |
 
 The seven languages after French are assisted translations, not yet reviewed by native speakers (the README says so); the store listing texts below exist in English and French only, the store shows the English one to the other languages.
-
-A richer wording that mentions the history and the exports, if the owner prefers it. It is NOT in the package: adopting it means changing `extDescription` in the two `messages.json` files.
-
-| Language | Alternative | Characters |
-|---|---|---|
-| English | Capture, annotate and keep your screenshots locally: searchable history, PNG, JPEG, WebP and PDF export. No account. | 116 |
-| French | Capture, annote et garde tes captures en local : historique avec recherche, export PNG, JPEG, WebP et PDF. Sans compte. | 119 |
 
 ## 4. Long description
 
