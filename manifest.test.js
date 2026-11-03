@@ -88,10 +88,10 @@ test('texts: default_locale en, one _locales folder per language of the extensio
   }
 });
 
-test('texts: resolved name is Obturo, description within 132 characters, in each language', () => {
+test('texts: the name starts with Obturo and fits 75 characters, the description 132, in each language', () => {
   for (const [lang, messages] of Object.entries(locales)) {
     const m = localize(manifest, messages);
-    assert.equal(m.name, 'Obturo', lang);
+    assert.ok(m.name.startsWith('Obturo') && m.name.length <= 75, `${lang}: name "${m.name}"`);
     assert.ok(m.description.length > 0 && m.description.length <= 132, `${lang}: description of ${m.description.length} characters`);
     assert.ok(m.action.default_title.startsWith('Obturo'), lang);
     assert.doesNotMatch(JSON.stringify(m), MSG_REF, `${lang}: an __MSG_ was left unresolved`);

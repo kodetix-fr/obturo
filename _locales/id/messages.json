@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "Tangkap, beri anotasi, dan simpan tangkapan layar Anda. 100% lokal, tanpa akun." },
+  "extName": { "message": "Obturo: Tangkapan Layar & Anotasi" },
+  "extDescription": { "message": "Tangkapan layar halaman penuh, area, atau elemen, lengkap dengan anotasi. 100% lokal, tanpa akun, gratis dan open source." },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "Tangkap area" },
   "cmdCaptureVisible": { "message": "Tangkap bagian yang terlihat" },

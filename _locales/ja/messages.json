@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "スクリーンショットを撮影し、注釈を付けて保存。100% ローカル、アカウント不要。" },
+  "extName": { "message": "Obturo: スクリーンショットと注釈" },
+  "extDescription": { "message": "ページ全体・範囲・要素のスクリーンショットに注釈を付けて保存。100% ローカル、アカウント不要、無料のオープンソース。" },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "範囲をキャプチャ" },
   "cmdCaptureVisible": { "message": "表示部分をキャプチャ" },

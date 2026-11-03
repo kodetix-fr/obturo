@@ -44,6 +44,12 @@ Notable changes to Obturo. The format follows
   the download fails. The no-trace mode keeps copying only, and *Capture and edit* still opens the editor. No
   new permission.
 
+### Changed
+
+- **Name and summary in the store**, in the nine languages: the name is now *Obturo* followed by a short
+  descriptor (for example *Obturo: Screenshot & Annotate*) and the summary lists what it captures, with the
+  promise of a local, free and open source tool. The tooltip of the icon stays *Obturo*.
+
 ## [0.1.0] - 2026-11-02
 
 First release.

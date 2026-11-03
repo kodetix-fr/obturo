@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Obturo" },
-  "extDescription": { "message": "Screenshots aufnehmen, beschriften und behalten. 100\u00a0% lokal, ohne Konto." },
+  "extName": { "message": "Obturo: Screenshot & Anmerkungen" },
+  "extDescription": { "message": "Screenshots der ganzen Seite, eines Bereichs oder Elements, mit Anmerkungen. 100\u00a0% lokal, ohne Konto, kostenlos und Open Source." },
   "actionTitle": { "message": "Obturo" },
   "cmdCaptureArea": { "message": "Bereich aufnehmen" },
   "cmdCaptureVisible": { "message": "Sichtbaren Ausschnitt aufnehmen" },
