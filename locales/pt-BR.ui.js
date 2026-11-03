@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': 'Manter no topo e no rodapé',
   'settings.full.fixed.hide': 'Ocultar',
   'settings.full.fixed.note': 'Uma barra fixa no topo aparece uma vez, no topo da imagem; uma no rodapé aparece uma vez, no rodapé. Ocultar remove todas.',
+  'settings.about': 'Sobre',
+  'settings.support.note': 'O Obturo é gratuito e continuará sendo. Se ele for útil para você, você pode apoiar a Kodetix, que o desenvolve. O link abre uma página do kodetix.fr em uma nova aba; o Obturo em si não envia nada.',
+  'settings.support': 'Apoiar a Kodetix',
   'settings.saveFailed': 'Esta configuração não pôde ser salva: o banco de dados de configurações está indisponível. Recarregue a página e tente de novo.',
   'settings.readFailed': 'As configurações não puderam ser lidas: o que está na tela pode não ser o que está em uso. Recarregue a página e tente de novo.',
 

@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': '保留在顶部和底部',
   'settings.full.fixed.hide': '隐藏',
   'settings.full.fixed.note': '顶部的悬浮栏只在图片顶部显示一次；底部的悬浮栏只在图片底部显示一次。“隐藏”会将它们全部移除。',
+  'settings.about': '关于',
+  'settings.support.note': 'Obturo 免费，并将一直免费。如果它对你有帮助，可以支持开发它的 Kodetix。链接会在新标签页中打开 kodetix.fr 的一个页面；Obturo 本身不会发送任何内容。',
+  'settings.support': '支持 Kodetix',
   'settings.saveFailed': '无法保存此设置：设置数据库不可用。请重新加载页面后重试。',
   'settings.readFailed': '无法读取设置：显示的内容可能与实际生效的不一致。请重新加载页面后重试。',
 

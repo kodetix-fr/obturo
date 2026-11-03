@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': 'Pertahankan di atas dan di bawah',
   'settings.full.fixed.hide': 'Sembunyikan',
   'settings.full.fixed.note': 'Bilah berposisi tetap di atas hanya tampil sekali, di bagian atas gambar; yang di bawah hanya tampil sekali, di bagian bawah. "Sembunyikan" menyingkirkan semuanya.',
+  'settings.about': 'Tentang',
+  'settings.support.note': 'Obturo gratis dan akan tetap gratis. Jika berguna bagi Anda, Anda dapat mendukung Kodetix yang mengembangkannya. Tautan ini membuka halaman kodetix.fr di tab baru; Obturo sendiri tidak mengirim apa pun.',
+  'settings.support': 'Dukung Kodetix',
   'settings.saveFailed': 'Pengaturan ini tidak dapat disimpan: basis data pengaturan tidak tersedia. Muat ulang halaman dan coba lagi.',
   'settings.readFailed': 'Pengaturan tidak dapat dibaca: yang ditampilkan mungkin bukan yang sedang dipakai. Muat ulang halaman dan coba lagi.',
 

@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': '上下に残す',
   'settings.full.fixed.hide': '隠す',
   'settings.full.fixed.note': '上部の固定バーは画像の上端に 1 回だけ、下部のものは下端に 1 回だけ表示されます。「隠す」ではすべて取り除かれます。',
+  'settings.about': 'このアプリについて',
+  'settings.support.note': 'Obturo は無料で、これからも無料です。役に立ったと感じたら、開発元の Kodetix を支援できます。リンクは kodetix.fr のページを新しいタブで開きます。Obturo 自体は何も送信しません。',
+  'settings.support': 'Kodetix を支援する',
   'settings.saveFailed': 'この設定を保存できませんでした。設定のデータベースを利用できません。ページを再読み込みしてからもう一度お試しください。',
   'settings.readFailed': '設定を読み取れませんでした。表示されている内容は実際の設定と異なる場合があります。ページを再読み込みしてからもう一度お試しください。',
 

@@ -206,6 +206,9 @@ export default {
   'settings.full.fixed.edges': 'Mantener arriba y abajo',
   'settings.full.fixed.hide': 'Ocultar',
   'settings.full.fixed.note': 'Una barra fija arriba aparece una vez, en la parte superior de la imagen; una abajo aparece una vez, en la parte inferior. Ocultar las quita todas.',
+  'settings.about': 'Acerca de',
+  'settings.support.note': 'Obturo es gratuito y seguirá siéndolo. Si te resulta útil, puedes apoyar a Kodetix, que lo desarrolla. El enlace abre una página de kodetix.fr en una pestaña nueva; Obturo en sí no envía nada.',
+  'settings.support': 'Apoyar a Kodetix',
   'settings.saveFailed': 'No se pudo guardar esta opción: la base de datos de configuración no está disponible. Recarga la página e inténtalo de nuevo.',
   'settings.readFailed': 'No se pudo leer la configuración: lo que se muestra puede no ser lo que está en uso. Recarga la página e inténtalo de nuevo.',
 

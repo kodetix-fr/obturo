@@ -39,6 +39,39 @@ describe('settings: the close button stays in view', () => {
   });
 });
 
+describe('settings: the support link', () => {
+  let h, page;
+
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, []);
+  });
+  after(() => h?.close());
+
+  it('is the last block of the settings, points to the support page of kodetix.fr, to open in a new tab, in every language', async () => {
+    for (const code of Object.keys(LANGUAGES)) {
+      await page.goto(h.url('manifest.json'));
+      await seedSettings(page, { language: code });
+      await page.goto(h.url('library.html#settings'));
+      await page.waitForSelector('dialog#settings[open]');
+      const link = await page.evaluate(() => {
+        const a = /** @type {HTMLAnchorElement} */ (document.getElementById('supportLink'));
+        const sections = [...document.querySelectorAll('#settings [data-section]')];
+        return {
+          href: a.href, target: a.target, rel: a.rel, text: a.textContent.trim(),
+          last: sections.at(-1) === a.closest('section'), title: sections.at(-1).querySelector('h3').textContent.trim(),
+        };
+      });
+      assert.equal(link.href, 'https://kodetix.fr/soutenir', code);
+      assert.equal(link.target, '_blank', code);
+      assert.match(link.rel, /noopener/, code);
+      assert.ok(link.last && link.text.length > 3 && link.title.length > 1, `${code}: the section is last and its texts are there`);
+      assert.doesNotMatch(link.text + link.title, /settings\./, `${code}: no key shown instead of a text`);
+    }
+  });
+});
+
 describe('settings: the choices keep their shape', () => {
   let h, page;
 

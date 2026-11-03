@@ -67,6 +67,7 @@ Obturo requests no broad access to websites. It does not use `unlimitedStorage`.
 - **The proof.** `test/e2e/privacy.e2e.mjs` tries every one of those channels from the library, from the popup and from the service worker, against a local server, and fails if the server receives a single request. The same attempts from an ordinary web page do reach that server, so the test cannot pass by accident. `manifest.test.js` also fails if the code gains a network API, a remote address, a frame or a resource hint.
 - **By hand.** Open the library, press F12 and watch the Network tab while you capture, edit and export: it should list only `chrome-extension://`, `data:` and `blob:` addresses.
 - **What a policy cannot stop.** For `<link rel="preconnect">` and for the navigation of a frame, the browser opens a bare connection to the host before it checks any policy (the frame is then blocked, and no request follows). Obturo's code has neither, and a test fails if it gains one. The pages you capture follow their own policies, not Obturo's; the scripts Obturo injects into them (area selection, scrolling, clipboard) are covered by the same code check.
+- **One link.** *Settings* has a *Support Kodetix* link. It is an ordinary link that opens https://kodetix.fr/soutenir in a new tab when you click it: Obturo sends nothing, and nothing is loaded before the click. A test allows this one address in the code, and no other.
 
 ## Changes
 
@@ -145,6 +146,7 @@ Obturo ne demande aucun accès général aux sites web. Il n'utilise pas `unlimi
 - **La preuve.** `test/e2e/privacy.e2e.mjs` essaie chacun de ces canaux depuis la bibliothèque, depuis le popup et depuis le service worker, face à un serveur local, et échoue si ce serveur reçoit une seule requête. Les mêmes essais depuis une page web ordinaire l'atteignent bien, donc le test ne peut pas réussir par hasard. `manifest.test.js` échoue aussi si le code gagne une API réseau, une adresse distante, un cadre ou une indication de ressource.
 - **À la main.** Ouvre la bibliothèque, appuie sur F12 et regarde l'onglet Réseau pendant que tu captures, édites et exportes : il ne devrait lister que des adresses `chrome-extension://`, `data:` et `blob:`.
 - **Ce qu'une politique ne peut pas arrêter.** Pour `<link rel="preconnect">` et pour la navigation d'un cadre, le navigateur ouvre une connexion nue vers l'hôte avant de vérifier la moindre politique (le cadre est ensuite bloqué, et aucune requête ne suit). Le code d'Obturo n'a ni l'un ni l'autre, et un test échoue s'il en gagne un. Les pages que tu captures suivent leurs propres politiques, pas celle d'Obturo ; les scripts qu'Obturo y injecte (sélection de zone, défilement, presse-papiers) sont couverts par la même vérification du code.
+- **Un lien.** Les *Paramètres* ont un lien *Soutenir Kodetix*. C'est un simple lien qui ouvre https://kodetix.fr/soutenir dans un nouvel onglet quand tu cliques : Obturo n'envoie rien, et rien n'est chargé avant le clic. Un test autorise cette seule adresse dans le code, et aucune autre.
 
 ## Modifications
 
