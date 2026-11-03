@@ -6,6 +6,8 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-03
+
 ### Added
 
 - **Support link** (*Settings*, last section): a *Support Kodetix* link that opens a page of kodetix.fr in a new
@@ -111,5 +113,6 @@ First release.
 - Three permissions only (`activeTab`, `scripting`, `contextMenus`), no access to
   websites, no `unlimitedStorage`, no network request, no remote code.
 
-[Unreleased]: https://github.com/kodetix-fr/obturo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kodetix-fr/obturo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kodetix-fr/obturo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kodetix-fr/obturo/releases/tag/v0.1.0
