@@ -5,6 +5,7 @@
 <h1 align="center">Obturo</h1>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/obturo/kaafiicmlbdchfalaljmbeoblihjbnih"><img src="https://img.shields.io/badge/Chrome_Web_Store-install-4285F4?logo=googlechrome&logoColor=white" alt="Install Obturo from the Chrome Web Store"></a>
   <a href="https://github.com/kodetix-fr/obturo/actions/workflows/ci.yml"><img src="https://github.com/kodetix-fr/obturo/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/kodetix-fr/obturo/actions/workflows/security.yml"><img src="https://github.com/kodetix-fr/obturo/actions/workflows/security.yml/badge.svg" alt="Security"></a>
 </p>
