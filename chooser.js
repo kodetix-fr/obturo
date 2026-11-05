@@ -6,7 +6,7 @@
 // background and downloads the capture by itself, in the stored format; it comes forward only if that fails.
 import { DEFAULT_SETTINGS, getSettings } from './settings.js';
 import { loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
-import { applyDom, setI18n } from './dom-i18n.js';
+import { applyDom, byId as $, setI18n } from './dom-i18n.js';
 import { getOriginal, getShot } from './db.js';
 import { hostOf } from './catalog.js';
 import { download as exportFile } from './export-ui.js';
@@ -15,7 +15,6 @@ import { download as exportFile } from './export-ui.js';
 // with it); chrome.downloads would say when the download has started, at the cost of a permission. A copy needs only the time to be seen.
 const CLOSE_AFTER_MS = { copy: 500, download: 1500 };
 
-const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.hash.slice(1));
 const id = Number(params.get('shot'));
 const auto = params.get('save') === '1'; // "Save the file": the page was opened in the background and downloads the capture by itself

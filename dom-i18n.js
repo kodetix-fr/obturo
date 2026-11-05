@@ -88,6 +88,20 @@ export function h(tag, attrs = {}, ...kids) {
   return node;
 }
 
+/**
+ * An element of the page by its id, typed. A missing id (or one of another kind) throws a clear error right away, instead of a
+ * "cannot read properties of null" later; an element that may be absent is looked up with document.getElementById.
+ * @template {HTMLElement} [T=HTMLElement]
+ * @param {string} id
+ * @param {{ new (): T }} [type] Expected class (HTMLInputElement...).
+ * @returns {T}
+ */
+export function byId(id, type = /** @type {any} */ (HTMLElement)) {
+  const el = document.getElementById(id);
+  if (!(el instanceof type)) throw new Error(`#${id} is missing from ${location.pathname.slice(1)} (or is not a ${type.name})`);
+  return el;
+}
+
 /** An inline icon of the sprite in library.html (`#i-<name>`). @param {string} name */
 export function icon(name) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

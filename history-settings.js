@@ -6,9 +6,9 @@ import { previewPurge, storageUsage } from './db.js';
 import { meterState } from './history-model.js';
 import { getSettings } from './settings.js';
 import { fmtBytes, t } from './i18n.js';
+import { byId as $ } from './dom-i18n.js';
 import { countText, guardWith, openPurgeDialog, wipeHistory } from './history-dialogs.js';
 
-const $ = (id) => document.getElementById(id);
 
 // True in a tab where another one holds the editing lock: it looks at the history and its figures, and changes nothing.
 let readOnly = () => false;

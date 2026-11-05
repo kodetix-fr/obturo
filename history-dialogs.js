@@ -9,8 +9,8 @@
 import { deleteShots, listEntries, previewPurge, purgeNow } from './db.js';
 import { chunks, purgeOptions, sameWord, summarizeSelection } from './history-model.js';
 import { fmtBytes, formatNumber, plural, t } from './i18n.js';
+import { byId as $ } from './dom-i18n.js';
 
-const $ = (id) => document.getElementById(id);
 /** Shots removed per transaction when deleting many: one transaction is a progress step. */
 const DELETE_CHUNK = 250;
 

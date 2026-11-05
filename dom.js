@@ -1,18 +1,7 @@
 // The elements of library.html that the editor drives, looked up once at import and typed. The editor is imported
 // after the page has loaded: the elements exist. A missing id (or one of another kind) throws a clear error right
 // away, instead of a "cannot read properties of null" later.
-
-/**
- * @template {HTMLElement} [T=HTMLElement]
- * @param {string} id
- * @param {{ new (): T }} [type] Expected class (HTMLInputElement...).
- * @returns {T}
- */
-function byId(id, type = /** @type {any} */ (HTMLElement)) {
-  const el = document.getElementById(id);
-  if (!(el instanceof type)) throw new Error(`#${id} is missing from library.html (or is not a ${type.name})`);
-  return el;
-}
+import { byId } from './dom-i18n.js';
 
 export const dom = {
   // Toolbar

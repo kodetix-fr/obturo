@@ -1,11 +1,10 @@
 // The beautify panel of the editor: the controls of the look (background, padding, corners, shadow, frame), in a column next to the
 // stage, which shows the result as they move. Imported on first use (editor.js), never at startup. It reads and changes the look of
 // the displayed version through the context that the editor gives (`context()`: { style, apply }), and keeps nothing of it once closed.
-import { applyDom, h, setAria } from './dom-i18n.js';
+import { applyDom, byId as $, h, setAria } from './dom-i18n.js';
 import { DEFAULT_BEAUTIFY, GRADIENTS, PADDING, RADIUS, normalizeBeautify } from './beautify-pure.js';
 import { PALETTE } from './mask-pure.js';
 
-const $ = (id) => /** @type {any} */ (document.getElementById(id));
 const SHADOW_KEYS = { none: 'prop.none', soft: 'be.shadow.soft', strong: 'be.shadow.strong' };
 const FRAME_KEYS = { none: 'prop.none', window: 'be.frame.window' };
 
@@ -108,7 +107,7 @@ function build() {
 function turnOn() {
   if (on) return;
   on = true;
-  $('beOn').checked = true;
+  $('beOn', HTMLInputElement).checked = true;
   $('beControls').classList.remove('be-off');
 }
 
@@ -117,7 +116,7 @@ function pickBackground() {
   const value = bg.type === 'none' ? 'none' : bg.type === 'gradient' ? `g${bg.index}` : bg.color;
   let chosen = false;
   for (const input of panel.querySelectorAll('input[name="beBg"]')) chosen = (input.checked = input.value === value) || chosen;
-  if (bg.type === 'color') $('beColor').value = bg.color;
+  if (bg.type === 'color') $('beColor', HTMLInputElement).value = bg.color;
   panel.querySelector('.be-custom').toggleAttribute('data-on', bg.type === 'color' && !chosen);
 }
 
@@ -128,11 +127,11 @@ function showValues() {
 
 /** The controls follow `working` and `on`. */
 function reflect() {
-  $('beOn').checked = on;
+  $('beOn', HTMLInputElement).checked = on;
   $('beControls').classList.toggle('be-off', !on);
   pickBackground();
-  $('bePadding').value = String(working.padding);
-  $('beRadius').value = String(working.radius);
+  $('bePadding', HTMLInputElement).value = String(working.padding);
+  $('beRadius', HTMLInputElement).value = String(working.radius);
   for (const input of panel.querySelectorAll('input[name="beShadow"]')) input.checked = input.value === working.shadow;
   for (const input of panel.querySelectorAll('input[name="beFrame"]')) input.checked = input.value === working.frame;
   showValues();

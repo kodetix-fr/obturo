@@ -7,13 +7,12 @@ import { hostOf } from './catalog.js';
 import { looksLikeImage, thumbPlan, THUMB_QUALITY, versionsKey } from './pure.js';
 import { DEFAULT_SETTINGS, LIBRARY_LOCK, getSettings, readAppearance, setOpenShots, writeAppearance } from './settings.js';
 import { formatDate, formatNumber, loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
-import { applyDom, icon, setI18n } from './dom-i18n.js';
+import { applyDom, byId as $, icon, setI18n } from './dom-i18n.js';
 
 /** @typedef {import('./db.js').Shot} Shot */
 
 const RECENT = 12; // shots in the strip, the shortcut to the latest ones (the whole history is the sheet of history-view.js)
 
-const $ = (id) => document.getElementById(id);
 const strip = $('strip'), banner = $('banner'), stageMsg = $('stageMsg');
 
 /** @type {Shot[]} */
