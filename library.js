@@ -429,11 +429,19 @@ document.addEventListener('visibilitychange', () => {
   else refresh();
 });
 
+// With several library tabs the worker cannot tell which one may edit: the one that does comes forward by itself.
+const bringForward = () => chrome.tabs.getCurrent()
+  .then((tab) => tab?.id !== undefined && chrome.tabs.update(tab.id, { active: true }).then(() => chrome.windows.update(tab.windowId, { focused: true })))
+  .catch(() => {});
+
 // Messages of the other parts of the extension (service worker, other tabs).
 const bus = new BroadcastChannel('obturo');
 bus.onmessage = ({ data }) => {
   if (data?.type === 'settings-changed') getSettings().then(applySettings).catch((e) => console.error('Obturo: settings', e));
-  else if (data?.type === 'open-shot' && Number.isInteger(data.id)) openShot(data.id);
+  else if (data?.type === 'open-shot' && Number.isInteger(data.id)) {
+    if (!readOnly) bringForward();
+    openShot(data.id);
+  }
   else if (data?.type === 'open-settings') openSettings(); // the icon menu, on a tab that is already open
 };
 

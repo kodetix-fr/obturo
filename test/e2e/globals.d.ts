@@ -27,6 +27,7 @@ interface Window {
   __created: unknown[]; // popup test pages: the tabs it asked for
   __answers: unknown[];
   __msgs?: unknown[];
+  __release: (value?: unknown) => void; // library tab test: lets go of the editing lock the page holds
   __mutations: number;
   __frames: number;
   __fr: { t: number[]; on: boolean; cards?: number };

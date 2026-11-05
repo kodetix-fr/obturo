@@ -75,27 +75,31 @@ async function openChooser(shot, tab, save = false) {
 // Reactivates the library tab that is already open (a 2nd one would be read-only because of the navigator.locks lock),
 // otherwise creates one. No extra permission: getContexts, tabs.update and windows.update do not require "tabs".
 // Chrome 116 minimum. `target` (see libraryTarget): a capture to open in the editor, or the settings panel. A new tab
-// gets it in its address (#shot=<id>, #settings), the tab that is already open gets it as a message; for the settings
-// its address changes too (the library listens to hashchange), unless it is already there.
-// ponytail: the message is lost if that tab is discarded or still loading (it then reloads without the hash); pass the hash to tabs.update in that case.
+// gets it in its address (#shot=<id>, #settings). So does the tab that is already open when its address differs (only
+// the hash changes: a hashchange, or the load of the address if the tab is still loading); when the address is already
+// there, the tab is told by a message (the settings panel gets both). Several library tabs can exist (a duplicated tab):
+// a capture is then only announced, and the one that may edit takes it and brings itself forward (library.js).
 /** @param {{ shot?: number, settings?: boolean }} [target] */
 async function openLibrary(target) {
   const lib = chrome.runtime.getURL('library.html');
   const { hash, message } = libraryTarget(target);
+  const announce = () => {
+    if (!message) return;
+    const channel = new BroadcastChannel('obturo');
+    channel.postMessage(message);
+    channel.close();
+  };
   const open = (await chrome.runtime.getContexts({ contextTypes: ['TAB'] }))
-    .find((c) => c.documentUrl?.split(/[?#]/)[0] === lib); // hash and query ignored
-  if (open) {
-    const here = new URL(open.documentUrl ?? lib);
-    const goTo = target?.settings && here.hash !== hash; // only the hash changes: no reload, a hashchange
+    .filter((c) => c.documentUrl?.split(/[?#]/)[0] === lib); // hash and query ignored
+  if (open.length > 1 && target?.shot) return announce();
+  if (open[0]) {
+    const here = new URL(open[0].documentUrl ?? lib);
+    const navigate = hash !== '' && here.hash !== hash;
     here.hash = hash;
-    const reused = await chrome.tabs.update(open.tabId, { active: true, ...(goTo && { url: here.href }) }).catch(() => null); // closed in the meantime
+    const reused = await chrome.tabs.update(open[0].tabId, { active: true, ...(navigate && { url: here.href }) }).catch(() => null); // closed in the meantime
     if (reused) {
-      if (message) {
-        const channel = new BroadcastChannel('obturo');
-        channel.postMessage(message);
-        channel.close();
-      }
-      return chrome.windows.update(open.windowId, { focused: true }).catch(() => {});
+      if (!navigate || target?.settings) announce();
+      return chrome.windows.update(open[0].windowId, { focused: true }).catch(() => {});
     }
   }
   await chrome.tabs.create({ url: lib + hash });

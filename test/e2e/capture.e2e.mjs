@@ -258,23 +258,34 @@ describe('captures in the real extension', () => {
     assert.deepEqual(await clipSize(page), [shot.w, shot.h], 'the image was copied before the editor took the focus');
   });
 
-  it('capture and edit with the library already open: the same tab is reactivated and told which shot to open', async () => {
+  it('capture and edit with the library already open: the same tab is reactivated and goes to the shot by its address', async () => {
     await quota();
     await back();
     await goto(800);
     await sw.evaluate(() => __t.openLibrary());
     const lib = await until(() => libs()[0], 'library open');
-    await listenChannel(lib);
     await page.bringToFront();
     await until(async () => (await libraryActive(sw)) === false, 'library in the background');
     const tab = await tabOf(sw);
     const before = await maxId(sw);
     await run('capture-visible-edit', tab);
     const shot = await newShot(before);
-    await until(async () => (await received(lib)).some((m) => m?.type === 'open-shot' && m.id === shot.id), 'open-shot message');
+    await until(() => lib.url() === h.url(`library.html#shot=${shot.id}`), 'the address of the tab');
     assert.equal(libs().length, 1, 'no second library tab');
-    assert.equal(lib.url(), h.url('library.html'), 'the address of the tab is not touched');
     await until(() => libraryActive(sw), 'library reactivated');
+    await lib.waitForFunction((id) => document.querySelector('li.shot[aria-current="true"]')?.getAttribute('data-id') === String(id), shot.id);
+  });
+
+  it('the same shot asked for again, its address already there: the tab is reactivated and told by a message', async () => {
+    const lib = libs()[0];
+    const [id] = new URL(lib.url()).hash.match(/\d+/);
+    await listenChannel(lib);
+    await page.bringToFront();
+    await until(async () => (await libraryActive(sw)) === false, 'library in the background');
+    await sw.evaluate((shot) => __t.openLibrary({ shot }), Number(id));
+    await until(async () => (await received(lib)).some((m) => m?.type === 'open-shot' && m.id === Number(id)), 'open-shot message');
+    await until(() => libraryActive(sw), 'library reactivated');
+    assert.equal(lib.url(), h.url(`library.html#shot=${id}`), 'the address is as it was');
   });
 
   it('capture and edit, area: the overlay carries the mode, the library opens on the cropped shot', async () => {
