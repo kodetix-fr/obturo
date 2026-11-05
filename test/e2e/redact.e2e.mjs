@@ -132,6 +132,62 @@ describe('hide sensitive text', () => {
     assert.deepEqual((await finalBadge(sw))?.[0], 'OK');
   });
 
+  it('text that is selected is covered too, and the selection is back afterwards', async () => {
+    await build();
+    await setting(true);
+    await page.evaluate(() => {
+      const range = new Range();
+      range.selectNodeContents(/** @type {HTMLElement} */ (document.getElementById('mail')));
+      const selection = /** @type {Selection} */ (getSelection());
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await capture('capture-visible');
+    assert.ok(await dark(await boxOf('mail')) > HIDDEN, 'the selected e-mail is covered');
+    assert.equal(await page.evaluate(() => /** @type {Selection} */ (getSelection()).toString()), 'jane.example@example.test', 'the selection is back');
+  });
+
+  it('text that is selected and not sensitive keeps its selection in the image', async () => {
+    await build();
+    await setting(true);
+    await page.evaluate(() => {
+      const range = new Range();
+      range.selectNodeContents(/** @type {HTMLElement} */ (document.getElementById('plain')));
+      const selection = /** @type {Selection} */ (getSelection());
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await capture('capture-visible');
+    assert.ok(await dark(await boxOf('plain')) < SHOWN, 'a selection that hides nothing is left alone');
+    assert.equal(await page.evaluate(() => /** @type {Selection} */ (getSelection()).toString()), '12345 and the name Jane');
+  });
+
+  it('text drawn in an SVG is covered too', async () => {
+    await build();
+    await page.evaluate(() => {
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('width', '420');
+      svg.setAttribute('height', '50');
+      svg.style.cssText = 'position:absolute;left:100px;top:430px;background:#fff';
+      const text = document.createElementNS(ns, 'text');
+      text.id = 'svgMail';
+      text.setAttribute('x', '4');
+      text.setAttribute('y', '32');
+      text.setAttribute('font-size', '22');
+      text.setAttribute('font-family', 'monospace');
+      text.setAttribute('fill', 'rgb(200,0,0)');
+      text.textContent = 'svg.person@example.test';
+      svg.append(text);
+      /** @type {HTMLElement} */ (document.getElementById('fixture')).append(svg);
+    });
+    await setting(true);
+    await capture('capture-visible');
+    assert.ok(await dark(await boxOf('svgMail')) > HIDDEN, 'the e-mail drawn in the SVG is covered');
+    await page.waitForSelector('#obturo-notice', { state: 'attached' }); // the note comes once the page is back
+    assert.equal(await page.evaluate(() => getComputedStyle(/** @type {Element} */ (document.getElementById('svgMail'))).fill), 'rgb(200, 0, 0)', 'the text has its own color back');
+  });
+
   it('the setting off: nothing is covered, nothing is said', async () => {
     await build();
     await capture('capture-visible');

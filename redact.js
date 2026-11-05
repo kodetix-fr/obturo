@@ -19,6 +19,10 @@
   let nextId = 0, incomplete = false, timer;
   /** @type {{ sheet: CSSStyleSheet, roots: Set<Document | ShadowRoot> } | null} */
   let cover = null;
+  /** @type {Range[] | null} */
+  let selected = null; // what the person had selected, put back by clear()
+  /** @type {Map<Element, string | null>} */
+  const painted = new Map(); // SVG text takes its color from `fill`, which a highlight cannot set: its element is painted black for the length of the image, with the style attribute it had
 
   const idOf = (node) => ids.get(node) ?? (ids.set(node, ++nextId), nextId);
   const shown = (range, box) => {
@@ -37,6 +41,7 @@
     const deadline = performance.now() + BUDGET_MS;
     const ranges = [];
     const found = new Set();
+    const svgText = new Set();
     const roots = [document]; // grows while it is walked: open shadow roots are added
     let nodes = 0;
     for (const root of roots) {
@@ -48,7 +53,7 @@
       for (let n = /** @type {Text | null} */ (walker.nextNode()); n; n = /** @type {Text | null} */ (walker.nextNode())) {
         if (++nodes > MAX_NODES || (nodes % 256 === 0 && performance.now() > deadline)) {
           incomplete = true;
-          return { ranges, found };
+          return { ranges, found, svgText };
         }
         if (n.data.length < 6) continue;
         for (const hit of find(n.data)) {
@@ -57,11 +62,20 @@
           range.setEnd(n, hit.end);
           ranges.push(range);
           found.add(root);
+          if (n.parentElement instanceof SVGElement) svgText.add(n.parentElement);
           if (shown(range, box)) seen.add(`${idOf(n)}:${hit.start}`);
         }
       }
     }
-    return { ranges, found };
+    return { ranges, found, svgText };
+  }
+
+  /** The browser paints a selection over the cover: a selection that touches covered text is lifted for the length of the image. @param {Range[]} ranges */
+  function liftSelection(ranges) {
+    const selection = getSelection();
+    if (selected || !selection || selection.isCollapsed || !ranges.some((r) => selection.containsNode(r.startContainer, true))) return;
+    selected = Array.from({ length: selection.rangeCount }, (_, i) => selection.getRangeAt(i));
+    selection.removeAllRanges();
   }
 
   /** Covers the sensitive text in view and waits for it to be painted. @param {{ x: number, y: number, w: number, h: number }} [region] The part of the window an image keeps (an area); the whole window by default. */
@@ -69,8 +83,13 @@
     clearTimeout(timer);
     timer = setTimeout(clear, WATCHDOG_MS);
     document.getElementById('obturo-notice')?.remove(); // the note of the previous capture must not be in this image
-    const { ranges, found } = search(region ?? { x: 0, y: 0, w: innerWidth, h: innerHeight });
+    const { ranges, found, svgText } = search(region ?? { x: 0, y: 0, w: innerWidth, h: innerHeight });
     if (!ranges.length) return void CSS.highlights.delete(NAME);
+    for (const el of svgText) {
+      if (painted.has(el)) continue;
+      painted.set(el, el.getAttribute('style'));
+      /** @type {SVGElement} */ (el).style.setProperty('fill', '#000', 'important');
+    }
     cover ??= { sheet: new CSSStyleSheet(), roots: new Set() };
     cover.sheet.replaceSync(SHEET);
     for (const root of found) {
@@ -79,6 +98,7 @@
       cover.roots.add(root);
     }
     CSS.highlights.set(NAME, new Highlight(...ranges));
+    liftSelection(ranges);
     await frames();
   }
 
@@ -86,6 +106,17 @@
   function clear() {
     clearTimeout(timer);
     CSS.highlights.delete(NAME);
+    if (selected) {
+      const selection = getSelection();
+      selection?.removeAllRanges();
+      for (const range of selected) selection?.addRange(range);
+      selected = null;
+    }
+    for (const [el, style] of painted) {
+      if (style === null) el.removeAttribute('style');
+      else el.setAttribute('style', style);
+    }
+    painted.clear();
     if (!cover) return;
     for (const root of cover.roots) root.adoptedStyleSheets = root.adoptedStyleSheets.filter((s) => s !== cover.sheet);
     cover = null;
