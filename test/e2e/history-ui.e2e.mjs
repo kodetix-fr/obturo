@@ -535,7 +535,7 @@ describe('history view', () => {
 
     it('Ctrl+click on a card selects it without opening it; Shift+click on a card selects the range', async () => {
       const newest = made.toReversed();
-      await cardAt(L, newest[0]).locator('button.open').click({ modifiers: ['Control'] });
+      await cardAt(L, newest[0]).locator('button.open').click({ modifiers: ['ControlOrMeta'] });
       await cardAt(L, newest[3]).locator('button.open').click({ modifiers: ['Shift'] });
       const v = await viewWhere(L, (x) => x.selected === 4, 'a range from the cards');
       assert.equal(v.selection, '4 selected');
