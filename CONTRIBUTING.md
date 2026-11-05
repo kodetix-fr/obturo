@@ -86,8 +86,8 @@ A few things that are easy to miss:
 - **The service worker stays light.** At load time it holds constants and
   listeners only, because it restarts often (the one exception is the rebuild of
   the icon menu, asynchronous and off the capture path). It imports `db.js`,
-  `pure.js`, `gestures.js`, `i18n.js` and `settings.js` and what they import,
-  never Fabric.js.
+  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js` and `settings.js` and
+  what they import, never Fabric.js.
 - **Stay small.** No build step, no test framework, no code formatter: follow
   `.editorconfig` and ESLint, and the style of the file you are in. Tests use
   `node:test`; Playwright is only the browser driver (`devDependency`).
@@ -116,7 +116,8 @@ A few things that are easy to miss:
 
 - **ESLint** (`eslint.config.js`): the recommended rules, `no-var`,
   `prefer-const`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, and the
-  ban on HTML parsing. `sw.js`, `db.js`, `pure.js` and the encoders (`encode.js`,
+  ban on HTML parsing. `sw.js`, `db.js`, `pure.js`, `fullpage-pure.js`,
+  `thumb-pure.js` and the encoders (`encode.js`,
   `pdf.js`, `zip.js`, which also run in a worker) are checked with the globals
   of a service worker, so using `document` or `window` by mistake is reported.
   `vendor/` is not linted.

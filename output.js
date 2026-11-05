@@ -2,7 +2,7 @@
 // receive the Fabric canvas, the version and the size of the original; they touch neither the UI nor the editor
 // state. No pixel is computed before it is asked for (export, save).
 import { innerSize } from './versions.js';
-import { thumbPlan, THUMB_QUALITY, THUMB_WIDTH } from './pure.js';
+import { thumbPlan, THUMB_QUALITY, THUMB_WIDTH } from './thumb-pure.js';
 import { framedSize, styleOf } from './beautify-pure.js';
 import { drawBeautified } from './beautify.js';
 

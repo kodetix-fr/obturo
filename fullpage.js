@@ -1,5 +1,5 @@
 // Injected by sw.js (activeTab) before a full-page capture: drives the page (which element scrolls, scrolling, fixed elements).
-// begin() describes the elements that scroll, sw.js picks one (pickScroller, pure.js), aim() takes it as the target, go() scrolls it
+// begin() describes the elements that scroll, sw.js picks one (pickScroller, fullpage-pure.js), aim() takes it as the target, go() scrolls it
 // and waits for the page to settle (settle()); the fixed and sticky elements are looked for again at every tile (findFloating()).
 // ponytail: scrollers inside an iframe are not seen and the iframe is captured as it shows; inject fullpage.js in the frames (allFrames) and drive the one that scrolls.
 // ponytail: one target per capture; a page made of several scrolling columns gives the dominant one only; capture the columns in turn and put them side by side.
@@ -14,7 +14,7 @@
   const SETTLE_MS = 120; // lets lazy loading and sticky elements settle after a scroll
   const BUSY_MS = 1500; // the most a tile waits for the images in view to load and the animations in view to end (after SETTLE_MS)
   // Where scrollers are looked for: 1/6, 1/2 and 5/6 of each side of the window. A box that shows MIN_SHARE of the window
-  // (pure.js) holds one of these 9 points, so nothing that matters is missed, and the cost does not depend on the size of the DOM.
+  // (fullpage-pure.js) holds one of these 9 points, so nothing that matters is missed, and the cost does not depend on the size of the DOM.
   const PROBES = [1 / 6, 1 / 2, 5 / 6];
 
   const root = document.documentElement;

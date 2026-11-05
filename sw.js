@@ -1,5 +1,6 @@
 import { addShot } from './db.js';
-import { cropRect, cleanArea, pngSize, planTiles, growPlan, pickScroller, clipBox, canvasSize, tileDest, decodeDataUrl, isCut, unscrolledKey, failureKey } from './pure.js';
+import { cropRect, cleanArea, pngSize, decodeDataUrl } from './pure.js';
+import { planTiles, growPlan, pickScroller, clipBox, canvasSize, tileDest, isCut, unscrolledKey, failureKey } from './fullpage-pure.js';
 import { menuItems, libraryTarget, cleanNoTrace, cleanDelay, cleanPopupRun, cleanChooserEdit } from './gestures.js';
 import { t, plural, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
@@ -367,7 +368,7 @@ function createStitcher(first, m, covered) {
 // canvas (pixels + copy during the PNG encoding + decoded tile). MAX_PIXELS (pure.js) caps it at 32 Mpx: peak ~400 MB
 // (1080p tiles) to ~680 MB (4K tiles), released at the end of the capture. To go lower still, lower MAX_PIXELS.
 // Duration: ~550 ms per tile (2 calls/s limit), the settling time of the page is covered by that wait.
-// What the capture does not handle (iframes, several scrolling columns, animations) is listed in fullpage.js and pure.js.
+// What the capture does not handle (iframes, several scrolling columns, animations) is listed in fullpage.js and fullpage-pure.js.
 // What is scrolled is the document or, for a web application that keeps the document still, a scroller inside it (pickScroller).
 // Tiles are positions of its scroll: the tile at `y` shows, in the box of the target, the content from `y` down.
 // What the image is not (cut, reduced, the visible part only) or why the capture stopped goes into `notes`, said on the page at the end.

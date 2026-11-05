@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { chromium } from 'playwright-core';
 import { REPO } from './support/browser.mjs';
 import { poll } from './support/editor.mjs';
-import { pickScroller, planTiles } from '../../pure.js';
+import { pickScroller, planTiles } from '../../fullpage-pure.js';
 
 const TOTAL = 12000;
 const VIEW = 700;

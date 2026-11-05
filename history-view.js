@@ -489,7 +489,7 @@ function clearWindow() {
 
 // --- Cards ---
 
-// ponytail: the thumbnails are 240 px wide (pure.js THUMB_WIDTH) and a card up to about 300 px: a little soft on a dense screen; make them wider (and regenerate) if it shows.
+// ponytail: the thumbnails are 240 px wide (thumb-pure.js THUMB_WIDTH) and a card up to about 300 px: a little soft on a dense screen; make them wider (and regenerate) if it shows.
 /** @returns {Card} */
 function acquire() {
   const reused = pool.pop();

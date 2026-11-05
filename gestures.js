@@ -123,7 +123,7 @@ export const cleanDelay = (m) => (m?.type === 'popup-delay' && CAPTURE_DELAYS.in
 export const cleanChooserEdit = (m) => (m?.type === 'chooser-edit' && Number.isInteger(m.id) && m.id > 0 ? m.id : null);
 
 // How a shortcut of chrome.commands.getAll() reads in the popup. Chrome answers 'Alt+Shift+Z' on Windows and Linux and the symbols
-// of the platform ('⇧⌥Z') on a Mac; both give one capsule per key. Words that a keyboard prints differently in French are
+// of the platform (one per key, no separator) on a Mac; both give one capsule per key. Words that a keyboard prints differently in French are
 // translated, the others stay as Chrome writes them. Keyboards sold for the other languages of the extension print the English words.
 const KEY_NAMES = {
   fr: { Shift: 'Maj', Space: 'Espace', Delete: 'Suppr', Insert: 'Inser', Home: 'Début', End: 'Fin', PageUp: 'Pg préc.', PageDown: 'Pg suiv.' },

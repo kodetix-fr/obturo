@@ -4,7 +4,8 @@
 // The language and the theme come from the settings (settings.js), applied before the page is shown.
 import { queryShots, latestShots, countShots, getShot, getOriginal, updateShot, storeThumb, deleteShot, runRetention, setPinned } from './db.js'; // the strip holds the latest shots only
 import { hostOf } from './catalog.js';
-import { looksLikeImage, thumbPlan, THUMB_QUALITY, versionsKey } from './pure.js';
+import { looksLikeImage } from './import-pure.js';
+import { thumbPlan, THUMB_QUALITY, versionsKey } from './thumb-pure.js';
 import { DEFAULT_SETTINGS, LIBRARY_LOCK, getSettings, readAppearance, setOpenShots, writeAppearance } from './settings.js';
 import { formatDate, formatNumber, loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
 import { applyDom, byId as $, icon, setI18n } from './dom-i18n.js';

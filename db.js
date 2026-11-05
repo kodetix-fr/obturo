@@ -4,7 +4,8 @@ import {
   serializeBucket, toBuckets, bucketOf,
 } from './catalog.js';
 import { getSettings, liveOpenShots } from './settings.js';
-import { clamp, versionsKey } from './pure.js';
+import { clamp } from './pure.js';
+import { versionsKey } from './thumb-pure.js';
 import { done, wait } from './idb.js';
 
 /**

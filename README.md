@@ -414,8 +414,8 @@ databases, the retention, the version model and the budgets.
 
 - `sw.js`: the service worker. Gestures (icon, shortcuts, menu), the three
   captures, the clipboard copy, the write to IndexedDB and the icon menu. It
-  imports `db.js`, `pure.js`, `gestures.js`, `i18n.js` and `settings.js` (and
-  what those import), never Fabric.js.
+  imports `db.js`, `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js` and
+  `settings.js` (and what those import), never Fabric.js.
 - `gestures.js`: what the icon menu holds and where a gesture sends the user.
 - `overlay.js`, `fullpage.js`: injected into the tab on demand. The area
   selection, and the page driver of a full-page capture. `notice.js` is the
@@ -442,7 +442,8 @@ databases, the retention, the version model and the budgets.
 - `export-ui.js`, `export-batch.js`, `export-pure.js`, `export.css`,
   `encode.js`, `pdf.js`, `zip.js`: the download menu, the grouped export, and the
   encoders (images, PDF and ZIP written without a library). Loaded on first use.
-- `pure.js`, `versions.js`, `view.js`, `history.js` (the undo and redo stack),
+- `pure.js`, `fullpage-pure.js`, `import-pure.js`, `thumb-pure.js`,
+  `versions.js`, `view.js`, `history.js` (the undo and redo stack),
   `saver.js`: the logic, without `chrome.*`, IndexedDB or the DOM, tested with
   `node --test`.
 - `vendor/`: Fabric.js 6.9.1, unmodified, with its license and its checksums.
