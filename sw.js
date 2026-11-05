@@ -617,11 +617,13 @@ function onPopupDelay(m, sender, respond) {
 }
 
 // Message from the window of actions after a capture: "Edit". Only from that page of the extension (its address, with its #shot).
+// The answer comes once the editor is open, so that the window of actions closes after it and not over it.
 /** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
 function onChooserEdit(m, sender, respond) {
   const id = sender.id === chrome.runtime.id && sender.url?.split(/[?#]/)[0] === CHOOSER_URL ? cleanChooserEdit(m) : null;
-  respond(!!id);
-  if (id) openLibrary({ shot: id }).catch(fail);
+  if (!id) return void respond(false);
+  openLibrary({ shot: id }).then(() => respond(true), (e) => { fail(e); respond(false); });
+  return true; // the answer comes once the editor is open
 }
 
 // Message from the overlay: only from the main frame of a tab, shape validated before any computation.

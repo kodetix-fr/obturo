@@ -6,7 +6,7 @@ import { after, afterEach, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DPR, launchExtension } from './support/browser.mjs';
-import { GREEN, badges, clipSize, finalBadge, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until } from './support/capture.mjs';
+import { GREEN, badges, clipSize, finalBadge, libraryActive, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until } from './support/capture.mjs';
 import { sha256 } from './support/editor.mjs';
 
 describe('after a capture: ask what to do', () => {
@@ -19,6 +19,11 @@ describe('after a capture: ask what to do', () => {
   const original = (id) => sw.evaluate(async (id) => Array.from(new Uint8Array(await (await __t.db.getOriginal(id)).arrayBuffer())), id);
   const closeLibraries = async () => { for (const p of libraryPages(h)) await p.close(); };
   const closeChoosers = async () => { for (const p of choosers()) await p.close().catch(() => {}); };
+  /** The chooser is slower than the worker to act on tabs: the worker has opened the editor by the time the chooser closes. */
+  const slowTabUpdate = (win) => win.evaluate(() => {
+    const update = chrome.tabs.update;
+    chrome.tabs.update = (...a) => new Promise((done) => setTimeout(done, 500)).then(() => update.apply(chrome.tabs, a));
+  });
   /** The page of actions that appears (in a tab) after `start`, once its capture is on screen. */
   const opened = async (start, before = new Set(choosers())) => {
     const maxBefore = await maxId(sw);
@@ -153,10 +158,29 @@ describe('after a capture: ask what to do', () => {
   it('edit: the editor opens on that capture, and the tab goes away', async () => {
     const { win, id } = await capture();
     await win.bringToFront();
+    await slowTabUpdate(win);
     await win.click('#edit');
     const lib = await until(() => libraryPages(h)[0], 'the library tab');
     assert.ok(lib.url().endsWith(`#shot=${id}`), lib.url());
     await until(() => choosers().length === 0, 'the tab closes itself');
+    await sleep(800);
+    assert.equal(await libraryActive(sw), true, 'the editor is the tab in front, not the captured page');
+    await closeLibraries();
+  });
+
+  it('edit with the library already open: that tab comes to the front, on that capture', async () => {
+    await sw.evaluate(() => __t.openLibrary());
+    const lib = await until(() => libraryPages(h)[0], 'the library tab');
+    await page.bringToFront();
+    const { win, id } = await capture();
+    await win.bringToFront();
+    await slowTabUpdate(win);
+    await win.click('#edit');
+    await until(() => choosers().length === 0, 'the tab closes itself');
+    await sleep(800);
+    assert.equal(libraryPages(h).length, 1, 'no second library tab');
+    assert.equal(await libraryActive(sw), true, 'the editor is the tab in front, not the captured page');
+    assert.equal(await lib.evaluate(() => document.querySelector('li.shot[aria-current="true"]')?.getAttribute('data-id')), String(id), 'the editor holds the capture');
     await closeLibraries();
   });
 

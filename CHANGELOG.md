@@ -6,6 +6,11 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Edit and annotate** (the page that follows a capture) now leaves the editor in front. The page closed itself by
+  bringing the captured page back, which could hide the editor it had just opened.
+
 ## [0.2.0] - 2026-11-03
 
 ### Added
