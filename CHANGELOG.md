@@ -6,6 +6,42 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-06
+
+### Added
+
+- **A read-only library tab shows the capture** you pick in the strip or the history, drawn as the editor would
+  export it, and keeps *Copy image* and *Download*. Editing, versions, pins, deletions and imports stay off.
+- **A short note on the page after a capture** says it was copied (and saved in the history, or not saved in the
+  no-trace mode), or that the copy failed. It shares one box with the note about the cover or the page, goes away
+  by itself after a few seconds and is taken off before the next capture.
+- **Rename a version**: a double click, or F2, on its pill. The name shows in the delete dialog, and a name you
+  chose ends the name of the downloaded file.
+- **Purge now** in the footer of the history sheet, next to the storage figures.
+- **A violet *No trace* button** in the library header (a click turns the mode off) and a line in the empty
+  library; the checkbox of the settings is violet too.
+- The page that asks what to do after a capture repeats how many sensitive items were covered, since the note of the
+  capture is on the page behind it.
+
+### Changed
+
+- **Deleting from the strip asks first**, with the dialog of the history: it names the capture and says what it
+  includes (pinned, edited). The history dialog names a single capture too.
+- **Importing or pasting an image is refused while No trace is on**, since an import is kept in the history.
+- **The Download menu and the dialog of the grouped export keep their own choices** until the page is reloaded and no
+  longer write the defaults of the settings (format, quality, PDF pages and images).
+- **A drawing tool stays armed** after a drag, until Esc or a click on *Select*, as the marker already did.
+- **Deleting a numbered step brings the following ones down** (delete the 2 of 1, 2, 3, 4 and you read 1, 2, 3);
+  numbers you typed yourself are left alone. A text side of a marker that would leave the image is not given while
+  the other side fits.
+- **Sizes are counted the way the system does** (1 MB is 1,000,000 bytes). The size caps of the menu follow, and a
+  cap stored by the old menu keeps its meaning (500 MiB reads 500 MB).
+- The settings open at the first section, with a fade at the bottom while there is more to scroll.
+- A history card writes the date before the site, so a narrow card cuts the site and not the date.
+- The tooltips name the shortcuts as a Mac does (Cmd instead of Ctrl, Cmd+Shift+Z to redo).
+- **Hide sensitive text** says what it does not cover (the content of form fields, images, frames), in the hint and in
+  the note, and the note counts only what a reader can see (not a row that is hidden or transparent).
+
 ### Fixed
 
 - **Edit and annotate** (the page that follows a capture) now leaves the editor in front. The page closed itself by
@@ -14,8 +50,13 @@ Notable changes to Obturo. The format follows
   longer lost when that tab is still loading. When several library tabs are open, the one that may edit takes the
   capture and comes forward, instead of the first one found, which could be the read-only one.
 - **Hide sensitive text** now covers text that is selected on the page (the selection was painted over the black
-  cover and showed the value, while the note counted it as hidden), text drawn in an SVG, and card numbers, IBANs
-  and phone numbers written with no-break spaces.
+  cover and showed the value, while the note counted it as hidden), text drawn in an SVG, card numbers, IBANs and
+  phone numbers written with no-break spaces, and a value split by the markup of the page (a phone number in two
+  elements, a card number in four).
+- The tool rail fits a short window, and *Crop* is never hidden below the tools that scroll.
+- The Download menu opens inside the window at 480 px, instead of 168 px off its left edge.
+- In a window 480 px wide the editor gives the image 58 percent of the height instead of 40.
+- The figures of the history block of the settings are written in the language you just chose.
 
 ## [0.2.0] - 2026-11-03
 
@@ -124,6 +165,7 @@ First release.
 - Three permissions only (`activeTab`, `scripting`, `contextMenus`), no access to
   websites, no `unlimitedStorage`, no network request, no remote code.
 
-[Unreleased]: https://github.com/kodetix-fr/obturo/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/kodetix-fr/obturo/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/kodetix-fr/obturo/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/kodetix-fr/obturo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kodetix-fr/obturo/releases/tag/v0.1.0
