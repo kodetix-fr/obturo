@@ -4,7 +4,7 @@ import {
   serializeBucket, toBuckets, bucketOf,
 } from './catalog.js';
 import { getSettings, liveOpenShots } from './settings.js';
-import { versionsKey } from './pure.js';
+import { clamp, versionsKey } from './pure.js';
 import { done, wait } from './idb.js';
 
 /**
@@ -409,7 +409,7 @@ export async function latestShots(limit = 12) {
  */
 export async function queryShots({ limit = 60, before = null, query = '', host = '', from = 0, to = Infinity, onlyPinned = false } = {}) {
   const filter = { query, host, from, to, onlyPinned };
-  const size = Math.min(1000, Math.max(1, Math.floor(Number(limit)) || 60));
+  const size = clamp(Math.floor(Number(limit)) || 60, 1, 1000);
   const after = typeof before === 'number' ? before : null;
   const db = await open();
   const tx = db.transaction(['shots', 'catalog']);

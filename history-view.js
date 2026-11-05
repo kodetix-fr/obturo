@@ -20,6 +20,7 @@ import {
 import { confirmDialog, countText, deleteWithProgress, guardWith, notify } from './history-dialogs.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { icon, setI18n } from './dom-i18n.js';
+import { clamp } from './pure.js';
 
 /** @typedef {import('./db.js').Shot} Shot */
 /**
@@ -254,7 +255,7 @@ async function load({ keepScroll = false, keepSelection = false } = {}) {
   filter = filterOf(state);
   const slow = window.setTimeout(() => { if (mine === gen && !items.length) showState('loading'); }, 200);
   // a reload that keeps the scroll position reads as many shots as were on screen's way, so the position still exists
-  const limit = keepScroll ? Math.min(1000, Math.max(PAGE, items.length)) : PAGE;
+  const limit = keepScroll ? clamp(items.length, PAGE, 1000) : PAGE;
   /** @type {Awaited<ReturnType<typeof queryShots>>} */
   let page;
   try {
@@ -801,7 +802,7 @@ function focusIndex(i) {
   if (!items.length) return;
   const before = cards.get(active);
   if (before) before.open.tabIndex = -1;
-  active = Math.min(items.length - 1, Math.max(0, i));
+  active = clamp(i, 0, items.length - 1);
   const view = ui.scroll.scrollTop - padTop;
   const to = scrollToShow({ index: active, cols, rowH, gap, scrollTop: view, viewH: ui.scroll.clientHeight });
   if (to !== view) ui.scroll.scrollTop = to === 0 ? 0 : to + padTop;
