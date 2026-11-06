@@ -2,6 +2,7 @@
 // What decides which formats exist, which options count, how an error is explained to the user,
 // which shots a grouped export takes and under which limits, and the scheduler of the live size estimate.
 import { FORMATS, suggestedFilename } from './encode.js';
+import { isChosenName } from './versions.js';
 
 /** The formats of an image file (the ZIP of images offers these); `pdf` is the fourth download format. */
 export const IMAGE_FORMATS = /** @type {const} */ (['png', 'jpeg', 'webp']);
@@ -173,11 +174,14 @@ export const batchFilename = (output, at = Date.now()) => suggestedFilename({ ur
 /**
  * Name of a capture inside the archive, and for a single download: the template of the settings. The file of the group itself
  * keeps `obturo_<date>_<time>` (batchFilename), it holds many captures.
- * @param {Parameters<typeof suggestedFilename>[0]} shot
+ * @param {Parameters<typeof suggestedFilename>[0] & { versions?: any[], active?: number }} shot
  * @param {string} format
  * @param {string} [template]
  */
-export const imageFilename = (shot, format, template) => suggestedFilename(shot, extensionOf(format), template);
+export const imageFilename = (shot, format, template) => {
+  const name = displayedVersion({ versions: shot.versions, active: shot.active ?? -1 })?.name; // a version the person named says so in the file name
+  return suggestedFilename({ ...shot, version: isChosenName(name) ? name : undefined }, extensionOf(format), template);
+};
 
 /**
  * What the dialog of a grouped export starts with, from the stored settings. The output is a PDF when the default format is

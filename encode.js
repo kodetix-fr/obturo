@@ -96,12 +96,12 @@ const TOKEN = /\{(host|title|date|time)\}/g;
  * or the template leaves nothing.
  * The default template has no title: it is free text, often private, and the file leaves the machine. Only a template that
  * says `{title}` puts it in.
- * @param {{ url?: string, title?: string, createdAt?: number | Date }} shot A row of the library fits as is.
+ * @param {{ url?: string, title?: string, createdAt?: number | Date, version?: string }} shot A row of the library fits as is. `version`: the name the person gave to the version, added to the end of the name.
  * @param {string} ext With or without the leading dot.
  * @param {string} [template]
  * @returns {string}
  */
-export function suggestedFilename({ url, title, createdAt } = {}, ext = 'png', template = DEFAULT_NAME_TEMPLATE) {
+export function suggestedFilename({ url, title, createdAt, version } = {}, ext = 'png', template = DEFAULT_NAME_TEMPLATE) {
   let host = '';
   try {
     host = new URL(String(url)).hostname;
@@ -115,7 +115,7 @@ export function suggestedFilename({ url, title, createdAt } = {}, ext = 'png', t
   const time = `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
   const suffix = String(ext).replace(/^\./, '').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'png';
   const words = { host: host || 'capture', title: [...String(title ?? '')].slice(0, MAX_HOST).join(''), date: day, time };
-  let stem = String(template).replace(TOKEN, (_, word) => words[word]) // one pass: a title that says `{host}` stays as it is
+  let stem = `${String(template).replace(TOKEN, (_, word) => words[word])}${version ? `_${version}` : ''}` // one pass: a title that says `{host}` stays as it is
     .replace(/\s+/g, ' ').replace(/[<>:"/\\|?*\p{Cc}]+/gu, '-').replace(/^[\s._-]+|[\s._-]+$/g, '');
   if (RESERVED_NAME.test(stem)) stem = `_${stem}`; // `nul.example.com_2026...` or a template that is just `nul`
   return `${[...stem].slice(0, MAX_STEM).join('').replace(/[\s._-]+$/, '') || 'capture'}.${suffix}`;

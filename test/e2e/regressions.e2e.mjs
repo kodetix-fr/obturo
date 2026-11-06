@@ -350,6 +350,42 @@ describe('editor: non-regressions', () => {
     assert.equal(await pressed('blur'), 'false');
   });
 
+  it('a version is renamed on its pill: double click or F2, Enter keeps, Escape leaves it, and the name is in the file and the dialog', async () => {
+    await reset([spec('S8')]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+    const m = await mapper(page, 1600, 900);
+    await tool(page, 'rect');
+    await drag(page, m, 100, 100, 400, 300);
+    const names = async () => (await shots())[0].versions.map((v) => v.name);
+    await poll(async () => (await names()).length === 1, { what: 'V1 saved' });
+    const input = page.locator('#versions input.pill-name');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('  Before   the fix ');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'Before the fix', { what: 'the name saved' });
+    assert.equal(await page.locator('#versions button[data-i="0"]').innerText(), 'Before the fix');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('Nope');
+    await input.press('Escape');
+    assert.equal(await page.locator('#versions button[data-i="0"]').innerText(), 'Before the fix', 'Escape leaves the name as it was');
+    await page.locator('#versions button[data-i="0"]').focus();
+    await page.keyboard.press('F2');
+    await input.fill('After');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'After', { what: 'F2 renames too' });
+    assert.match((await download(page)).name, /_After\.png$/, 'the name of a version the person chose ends the name of the file');
+    await page.click('#delVersion');
+    await page.waitForSelector('#confirmDlg[open]');
+    assert.match(await page.locator('#cfTitle').innerText(), /^Delete version After\?/);
+    await page.click('#cfCancel');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'V1', { what: 'an empty name gives back V1' });
+    assert.doesNotMatch((await download(page)).name, /_V1\.png$/, 'V1 is not a name');
+  });
+
   it('a read-only tab shows the capture as it was edited, copies it, downloads it and follows the strip', async () => {
     await reset([spec('S5a', 1000, 600), spec('S5b', 1200, 700)]);
     await ready(page);

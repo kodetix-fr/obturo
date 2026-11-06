@@ -137,6 +137,7 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
   color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer;
 }
 .pills button:hover { color: var(--fg); background: var(--surface-2); }
+.pills .pill-name { width: 13ch; height: 28px; padding: 0 10px; border: 1px solid var(--accent); border-radius: 999px; background: var(--surface); color: var(--fg); font: inherit; font-size: 12.5px; font-weight: 600; }
 .pills button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* ---------- tool rail ---------- */

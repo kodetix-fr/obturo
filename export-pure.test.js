@@ -247,6 +247,11 @@ test('file names: the capture date for an image, obturo_<date> for the single fi
   assert.equal(imageFilename({ url: 'https://app.example.test/x', createdAt: at }, 'pdf'), 'app.example.test_2026-10-02_14-05-09.pdf');
   assert.equal(imageFilename({ url: '', createdAt: at }, 'png'), 'capture_2026-10-02_14-05-09.png');
   assert.equal(imageFilename({ url: 'https://app.example.test/x', title: 'Home', createdAt: at }, 'webp', '{title} {date}'), 'Home 2026-10-02.webp', 'the template of the settings');
+  const named = { url: 'https://app.example.test/x', createdAt: at, versions: [{ name: 'V1' }, { name: 'Before the fix' }], active: 1 };
+  assert.equal(imageFilename(named, 'png'), 'app.example.test_2026-10-02_14-05-09_Before the fix.png', 'a version the person named');
+  assert.equal(imageFilename({ ...named, active: 0 }, 'png'), 'app.example.test_2026-10-02_14-05-09.png', 'V1 is not a name');
+  assert.equal(imageFilename({ ...named, active: -1 }, 'png'), 'app.example.test_2026-10-02_14-05-09.png', 'the original has none');
+  assert.equal(imageFilename({ ...named, versions: [{ name: 'a/b:c' }], active: 0 }, 'png'), 'app.example.test_2026-10-02_14-05-09_a-b-c.png', 'nothing Windows forbids');
   assert.equal(batchFilename('zip', at), 'obturo_2026-10-02_14-05-09.zip');
   assert.equal(batchFilename('pdf', at), 'obturo_2026-10-02_14-05-09.pdf');
   assert.match(batchFilename('zip'), /^obturo_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.zip$/);

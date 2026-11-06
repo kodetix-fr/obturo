@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { blankVersion, createVersion, deleteVersion, pickVersion, clampCrop, innerSize, outputSize, scaleForWidth, maxScale, capScale } from './versions.js';
+import { MAX_NAME, blankVersion, cleanVersionName, createVersion, deleteVersion, isChosenName, renameVersion, pickVersion, clampCrop, innerSize, outputSize, scaleForWidth, maxScale, capScale } from './versions.js';
 import { DEFAULT_BEAUTIFY, extraOf } from './beautify-pure.js';
 
 const v = (name, extra = {}) => ({ ...blankVersion(), name, ...extra });
@@ -144,3 +144,31 @@ test('capScale brings the scale down for the frame too', () => {
   assert.deepEqual(capScale(100, 100, 2, style), { scale: 2, capped: false });
 });
 
+
+test('cleanVersionName: one line, spaces collapsed, at most MAX_NAME characters, nothing for what is not text', () => {
+  assert.equal(cleanVersionName('  Before   the fix \n'), 'Before the fix');
+  assert.equal(cleanVersionName('x'.repeat(100)).length, MAX_NAME);
+  assert.equal(cleanVersionName(null), '');
+  assert.equal(cleanVersionName(undefined), '');
+  assert.equal(cleanVersionName(42), '42');
+});
+
+test('isChosenName: V1 and V2 are given by Obturo, anything else was chosen', () => {
+  for (const name of ['V1', 'V12']) assert.equal(isChosenName(name), false, name);
+  for (const name of ['Before', 'V1 fixed', 'v1', 'Version 1']) assert.equal(isChosenName(name), true, name);
+  for (const name of ['', null, undefined, 3]) assert.equal(isChosenName(name), false, String(name));
+});
+
+test('renameVersion: the version gets the cleaned name, the others and the active one are untouched', () => {
+  const state = { versions: [{ ...blankVersion(), name: 'V1' }, { ...blankVersion(), name: 'V2' }], active: 1 };
+  const out = renameVersion(state, 0, '  Before ');
+  assert.deepEqual(out.versions.map((v) => v.name), ['Before', 'V2']);
+  assert.equal(out.active, 1);
+  assert.deepEqual(state.versions.map((v) => v.name), ['V1', 'V2'], 'the state is not changed');
+});
+
+test('renameVersion: an empty name gives back the smallest free Vn, a version that is not there changes nothing', () => {
+  const state = { versions: [{ ...blankVersion(), name: 'Before' }, { ...blankVersion(), name: 'V1' }], active: 0 };
+  assert.deepEqual(renameVersion(state, 0, '   ').versions.map((v) => v.name), ['V2', 'V1']);
+  assert.deepEqual(renameVersion(state, 5, 'x'), state);
+});

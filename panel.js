@@ -7,12 +7,12 @@ import { cleanShape, shapeOf } from './shape-pure.js';
 import { DEFAULT_FILL, PALETTE, solidColor } from './mask-pure.js';
 import { cleanSide, markerDiameter } from './marker-pure.js';
 import { highlightColor } from './highlight-pure.js';
-import { outputSize, MAX_SIDE, MAX_PIXELS } from './versions.js';
+import { outputSize, MAX_NAME, MAX_SIDE, MAX_PIXELS } from './versions.js';
 import { styleOf } from './beautify-pure.js';
 import { clamp } from './pure.js';
-import { formatNumber } from './i18n.js';
+import { formatNumber, t } from './i18n.js';
 import { FORMAT_NAMES } from './settings.js';
-import { applyDom, setI18n } from './dom-i18n.js';
+import { applyDom, setAria, setI18n } from './dom-i18n.js';
 import { dom } from './dom.js';
 
 const TEXT_SIZE = { min: 8, max: 400, fallback: 16 }; // text size as typed (bounds of #size in library.html)
@@ -169,6 +169,7 @@ export function showVersions(shot) {
     else setI18n(b, 'ver.original');
     b.dataset.i = String(i);
     b.setAttribute('aria-pressed', String(shot.active === i));
+    if (i >= 0) { b.dataset.i18nTitle = 'ver.rename.tip'; b.title = t('ver.rename.tip'); }
     return b;
   };
   dom.versions.replaceChildren(button(null, -1), ...shot.versions.map((v, i) => button(v.name, i)));
@@ -267,7 +268,40 @@ export function bindControls(actions) {
   for (const b of dom.tools) b.addEventListener('click', () => ready() && actions.setTool(b.dataset.tool));
   dom.versions.addEventListener('click', (e) => {
     const b = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('button[data-i]'));
-    if (b && ready()) actions.showVersion(Number(b.dataset.i));
+    if (b && ready() && b.getAttribute('aria-pressed') !== 'true') actions.showVersion(Number(b.dataset.i)); // the displayed one: nothing to load again
+  });
+  // A version is renamed where its pill is: a double click, or F2 on the focused pill.
+  const rename = (/** @type {HTMLElement} */ pill) => {
+    const i = Number(pill.dataset.i);
+    const input = document.createElement('input');
+    input.className = 'pill-name';
+    input.maxLength = MAX_NAME;
+    input.value = pill.textContent ?? '';
+    setAria(input, 'ver.rename');
+    let finished = false;
+    const finish = (/** @type {boolean} */ keep) => {
+      if (finished) return;
+      finished = true;
+      if (keep) actions.nameVersion(i, input.value);
+      else actions.showVersions();
+    };
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation(); // the editor's shortcuts are not for this field
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); } else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+    pill.replaceWith(input);
+    input.focus();
+    input.select();
+  };
+  dom.versions.addEventListener('dblclick', (e) => {
+    const under = document.elementFromPoint(e.clientX, e.clientY); // the first click can have rebuilt the pills
+    const b = /** @type {HTMLElement | null} */ (under?.closest('button[data-i]') ?? null);
+    if (b && ready() && Number(b.dataset.i) >= 0) rename(b);
+  });
+  dom.versions.addEventListener('keydown', (e) => {
+    const b = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('button[data-i]'));
+    if (e.key === 'F2' && b && ready() && Number(b.dataset.i) >= 0) { e.preventDefault(); rename(b); }
   });
   dom.newVersion.addEventListener('click', () => ready() && actions.newVersion());
   dom.delVersion.addEventListener('click', () => ready() && actions.removeVersion());

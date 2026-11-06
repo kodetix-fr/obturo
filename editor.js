@@ -14,7 +14,7 @@ import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applySh
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, closeGaps, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
-import { createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
+import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
 import { fitView, clampView, zoomAt, panBy } from './view.js';
@@ -498,6 +498,14 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (save) saver.schedule();
   }
 
+  function nameVersion(i, name) {
+    if (!ready() || !shot.versions[i]) return;
+    apply(renameVersion(shot, i, name));
+    panel.showVersions(shot);
+    onVersions?.(shot);
+    saver.schedule();
+  }
+
   async function removeVersion() {
     if (shot.active < 0) return;
     const { confirmDialog } = await import('./history-dialogs.js'); // the same dialog as the history and the strip
@@ -831,7 +839,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // ---------- document listeners (set once: the page has a single editor) ----------
 
   panel.bindControls({
-    ready, setTool, showVersion: show, newVersion, removeVersion, enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
+    ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
     fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
