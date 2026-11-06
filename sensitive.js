@@ -41,12 +41,13 @@
   const RULES = [
     ['secret', /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/g],
     ['secret', SECRET],
-    ['iban', /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,3})?\b/g, (m) => ibanOk(m.replaceAll(' ', ''))],
-    ['card', /(?<!\d)\d(?:[ -]?\d){12,18}(?!\d)/g, (m) => luhn(m.replace(/[ -]/g, ''))],
+    // a space can be a no-break space (\u00a0) or a narrow one (\u202f): pages use them so that a number does not wrap
+    ['iban', /\b[A-Z]{2}\d{2}(?:[ \u00a0\u202f]?[A-Z0-9]{4}){2,7}(?:[ \u00a0\u202f]?[A-Z0-9]{1,3})?\b/g, (m) => ibanOk(m.replace(/[ \u00a0\u202f]/g, ''))],
+    ['card', /(?<!\d)\d(?:[ \u00a0\u202f-]?\d){12,18}(?!\d)/g, (m) => luhn(m.replace(/[ \u00a0\u202f-]/g, ''))],
     ['email', /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g, (m) => !/\.(?:png|jpe?g|gif|webp|svg|css|js)$/i.test(m)],
     // international (+ or 00, 9 to 14 digits) and the French national form 0X XX XX XX XX
-    ['phone', /(?<![\w@.+-])(?:\+|00)[1-9](?:[ .()-]{0,2}\d){8,13}(?!\d)/g],
-    ['phone', /(?<![\w@.+-])0[1-9](?:[ .-]?\d{2}){4}(?!\d)/g],
+    ['phone', /(?<![\w@.+-])(?:\+|00)[1-9](?:[ \u00a0\u202f.()-]{0,2}\d){8,13}(?!\d)/g],
+    ['phone', /(?<![\w@.+-])0[1-9](?:[ \u00a0\u202f.-]?\d{2}){4}(?!\d)/g],
   ];
 
   /**

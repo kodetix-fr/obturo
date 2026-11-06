@@ -13,6 +13,9 @@ Notable changes to Obturo. The format follows
 - A capture opened in a library tab that is already open now goes there by the address of the tab, so it is no
   longer lost when that tab is still loading. When several library tabs are open, the one that may edit takes the
   capture and comes forward, instead of the first one found, which could be the read-only one.
+- **Hide sensitive text** now covers text that is selected on the page (the selection was painted over the black
+  cover and showed the value, while the note counted it as hidden), text drawn in an SVG, and card numbers, IBANs
+  and phone numbers written with no-break spaces.
 
 ## [0.2.0] - 2026-11-03
 

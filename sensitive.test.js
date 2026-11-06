@@ -21,6 +21,19 @@ test('phone numbers: international and French forms', () => {
   for (const text of ['2026-11-01 12:30:45', '192.168.1.100', '1698765432', '0.123456789', 'version 1.2.3', '123456789', '0123 456 789', 'order 12345', '+33 6 12']) nothing(text);
 });
 
+test('a no-break space or a narrow no-break space between the groups of a number', () => {
+  for (const space of ['\u00a0', '\u202f']) {
+    const card = ['4111', '1111', '1111', '1111'].join(space);
+    const iban = 'FR14 2004 1010 0505 0001 3M02 606'.replaceAll(' ', space);
+    const international = '+33 6 12 34 56 78'.replaceAll(' ', space);
+    const national = '06 12 34 56 78'.replaceAll(' ', space);
+    assert.deepEqual(hidden(`card ${card}.`), [['card', card]]);
+    assert.deepEqual(hidden(`IBAN ${iban}.`), [['iban', iban]]);
+    assert.deepEqual(hidden(`call ${international} today`), [['phone', international]]);
+    assert.deepEqual(hidden(`call ${national} today`), [['phone', national]]);
+  }
+});
+
 test('IBAN: the mod-97 check, with or without spaces', () => {
   for (const iban of ['FR14 2004 1010 0505 0001 3M02 606', 'FR1420041010050500013M02606', 'DE89 3704 0044 0532 0130 00', 'GB82 WEST 1234 5698 7654 32']) {
     assert.deepEqual(hidden(`IBAN ${iban}.`), [['iban', iban]], iban);
