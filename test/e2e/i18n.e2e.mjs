@@ -75,6 +75,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     assert.match(await page.getAttribute('.upper-canvas', 'aria-label'), /^Capture «\u00a0Second\u00a0»/, 'label of the canvas');
     assert.match(await text('#zoomLabel'), /^\d+\xa0%$/, 'number format of the language');
     assert.equal(await text('#settingsTitle'), 'Paramètres', 'the open dialog follows too');
+    await poll(async () => /\bsur\b/.test(await text('#storageText')), { what: 'the figures of the history block in French' });
     const stored = await page.evaluate(async () => (await (await import(`${location.origin}/settings.js`)).getSettings()).language);
     assert.equal(stored, 'fr', 'language saved');
     await page.selectOption('dialog select[name="language"]', 'en');
