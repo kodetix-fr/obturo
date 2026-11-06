@@ -43,7 +43,9 @@ describe('editor: one color control for everything', () => {
     assert.equal(await page.inputValue('#color'), '#2563eb', 'the free color holds the one in use');
     await drag(page, m, 100, 100, 400, 300);
     await poll(async () => (await last())?.stroke === '#2563eb', { what: 'a blue rectangle saved' });
-    // the new rectangle is selected: a swatch recolors it, once, as one step of the history
+    // the tool stays armed for the next one: to recolor this one, select it, and a swatch recolors it, once, as one step of the history
+    await tool(page, 'select');
+    await page.mouse.click(...m.pt(250, 200));
     await pick('lineSwatches', '#43a047');
     await poll(async () => (await last()).stroke === '#43a047', { what: 'the rectangle turns green' });
     assert.equal((await objectsOf()).length, 1, 'recolored, not duplicated');

@@ -240,6 +240,27 @@ describe('editor: full walkthrough', () => {
     m = await mapper(page, 1600, 900);
   });
 
+  it('at 480 px wide the chrome leaves room to the image, and nothing hides the version buttons', async () => {
+    const label = () => page.locator('#zoomLabel').innerText();
+    const before = await label();
+    await tool(page, 'rect');
+    for (const [w, hh, share] of [[480, 900, 0.54], [480, 650, 0.35]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      await poll(async () => (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
+      const r = await page.evaluate(() => {
+        const box = document.getElementById('newVersion').getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('button')?.id;
+        return { stage: document.getElementById('stage').clientHeight, hit };
+      });
+      assert.ok(r.stage >= hh * share, `the stage is ${r.stage} px of ${hh} at ${w} x ${hh}`);
+      assert.equal(r.hit, 'newVersion', `the plus button is not covered at ${w} x ${hh}`);
+    }
+    await tool(page, 'select');
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
+    m = await mapper(page, 1600, 900);
+  });
+
   it('pixelated region: its content follows its position, alone then in a multiple selection', async () => {
     await seed(page, { w: 1600, h: 900, title: 'Capture D', url: 'https://example.test/d', stripes: true });
     await grabCsp();

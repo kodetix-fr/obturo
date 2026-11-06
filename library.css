@@ -435,3 +435,23 @@ dialog.small { width: min(460px, calc(100vw - 32px)); }
   .hv-foot { justify-content: space-between; }
   .hv-count { display: none; }
 }
+
+/* ---------- very narrow windows: the chrome leaves room to the image ---------- */
+@media (max-width: 560px) {
+  .appbar { padding-right: 14px; }
+  .brand { min-height: 34px; }
+  .appbar .sep { display: none; }
+  .versions { flex-basis: 100%; }
+  .apptools, #settingsBtn { align-self: start; margin-top: 8px; }
+  .props, .status { gap: 4px 12px; padding: 5px 10px; }
+  .props .group { display: contents; }
+  .props .group[hidden] { display: none; }
+  .status .sep { display: none; }
+  .shot { width: 120px; }
+  .shot .open, .more { height: 64px; }
+  .more { width: 72px; margin-top: 8px; }
+  .more-label { display: none; }
+  #strip { min-height: 0; padding-top: 8px; padding-bottom: 8px; }
+  .shot .when { display: none; }
+  .shot .pin-mark { top: 36px; }
+}
