@@ -131,4 +131,5 @@ export async function openSettings(apply, isReadOnly = () => false) {
   fill(current);
   historySettings.refresh(current);
   if (!dialog.open) dialog.showModal();
+  dialog.scrollTop = 0; // always from the first section
 }

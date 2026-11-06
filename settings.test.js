@@ -180,3 +180,12 @@ test('cleanShotIds: a short list of positive whole numbers, nothing else', () =>
   for (const junk of [undefined, null, 'x', 12, {}, { 0: 3, length: 1 }]) assert.deepEqual(cleanShotIds(junk), [], String(junk));
   assert.equal(cleanShotIds(Array.from({ length: 100 }, (_, i) => i + 1)).length, 8, 'a handful at most: a tab holds one or two');
 });
+
+test('normalizeSettings: the caps of the old binary menu keep their meaning, any other cap is kept as it is', () => {
+  const caps = (maxBytes) => normalizeSettings({ maxBytes }).maxBytes;
+  assert.equal(DEFAULT_SETTINGS.maxBytes, 2_000_000_000);
+  assert.deepEqual([524_288_000, 1_073_741_824, 2_147_483_648, 5_368_709_120, 10_737_418_240].map(caps), [500_000_000, 1_000_000_000, 2_000_000_000, 5_000_000_000, 10_000_000_000]);
+  assert.equal(caps(2_000_000_000), 2_000_000_000);
+  assert.equal(caps(700_000_000), 700_000_000);
+  assert.equal(caps(0), 0);
+});

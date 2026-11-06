@@ -230,6 +230,12 @@ dialog { width: min(460px, calc(100vw - 32px)); padding: 0; border: 1px solid va
 dialog::backdrop { background: rgba(9, 14, 23, .55); }
 .dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 10px 20px; }
 .dlg-head h2 { font-size: 16px; font-weight: 650; }
+/* the dialog scrolls: a fade at the bottom says there is more, and goes when the end is reached */
+#settingsForm::after { content: ''; position: sticky; bottom: 0; display: block; height: 28px; margin-top: -28px; background: linear-gradient(to bottom, transparent, var(--surface)); pointer-events: none; }
+@supports (animation-timeline: scroll()) {
+  #settingsForm::after { animation: settings-end linear both; animation-timeline: scroll(nearest); }
+  @keyframes settings-end { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
+}
 #settings .dlg-head { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line); border-radius: var(--r-l) var(--r-l) 0 0; }
 .dlg-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 4px 20px 22px; }
 .dlg-body h3 { margin-bottom: 8px; color: var(--muted); font-size: 12px; font-weight: 600; }

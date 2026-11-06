@@ -121,22 +121,22 @@ test('formatNumber and formatDate follow the language in use', () => {
   setLanguage('en');
 });
 
-test('splitBytes: the unit that reads best, one decimal below 100, binary multiples', () => {
+test('splitBytes: the unit that reads best, one decimal below 100, decimal multiples', () => {
   assert.deepEqual(splitBytes(0), { value: 0, unit: 'B' });
   assert.deepEqual(splitBytes(999), { value: 999, unit: 'B' });
-  assert.deepEqual(splitBytes(1024), { value: 1, unit: 'KB' });
-  assert.deepEqual(splitBytes(1536), { value: 1.5, unit: 'KB' });
-  assert.deepEqual(splitBytes(340 * 1024 ** 2), { value: 340, unit: 'MB' });
-  assert.deepEqual(splitBytes(1.2 * 1024 ** 3), { value: 1.2, unit: 'GB' });
-  assert.deepEqual(splitBytes(12.34 * 1024 ** 2), { value: 12.3, unit: 'MB' });
-  assert.deepEqual(splitBytes(2 * 1024 ** 3), { value: 2, unit: 'GB' });
-  assert.deepEqual(splitBytes(5 * 1024 ** 4), { value: 5, unit: 'TB' });
-  assert.deepEqual(splitBytes(10 * 1024 ** 5), { value: 10240, unit: 'TB' }, 'nothing above TB');
+  assert.deepEqual(splitBytes(1000), { value: 1, unit: 'KB' });
+  assert.deepEqual(splitBytes(1500), { value: 1.5, unit: 'KB' });
+  assert.deepEqual(splitBytes(340 * 1000 ** 2), { value: 340, unit: 'MB' });
+  assert.deepEqual(splitBytes(1.2 * 1000 ** 3), { value: 1.2, unit: 'GB' });
+  assert.deepEqual(splitBytes(12.34 * 1000 ** 2), { value: 12.3, unit: 'MB' });
+  assert.deepEqual(splitBytes(2 * 1000 ** 3), { value: 2, unit: 'GB' });
+  assert.deepEqual(splitBytes(5 * 1000 ** 4), { value: 5, unit: 'TB' });
+  assert.deepEqual(splitBytes(10 * 1000 ** 5), { value: 10000, unit: 'TB' }, 'nothing above TB');
 });
 
-test('splitBytes: a value that rounds up to 1024 moves to the next unit; junk is zero', () => {
-  assert.deepEqual(splitBytes(1024 ** 2 - 1), { value: 1, unit: 'MB' });
-  assert.deepEqual(splitBytes(1023.96 * 1024), { value: 1, unit: 'MB' });
+test('splitBytes: a value that rounds up to 1000 moves to the next unit; junk is zero', () => {
+  assert.deepEqual(splitBytes(1000 ** 2 - 1), { value: 1, unit: 'MB' });
+  assert.deepEqual(splitBytes(999.96 * 1000), { value: 1, unit: 'MB' });
   assert.deepEqual(splitBytes(-5), { value: 0, unit: 'B' });
   assert.deepEqual(splitBytes(NaN), { value: 0, unit: 'B' });
   assert.deepEqual(splitBytes(undefined), { value: 0, unit: 'B' });
@@ -144,10 +144,10 @@ test('splitBytes: a value that rounds up to 1024 moves to the next unit; junk is
 
 test('fmtBytes: the number and the unit follow the language, joined by a no-break space', () => {
   setLanguage('en');
-  assert.equal(fmtBytes(1.2 * 1024 ** 3), `1.2${String.fromCharCode(160)}GB`);
-  assert.equal(fmtBytes(188_416), `184${String.fromCharCode(160)}KB`);
+  assert.equal(fmtBytes(1.2 * 1000 ** 3), `1.2${String.fromCharCode(160)}GB`);
+  assert.equal(fmtBytes(188_416), `188${String.fromCharCode(160)}KB`);
   setLanguage('fr');
-  assert.equal(fmtBytes(1.2 * 1024 ** 3), `1,2${String.fromCharCode(160)}Go`);
+  assert.equal(fmtBytes(1.2 * 1000 ** 3), `1,2${String.fromCharCode(160)}Go`);
   setLanguage('en');
 });
 

@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   language: 'auto',       // 'auto' follows the browser UI language, else a key of LANGUAGES
   theme: 'auto',          // 'auto' | 'light' | 'dark'
   retentionDays: 30,      // history: unpinned shots older than this are purged, 0 = never purge by age
-  maxBytes: 2 * 1024 ** 3, // history: size cap, 0 = no cap
+  maxBytes: 2e9, // history: size cap, 0 = no cap
   downloadFormat: 'png',  // 'png' | 'jpeg' | 'webp' | 'pdf'
   downloadQuality: 0.9,   // lossy formats (and the light PDF), 0.1 to 1
   pdfLayout: 'fit',       // 'fit' (one page the size of the image) | 'a4'
@@ -36,6 +36,9 @@ export const AFTER_CAPTURE = ['ask', 'copy', 'save']; // what a capture does onc
 export const MAX_NAME_TEMPLATE = 80; // characters: the maxlength of the field in library.html
 /** How the formats are written on screen: proper names, the same in every language. */
 export const FORMAT_NAMES = Object.freeze({ png: 'PNG', jpeg: 'JPEG', webp: 'WebP', pdf: 'PDF' });
+// The size caps of the menu were counted in binary multiples (500 MiB, 1 GiB...) until sizes were counted as the system does (1 MB = 1,000,000 B): a
+// stored cap of the old menu keeps its meaning.
+const LEGACY_CAPS = new Map([[524_288_000, 500_000_000], [1_073_741_824, 1_000_000_000], [2_147_483_648, 2_000_000_000], [5_368_709_120, 5_000_000_000], [10_737_418_240, 10_000_000_000]]);
 const isInt = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
 
 /**
@@ -51,7 +54,7 @@ export function normalizeSettings(raw) {
     language: r.language === 'auto' || Object.hasOwn(LANGUAGES, r.language) ? r.language : d.language,
     theme: THEMES.includes(r.theme) ? r.theme : d.theme,
     retentionDays: isInt(r.retentionDays, 0, 3650) ? r.retentionDays : d.retentionDays,
-    maxBytes: isInt(r.maxBytes, 0, 2 ** 40) ? r.maxBytes : d.maxBytes,
+    maxBytes: isInt(r.maxBytes, 0, 2 ** 40) ? LEGACY_CAPS.get(r.maxBytes) ?? r.maxBytes : d.maxBytes,
     downloadFormat: DOWNLOAD_FORMATS.includes(r.downloadFormat) ? r.downloadFormat : d.downloadFormat,
     downloadQuality: typeof r.downloadQuality === 'number' && r.downloadQuality >= 0.1 && r.downloadQuality <= 1
       ? r.downloadQuality : d.downloadQuality,
