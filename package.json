@@ -1,6 +1,6 @@
 {
   "name": "obturo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "A small Chrome extension (Manifest V3) for capturing, annotating and keeping screenshots. 100% local, no account.",
   "keywords": ["chrome-extension", "manifest-v3", "screenshot", "screen-capture", "annotation", "privacy"],
