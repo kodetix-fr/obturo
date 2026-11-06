@@ -573,7 +573,7 @@ function fill(card, i) {
   card.open.title = `${s.title || ''}\n${s.url || ''}`.trim(); // an attribute: never read as HTML
   card.open.tabIndex = i === active ? 0 : -1;
   card.title.textContent = s.title || host || ''; // textContent: the title and the address come from the captured page
-  card.sub.textContent = host ? `${host}${DOT}${when}` : when;
+  card.sub.textContent = host ? `${when}${DOT}${host}` : when; // the date first: it is what a narrow card must not cut
   card.check.setAttribute('aria-label', t('hist.card.select', { when }));
   card.pin.setAttribute('aria-label', t('hist.pin.card', { when }));
   card.badge.textContent = t('strip.edited');
