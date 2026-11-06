@@ -100,8 +100,9 @@ opens the new capture in the editor.
   the page, takes the image, and puts the page back as it was: no node is added
   and no text changes, the cover is a CSS highlight that follows a panel that
   scrolls. A full page looks again at each tile, so what loads while the page
-  scrolls is covered too. A note on the page then says how many items were
-  hidden, or that none was found. It is best effort, not a guarantee: look at
+  scrolls is covered too. A note on the page then says how many items showing in
+  the image were covered, or that none was found, and that form fields, images
+  and frames are not covered. It is best effort, not a guarantee: look at
   the image before you share it. If the cover cannot be put up, no image is
   taken (red badge). What is looked for, and what is not, is under *Known
   limits*.
@@ -307,8 +308,11 @@ full page is scrolled and stitched instead, with the limits below.
 ## Known limits
 
 - **Hide sensitive text** reads the text of the page, so it does not see what is
-  not text: images, canvases, the content of frames, closed shadow DOM and what
-  is typed in a field (the value of an input or a textarea). It looks for
+  not text: images, canvases, the content of frames, closed shadow DOM and the
+  content of form fields (the value of an input, a text area or a drop-down,
+  whether the page or you filled it). The text is searched block by block: a
+  value split by inline elements (a phone number in two spans) is found, one
+  split by a line break or by two blocks is not. It looks for
   e-mail addresses, phone numbers (international and French forms), IBANs and
   card numbers (both with their checksum), and the keys of a few services
   (Stripe, GitHub, AWS, Slack, Google, a JWT, a private key block); a name, an

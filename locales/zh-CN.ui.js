@@ -72,7 +72,7 @@ export default {
   'settings.capture.delay.ten': '10 秒',
   'settings.capture.delay.hint': '延迟期间，图标会倒计时，页面仍可正常操作：请先打开想要截取的菜单、提示或列表。再次执行截图即可取消。对于区域或元素，选择会在延迟结束后开始。',
   'settings.capture.redact': '隐藏敏感文本',
-  'settings.capture.redact.hint': '每次截取图像前，Obturo 会用黑色遮盖页面文本中的电子邮件地址、电话号码、IBAN、银行卡号和密钥，然后恢复页面。它看不到图片、canvas、框架、封闭的 shadow DOM 以及输入框中输入的内容，也可能漏掉文本：分享前请先检查。',
+  'settings.capture.redact.hint': '每次截取图像前，Obturo 会用黑色遮盖页面文本中的电子邮件地址、电话号码、IBAN、银行卡号和密钥，然后恢复页面。它不会遮盖表单字段的内容（无论由页面还是由你填写）、图片、canvas、框架和封闭的 shadow DOM，也可能漏掉文本：分享前请先检查。',
   'prop.strength': '强度',
   'prop.textHint': '遮盖文字请优先使用色块。',
   'prop.hl': '荧光笔',

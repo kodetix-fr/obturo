@@ -72,7 +72,7 @@ export default {
   'settings.capture.delay.ten': '10 s',
   'settings.capture.delay.hint': 'While the delay runs, the icon counts down and the page stays usable: open the menu, the tooltip or the list you want to capture. Run a capture again to cancel. For an area or an element, the selection starts when the delay ends.',
   'settings.capture.redact': 'Hide sensitive text',
-  'settings.capture.redact.hint': 'Before each image of a capture, Obturo covers in black the e-mail addresses, phone numbers, IBANs, card numbers and keys it finds in the text of the page, then puts the page back. It does not see images, canvases, frames, closed shadow DOM or what is typed in a field, and it can miss some text: look before you share.',
+  'settings.capture.redact.hint': 'Before each image of a capture, Obturo covers in black the e-mail addresses, phone numbers, IBANs, card numbers and keys it finds in the text of the page, then puts the page back. It does not cover the content of form fields (whether the page or you filled them), images, canvases, frames or closed shadow DOM, and it can miss some text: look before you share.',
   'prop.strength': 'Strength',
   'prop.textHint': 'For text, prefer a solid fill.',
   'prop.hl': 'Highlighter',

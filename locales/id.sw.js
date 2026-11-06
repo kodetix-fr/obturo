@@ -24,8 +24,8 @@ export default {
   'sw.full.fail.page': 'Tangkapan seluruh halaman dihentikan: halaman berubah atau berhenti merespons saat menangkap. Tidak ada yang disimpan.',
   'sw.full.fail.other': 'Tangkapan seluruh halaman gagal. Tidak ada yang disimpan. Coba lagi.',
   // what a capture says on the page when the sensitive text was hidden (redact.js)
-  'sw.redact.one': '{n} item sensitif disembunyikan di tangkapan. Obturo bisa melewatkan sebagian: periksa sebelum membagikan.',
-  'sw.redact.other': '{n} item sensitif disembunyikan di tangkapan. Obturo bisa melewatkan sebagian: periksa sebelum membagikan.',
-  'sw.redact.none': 'Tidak ada alamat email, nomor telepon, IBAN, nomor kartu, atau kunci di teks halaman. Periksa sebelum membagikan.',
+  'sw.redact.one': '{n} item sensitif ditutup di teks halaman. Kolom formulir, gambar, dan frame tidak ditutup: periksa gambar sebelum membagikan.',
+  'sw.redact.other': '{n} item sensitif ditutup di teks halaman. Kolom formulir, gambar, dan frame tidak ditutup: periksa gambar sebelum membagikan.',
+  'sw.redact.none': 'Tidak ada alamat email, nomor telepon, IBAN, nomor kartu, atau kunci di teks halaman. Kolom formulir, gambar, dan frame tidak ditutup: periksa gambar sebelum membagikan.',
   'sw.redact.partial': 'Halaman terlalu besar untuk dicari seluruhnya: sebagian teks mungkin masih terlihat.',
 };

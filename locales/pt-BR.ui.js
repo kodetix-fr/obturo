@@ -72,7 +72,7 @@ export default {
   'settings.capture.delay.ten': '10 s',
   'settings.capture.delay.hint': 'Durante o atraso, o ícone faz a contagem regressiva e a página continua utilizável: abra o menu, a dica ou a lista que você quer capturar. Execute uma captura de novo para cancelar. Em uma área ou um elemento, a seleção começa quando o atraso termina.',
   'settings.capture.redact': 'Ocultar texto sensível',
-  'settings.capture.redact.hint': 'Antes de cada imagem de uma captura, o Obturo cobre de preto os endereços de e-mail, números de telefone, IBANs, números de cartão e chaves que encontra no texto da página e depois restaura a página. Ele não vê imagens, canvas, frames, shadow DOM fechado nem o que foi digitado em um campo, e pode deixar passar algum texto: confira antes de compartilhar.',
+  'settings.capture.redact.hint': 'Antes de cada imagem de uma captura, o Obturo cobre de preto os endereços de e-mail, números de telefone, IBANs, números de cartão e chaves que encontra no texto da página e depois restaura a página. Ele não cobre o conteúdo de campos de formulário (preenchidos pela página ou por você), imagens, canvas, frames nem shadow DOM fechado, e pode deixar passar algum texto: confira antes de compartilhar.',
   'prop.strength': 'Intensidade',
   'prop.textHint': 'Para texto, prefira uma tarja.',
   'prop.hl': 'Marca-texto',

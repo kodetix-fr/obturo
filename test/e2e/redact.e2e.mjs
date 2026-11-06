@@ -127,7 +127,7 @@ describe('hide sensitive text', () => {
     for (const id of ['mail', 'phone', 'iban', 'card', 'key', 'panelTop']) assert.ok(await dark(await boxOf(id)) > HIDDEN, `${id} is covered`);
     assert.ok(await dark(await boxOf('plain')) < SHOWN, 'a text with nothing sensitive in it is left alone');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /sensitive items? hidden in the capture/);
+    assert.match(await note(), /sensitive items? covered in the text of the page/);
     assert.deepEqual(await state(), before, 'no node, no sheet, no highlight left behind');
     assert.deepEqual((await finalBadge(sw))?.[0], 'OK');
   });
@@ -188,6 +188,60 @@ describe('hide sensitive text', () => {
     assert.equal(await page.evaluate(() => getComputedStyle(/** @type {Element} */ (document.getElementById('svgMail'))).fill), 'rgb(200, 0, 0)', 'the text has its own color back');
   });
 
+  it('a value split by the markup of the page is covered, and two blocks are not joined', async () => {
+    await build();
+    await page.evaluate(() => {
+      const node = (tag, text = '', id = '') => {
+        const e = document.createElement(tag);
+        e.textContent = text;
+        if (id) e.id = id;
+        return e;
+      };
+      const row = (id, top, ...children) => {
+        const d = node('div', '', id);
+        d.style.cssText = `position:absolute;left:100px;top:${top}px;font:22px monospace;color:rgb(200,0,0);background:#fff;padding:4px`;
+        d.append(...children);
+        /** @type {HTMLElement} */ (document.getElementById('fixture')).append(d);
+      };
+      const wrap = (id, ...children) => {
+        const s = node('span', '', id);
+        s.append(...children);
+        return s;
+      };
+      row('rowPhone', 430, wrap('splitPhone', node('span', '+33 6'), ' ', node('b', '12 34'), ' ', node('i', '56 78')));
+      row('rowCard', 480, wrap('splitCard', node('span', '4111'), node('span', ' 1111'), ' ', node('span', '1111 '), node('span', '1111')));
+      row('rowBlocks', 530, node('div', 'order 4111', 'blockA'), node('div', '1111 1111 1111', 'blockB'));
+      row('rowBreak', 620, node('span', '4111 1111', 'breakA'), node('br'), node('span', '1111 1111', 'breakB'));
+    });
+    await setting(true);
+    await capture('capture-visible');
+    assert.ok(await dark(await boxOf('splitPhone')) > HIDDEN, 'a phone number in three elements');
+    assert.ok(await dark(await boxOf('splitCard')) > HIDDEN, 'a card number in four elements');
+    assert.ok(await dark(await boxOf('blockA')) < SHOWN, 'the end of one block is not the start of a number');
+    assert.ok(await dark(await boxOf('blockB')) < SHOWN, 'the start of the next block is not the end of a number');
+    assert.ok(await dark(await boxOf('breakA')) < SHOWN, 'a line break ends a number');
+    assert.ok(await dark(await boxOf('breakB')) < SHOWN, 'a line break starts another one');
+  });
+
+  it('the note counts what shows: a row that cannot be seen is covered but not counted', async () => {
+    await build();
+    await page.evaluate(() => {
+      const fixture = /** @type {HTMLElement} */ (document.getElementById('fixture'));
+      fixture.replaceChildren();
+      for (const [id, style] of [['seenMail', ''], ['hiddenMail', 'visibility:hidden'], ['faintMail', 'opacity:0']]) {
+        const d = document.createElement('div');
+        d.id = id;
+        d.style.cssText = `position:absolute;left:100px;top:${id === 'seenMail' ? 120 : id === 'hiddenMail' ? 170 : 220}px;font:22px monospace;${style}`;
+        d.textContent = `${id}.person@example.test`;
+        fixture.append(d);
+      }
+    });
+    await setting(true);
+    await capture('capture-visible');
+    await page.waitForSelector('#obturo-notice', { state: 'attached' });
+    assert.match(await note(), /^Obturo\s*1 sensitive item covered/);
+  });
+
   it('the setting off: nothing is covered, nothing is said', async () => {
     await build();
     await capture('capture-visible');
@@ -225,7 +279,7 @@ describe('hide sensitive text', () => {
     assert.ok(await dark(await boxOf('mail'), origin) > HIDDEN, 'the e-mail');
     assert.ok(await dark(await boxOf('phone'), origin) > HIDDEN, 'the phone number');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /^Obturo\s*2 sensitive items hidden/, 'the two the area keeps, not the ones outside it');
+    assert.match(await note(), /^Obturo\s*2 sensitive items covered/, 'the two the area keeps, not the ones outside it');
   });
 
   it('an element: what the element holds is covered', async () => {
@@ -246,7 +300,7 @@ describe('hide sensitive text', () => {
     await until(async () => (await maxId(sw)) === before + 1, 'the element');
     assert.ok(await dark(await boxOf('mail'), { x: box.x, y: box.y }) > HIDDEN, 'the e-mail of the element');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /1 sensitive item hidden/);
+    assert.match(await note(), /1 sensitive item covered/);
   });
 
   it('the full page: what is far down is covered too, and the page is back as it was', async () => {
@@ -257,7 +311,7 @@ describe('hide sensitive text', () => {
     for (const id of ['mail', 'key', 'low']) assert.ok(await dark(await boxOf(id)) > HIDDEN, `${id} is covered in the tall image`);
     assert.ok(await dark(await boxOf('plain')) < SHOWN, 'the text with nothing sensitive in it is left alone');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /sensitive items hidden in the capture/);
+    assert.match(await note(), /sensitive items covered in the text of the page/);
     assert.deepEqual(await state(), before, 'no node, no sheet, no highlight left behind');
   });
 

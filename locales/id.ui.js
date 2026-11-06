@@ -72,7 +72,7 @@ export default {
   'settings.capture.delay.ten': '10\u00A0dtk',
   'settings.capture.delay.hint': 'Selama jeda, ikon menghitung mundur dan halaman tetap bisa dipakai: buka menu, tooltip, atau daftar yang ingin ditangkap. Jalankan tangkapan lagi untuk membatalkan. Untuk area atau elemen, pemilihan dimulai setelah jeda berakhir.',
   'settings.capture.redact': 'Sembunyikan teks sensitif',
-  'settings.capture.redact.hint': 'Sebelum setiap gambar dari tangkapan, Obturo menutup dengan warna hitam alamat email, nomor telepon, IBAN, nomor kartu, dan kunci yang ditemukan di teks halaman, lalu mengembalikan halaman seperti semula. Obturo tidak melihat gambar, canvas, frame, shadow DOM tertutup, atau isi kolom isian, dan bisa melewatkan sebagian teks: periksa sebelum membagikan.',
+  'settings.capture.redact.hint': 'Sebelum setiap gambar dari tangkapan, Obturo menutup dengan warna hitam alamat email, nomor telepon, IBAN, nomor kartu, dan kunci yang ditemukan di teks halaman, lalu mengembalikan halaman seperti semula. Obturo tidak menutup isi kolom formulir (baik diisi oleh halaman maupun oleh pengguna), gambar, canvas, frame, atau shadow DOM tertutup, dan bisa melewatkan sebagian teks: periksa sebelum membagikan.',
   'prop.strength': 'Kekuatan',
   'prop.textHint': 'Untuk teks, gunakan isian pekat.',
   'prop.hl': 'Penyorot',
