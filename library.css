@@ -140,8 +140,9 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 .pills button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* ---------- tool rail ---------- */
-.rail { grid-area: rail; display: flex; flex-direction: column; gap: 2px; padding: 10px 7px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--line); }
-.tools { display: flex; flex-direction: column; gap: 2px; }
+.rail { grid-area: rail; display: flex; flex-direction: column; gap: 2px; padding: 10px 7px; overflow: hidden; background: var(--surface); border-right: 1px solid var(--line); }
+.tools { display: flex; flex: 0 1 auto; flex-direction: column; gap: 2px; min-height: 0; margin: -2px; padding: 2px; overflow-y: auto; scrollbar-width: thin; }
+.rail > .tool { flex: none; }
 .tool {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; padding: 7px 2px 6px;
   border: 0; border-radius: var(--r-m); background: transparent; color: var(--muted); font-size: 11px; font-weight: 550; cursor: pointer;
@@ -264,6 +265,16 @@ dialog::backdrop { background: rgba(9, 14, 23, .55); }
   #copy[data-flash] .lbl { position: static; width: auto; height: auto; clip-path: none; }
   .tool { min-height: 42px; }
   .appbar { padding-right: 52px; }
+}
+
+/* Short windows: the tools lose their labels, then their height, so that the whole rail fits; Crop never scrolls away. */
+@media (max-height: 899px) {
+  .tool .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tool { min-height: 42px; }
+}
+@media (max-height: 749px) {
+  .tool { min-height: 36px; padding-block: 4px; }
+  .rail-sep { margin-block: 4px; }
 }
 
 /* ======================================================================================================================

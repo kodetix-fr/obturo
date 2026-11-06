@@ -221,6 +221,25 @@ describe('editor: full walkthrough', () => {
     m = await mapper(page, 1600, 900);
   });
 
+  it('the tool rail fits a short window, and Crop stays under the pointer when the tools must scroll', async () => {
+    const label = () => page.locator('#zoomLabel').innerText();
+    const before = await label();
+    for (const [w, hh, fits] of [[1440, 813, true], [1100, 768, true], [1440, 700, true], [820, 650, false], [480, 650, false]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      await poll(async () => (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
+      const r = await page.evaluate(() => {
+        const tools = document.getElementById('tools');
+        const box = document.getElementById('crop').getBoundingClientRect();
+        return { tools: [tools.clientHeight, tools.scrollHeight], hit: document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('button')?.id };
+      });
+      assert.equal(r.hit, 'crop', `a click in the middle of Crop reaches it at ${w} x ${hh}`);
+      if (fits) assert.ok(r.tools[1] <= r.tools[0], `all the tools show at ${w} x ${hh}: ${r.tools}`);
+    }
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
+    m = await mapper(page, 1600, 900);
+  });
+
   it('pixelated region: its content follows its position, alone then in a multiple selection', async () => {
     await seed(page, { w: 1600, h: 900, title: 'Capture D', url: 'https://example.test/d', stripes: true });
     await grabCsp();
