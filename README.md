@@ -346,7 +346,10 @@ full page is scrolled and stitched instead, with the limits below.
 - **Pages that cannot be captured**: Chrome forbids extensions on some pages
   (`chrome://`, the Chrome Web Store...).
 - **One editing tab**: with the library open in two tabs, the second one is
-  read-only, so that two tabs never overwrite each other.
+  read-only, so that two tabs never overwrite each other. It shows the capture
+  you pick in the strip or the history, as the editor would export it, and
+  keeps *Copy image* and *Download*; editing, versions, pins, deletions and
+  imports stay off.
 - **The very last change**: edits are saved 500 ms after the last one, and at
   once when the tab is hidden, reloaded or closed. A change made less than about
   25 ms before the tab goes away can still be lost on a busy machine.
@@ -438,7 +441,7 @@ databases, the retention, the version model and the budgets.
   settings database, the translation, the texts of each language, the
   translation of the page, and the theme applied before the first paint.
 - `library.html`, `library.css`, `library.js`: the library page, the strip of
-  captures and the editing lock.
+  captures and the editing lock. `viewer.js` shows a capture in a read-only tab.
 - `history-view.js`, `history-model.js`, `history-dialogs.js`,
   `history-settings.js`, `settings-ui.js`: the history sheet, its logic, its
   confirmations, the history block of the settings, and the settings dialog.

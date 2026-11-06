@@ -168,7 +168,7 @@ export default {
   'msg.openFailed': 'No se puede abrir esta captura: la imagen no se puede leer o la base de datos no está disponible. Prueba con otra captura, o recarga la página.',
   'msg.deleteFailed': 'No se pudo eliminar: la base de datos no está disponible. Recarga la página e inténtalo de nuevo.',
   'msg.readFailed': 'No se pueden leer las capturas: la base de datos no está disponible. Recarga la página; si el problema persiste, reinicia el navegador.',
-  'msg.readOnly': 'Obturo ya está abierto en otra pestaña: esta es de solo lectura, para que dos pestañas nunca se sobrescriban. Cierra la otra pestaña y recarga esta para editar tus capturas.',
+  'msg.readOnly': 'Obturo ya está abierto en otra pestaña: esta es de solo lectura, para que dos pestañas nunca se sobrescriban. Aquí puedes ver tus capturas, copiarlas y descargarlas. Para editarlas, cierra la otra pestaña y recarga esta.',
   'msg.saveFailed': 'No se pudo guardar (sin espacio en disco o base de datos no disponible). Tus cambios siguen en pantalla y se volverán a guardar con tu próximo cambio.',
   'msg.closeSaveFailed': 'Los últimos cambios de la captura anterior no se pudieron guardar: la base de datos no está disponible o está llena.',
   'msg.exportFailed': 'No se pudo exportar: el tamaño de salida es demasiado grande para el navegador. Reduce la escala o recorta.',

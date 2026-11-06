@@ -168,7 +168,7 @@ export default {
   'msg.openFailed': 'Tangkapan ini tidak dapat dibuka: gambarnya tidak terbaca atau basis data tidak tersedia. Coba tangkapan lain, atau muat ulang halaman.',
   'msg.deleteFailed': 'Gagal menghapus: basis data tidak tersedia. Muat ulang halaman dan coba lagi.',
   'msg.readFailed': 'Tangkapan tidak dapat dibaca: basis data tidak tersedia. Muat ulang halaman; jika masalah berlanjut, mulai ulang browser.',
-  'msg.readOnly': 'Obturo sudah terbuka di tab lain: tab ini hanya baca, agar dua tab tidak saling menimpa. Tutup tab yang lain, lalu muat ulang tab ini untuk mengedit tangkapan Anda.',
+  'msg.readOnly': 'Obturo sudah terbuka di tab lain: tab ini hanya baca, agar dua tab tidak saling menimpa. Di sini Anda tetap bisa melihat, menyalin, dan mengunduh tangkapan. Untuk mengedit, tutup tab yang lain, lalu muat ulang tab ini.',
   'msg.saveFailed': 'Gagal menyimpan (ruang disk tidak cukup atau basis data tidak tersedia). Perubahan Anda tetap di layar dan akan disimpan lagi pada perubahan berikutnya.',
   'msg.closeSaveFailed': 'Perubahan terakhir pada tangkapan sebelumnya tidak dapat disimpan: basis data tidak tersedia atau penuh.',
   'msg.exportFailed': 'Gagal mengekspor: ukuran keluaran terlalu besar untuk browser. Kurangi skala atau pangkas gambar.',

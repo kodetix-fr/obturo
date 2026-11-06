@@ -169,7 +169,7 @@ export default {
   'msg.openFailed': "Impossible d'ouvrir cette capture\u00a0: l'image est illisible ou la base de données est indisponible. Essaie une autre capture, ou recharge la page.",
   'msg.deleteFailed': 'Suppression impossible\u00a0: la base de données est indisponible. Recharge la page puis réessaie.',
   'msg.readFailed': 'Impossible de lire les captures\u00a0: la base de données est indisponible. Recharge la page\u00a0; si le problème persiste, redémarre le navigateur.',
-  'msg.readOnly': "Obturo est déjà ouvert dans un autre onglet\u00a0: celui-ci est en lecture seule, pour que deux onglets ne s'écrasent pas. Ferme l'autre onglet puis recharge celui-ci pour modifier tes captures.",
+  'msg.readOnly': "Obturo est déjà ouvert dans un autre onglet\u00a0: celui-ci est en lecture seule, pour que deux onglets ne s'écrasent pas. Tu peux quand même regarder tes captures, les copier et les télécharger ici. Pour les modifier, ferme l'autre onglet puis recharge celui-ci.",
   'msg.saveFailed': "L'enregistrement a échoué (espace disque ou base indisponible). Tes modifications restent à l'écran et seront réenregistrées à ta prochaine modification.",
   'msg.closeSaveFailed': "Les dernières modifications de la capture précédente n'ont pas pu être enregistrées\u00a0: la base de données est indisponible ou pleine.",
   'msg.exportFailed': "Export impossible\u00a0: la taille de sortie est trop grande pour le navigateur. Réduis l'échelle ou recadre.",

@@ -168,7 +168,7 @@ export default {
   'msg.openFailed': 'Não foi possível abrir esta captura: a imagem não pode ser lida ou o banco de dados está indisponível. Tente outra captura ou recarregue a página.',
   'msg.deleteFailed': 'Falha ao excluir: o banco de dados está indisponível. Recarregue a página e tente de novo.',
   'msg.readFailed': 'Não foi possível ler as capturas: o banco de dados está indisponível. Recarregue a página; se o problema continuar, reinicie o navegador.',
-  'msg.readOnly': 'O Obturo já está aberto em outra aba: esta é somente leitura, para que duas abas nunca sobrescrevam uma à outra. Feche a outra aba e recarregue esta para editar suas capturas.',
+  'msg.readOnly': 'O Obturo já está aberto em outra aba: esta é somente leitura, para que duas abas nunca sobrescrevam uma à outra. Aqui você pode ver suas capturas, copiá-las e baixá-las. Para editar, feche a outra aba e recarregue esta.',
   'msg.saveFailed': 'Falha ao salvar (espaço em disco ou banco de dados indisponível). Suas alterações continuam na tela e serão salvas de novo na próxima alteração.',
   'msg.closeSaveFailed': 'As últimas alterações da captura anterior não puderam ser salvas: o banco de dados está indisponível ou cheio.',
   'msg.exportFailed': 'Falha na exportação: o tamanho de saída é grande demais para o navegador. Reduza a escala ou recorte a imagem.',

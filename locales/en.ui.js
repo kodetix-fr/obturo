@@ -168,7 +168,7 @@ export default {
   'msg.openFailed': "Can't open this capture: the image is unreadable or the database is unavailable. Try another capture, or reload the page.",
   'msg.deleteFailed': 'Deletion failed: the database is unavailable. Reload the page and try again.',
   'msg.readFailed': 'Unable to read the captures: the database is unavailable. Reload the page; if the problem persists, restart the browser.',
-  'msg.readOnly': 'Obturo is already open in another tab: this one is read-only, so that two tabs never overwrite each other. Close the other tab, then reload this one to edit your captures.',
+  'msg.readOnly': 'Obturo is already open in another tab: this one is read-only, so that two tabs never overwrite each other. You can still look at your captures, copy and download them here. To edit, close the other tab, then reload this one.',
   'msg.saveFailed': 'Saving failed (disk space or database unavailable). Your changes stay on screen and will be saved again at your next change.',
   'msg.closeSaveFailed': 'The last changes to the previous capture could not be saved: the database is unavailable or full.',
   'msg.exportFailed': 'Export failed: the output size is too large for the browser. Reduce the scale or crop.',

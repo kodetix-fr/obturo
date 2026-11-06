@@ -294,7 +294,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     const second = await h.context.newPage();
     try {
       await second.goto(h.url());
-      await second.waitForSelector('#stageMsg[data-state="error"]:not([hidden])', { timeout: 20_000 }); // read-only
+      await second.waitForSelector('#viewer:not([hidden])', { timeout: 20_000 }); // read-only
       await install(second);
       assert.equal(await second.locator('#importBtn').isDisabled(), true);
       const taken = await second.evaluate(async () => {

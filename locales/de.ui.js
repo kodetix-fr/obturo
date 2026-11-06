@@ -168,7 +168,7 @@ export default {
   'msg.openFailed': 'Diese Aufnahme lässt sich nicht öffnen: Das Bild ist unlesbar oder die Datenbank ist nicht verfügbar. Versuche eine andere Aufnahme oder lade die Seite neu.',
   'msg.deleteFailed': 'Löschen fehlgeschlagen: Die Datenbank ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
   'msg.readFailed': 'Die Aufnahmen können nicht gelesen werden: Die Datenbank ist nicht verfügbar. Lade die Seite neu; wenn das Problem bleibt, starte den Browser neu.',
-  'msg.readOnly': 'Obturo ist bereits in einem anderen Tab geöffnet: Dieser Tab ist schreibgeschützt, damit sich zwei Tabs nie gegenseitig überschreiben. Schließe den anderen Tab und lade diesen neu, um deine Aufnahmen zu bearbeiten.',
+  'msg.readOnly': 'Obturo ist bereits in einem anderen Tab geöffnet: Dieser Tab ist schreibgeschützt, damit sich zwei Tabs nie gegenseitig überschreiben. Du kannst deine Aufnahmen hier ansehen, kopieren und herunterladen. Zum Bearbeiten schließe den anderen Tab und lade diesen neu.',
   'msg.saveFailed': 'Speichern fehlgeschlagen (zu wenig Speicherplatz oder Datenbank nicht verfügbar). Deine Änderungen bleiben auf dem Bildschirm und werden bei deiner nächsten Änderung erneut gespeichert.',
   'msg.closeSaveFailed': 'Die letzten Änderungen an der vorherigen Aufnahme konnten nicht gespeichert werden: Die Datenbank ist nicht verfügbar oder voll.',
   'msg.exportFailed': 'Export fehlgeschlagen: Die Ausgabegröße ist zu groß für den Browser. Verringere die Skalierung oder schneide das Bild zu.',

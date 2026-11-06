@@ -320,21 +320,43 @@ function showHistoryCount() {
 
 // ---------- actions ----------
 
+function markCurrent(/** @type {number} */ id) {
+  for (const li of /** @type {HTMLCollectionOf<HTMLElement>} */ (strip.children)) {
+    if (li.dataset.id === String(id)) li.setAttribute('aria-current', 'true');
+    else li.removeAttribute('aria-current');
+  }
+}
+
+/** @type {Promise<typeof import('./viewer.js')> | null} */
+let viewer = null;
+/** A read-only tab shows the capture, with Copy and Download (viewer.js). @param {Shot} s */
+async function view(s) {
+  current = s;
+  markCurrent(s.id);
+  try {
+    viewer ??= import('./viewer.js').then((m) => { m.setup(showBanner); return m; });
+    if (!(await (await viewer).show(s))) return showGone(false);
+    if (current === s) stageMsg.hidden = true;
+  } catch (e) {
+    console.error('Obturo: view failed', e);
+    viewer = null;
+    $('viewer').hidden = true;
+    showStageMsg('error', 'state.openFailed');
+  }
+}
+
 /** @param {number} id @param {Shot} [shot] the shot, when it does not come from the strip (the history view) */
 async function select(id, shot) {
-  if (readOnly) return;
   const s = shot ?? shots.find((x) => x.id === id);
   if (!s) return;
+  if (readOnly) return view(s);
   current = s;
   showPin();
   openedId = null;
   publishOpen(); // the new shot is protected from now on, and the one the editor still holds until it lets go
   document.body.removeAttribute('data-empty');
   hideBanner();
-  for (const li of /** @type {HTMLCollectionOf<HTMLElement>} */ (strip.children)) {
-    if (li.dataset.id === String(id)) li.setAttribute('aria-current', 'true');
-    else li.removeAttribute('aria-current');
-  }
+  markCurrent(id);
   try {
     const blob = await getOriginal(id);
     if (current?.id !== id) return; // the user clicked elsewhere during the read
@@ -664,8 +686,9 @@ async function init() {
   if (!(await lock)) {
     readOnly = true;
     lockStripAndPin();
-    showStageMsg('error', 'state.readOnly', 'state.readOnly.hint');
     showBanner('msg.readOnly');
+    if (current) await view(current);
+    else showStageMsg('error', 'state.readOnly', 'state.readOnly.hint');
     confirmCopy();
     readTotal();
     return;

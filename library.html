@@ -272,6 +272,14 @@
       <!-- the empty library only: the import (library.js) -->
       <button type="button" id="stageImport" class="btn state-import" hidden><svg class="ic" aria-hidden="true"><use href="#i-import"/></svg><span data-i18n="import.btn"></span></button>
     </div>
+    <!-- a read-only tab only: the capture as the editor would export it, with Copy and Download (viewer.js) -->
+    <figure id="viewer" class="viewer" hidden>
+      <img id="viewerImg" alt="">
+      <figcaption class="viewer-bar">
+        <button type="button" id="viewerCopy" class="btn" data-i18n="act.copy"></button>
+        <button type="button" id="viewerDownload" class="btn" data-i18n="act.download"></button>
+      </figcaption>
+    </figure>
   </main>
 
   <nav class="filmstrip" data-i18n-aria="strip.label">
