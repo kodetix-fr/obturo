@@ -421,23 +421,38 @@ describe('editor: the text and the number of a marker, typed on the image', () =
     await page.waitForSelector('#markerProps:not([hidden])');
     assert.equal(await page.isChecked('#sidePick input[value="left"]'), true, 'the bar shows the side');
     await page.locator('#sidePick label:has(input[value="right"])').click();
-    const flipped = await poll(async () => { const o = (await markers()).find((x) => x.label === 'Export it from here'); return o?.side === 'right' ? o : null; }, { what: 'the text on the right' });
-    assert.equal(flipped.sideAuto, false, 'a choice is final');
-    const g2 = geometry(flipped);
+    const stays = await poll(async () => { const o = (await markers()).find((x) => x.label === 'Export it from here'); return o?.sideAuto === false ? o : null; }, { what: 'a choice is final' });
+    assert.equal(stays.side, 'left', 'the right would leave the image: the left stays');
+    assert.equal(await page.isChecked('#sidePick input[value="left"]'), true, 'the bar says so');
+    const g2 = geometry(stays);
     assert.ok(Math.abs(g2.cx - g.cx) <= 1 && Math.abs(g2.cy - g.cy) <= 1, 'the disc has not moved');
-    await page.keyboard.press('Control+z');
-    await poll(async () => (await markers()).find((x) => x.label === 'Export it from here')?.side === 'left', { what: 'undone: back on the left' });
-    await page.keyboard.press('Control+y');
-    await poll(async () => (await markers()).find((x) => x.label === 'Export it from here')?.side === 'right', { what: 'redone' });
-    // typing more does not move a text whose side was chosen
+  });
+
+  it('the style bar chooses the side where there is room: undo and redo follow, and typing more does not move it', async () => {
+    const count = (await markers()).length;
+    await tool(page, 'marker');
+    await click(800, 700);
+    await poll(async () => (await markers()).length === count + 1, { what: 'a marker in the middle' });
+    await page.keyboard.type('Middle step', { delay: 5 });
     await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
+    await tool(page, 'select');
+    const sideOf = async () => (await markers()).find((x) => x.label.startsWith('Middle'))?.side;
+    await click(800, 700);
+    await page.waitForSelector('#markerProps:not([hidden])');
+    await page.locator('#sidePick label:has(input[value="left"])').click();
+    await poll(async () => (await sideOf()) === 'left', { what: 'the text on the left' });
+    await page.keyboard.press('Control+z');
+    await poll(async () => (await sideOf()) === 'right', { what: 'undone: back on the right' });
+    await page.keyboard.press('Control+y');
+    await poll(async () => (await sideOf()) === 'left', { what: 'redone' });
+    await page.keyboard.press('Enter'); // typing more does not move a text whose side was chosen
     await page.keyboard.type(' now, please');
     await page.keyboard.press('Enter');
-    assert.equal((await markers()).find((x) => x.label.startsWith('Export it'))?.side, 'right', 'it stays where it was put');
-    // back to the left for the next test
-    await click(g.cx, g.cy);
-    await page.locator('#sidePick label:has(input[value="left"])').click();
-    await poll(async () => (await markers()).find((x) => x.label.startsWith('Export it'))?.side === 'left', { what: 'left again' });
+    assert.equal(await sideOf(), 'left', 'it stays where it was put');
+    await click(800, 700);
+    await page.keyboard.press('Delete');
+    await poll(async () => (await markers()).length === count, { what: 'the marker is deleted again' });
   });
 
   it('the export draws the text on the left of the disc, and the grouped export draws the same markers, after a reload too', async () => {

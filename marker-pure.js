@@ -108,12 +108,19 @@ export const boxLeft = (cx, d, footprint, side) => (side === 'left' ? cx - d / 2
 export const discCenterX = (left, d, footprint, side) => (side === 'left' ? left + footprint + d / 2 : left + d / 2);
 
 /**
+ * The side a legend gets when `side` is wished: that one, unless it would leave the image and the other one does not.
+ * @param {'right' | 'left'} side @param {number} cx Center of the disc. @param {number} d @param {number} footprint @param {number} imageWidth
+ * @returns {'right' | 'left'}
+ */
+export function fitSide(side, cx, d, footprint, imageWidth) {
+  const leaves = (/** @type {string} */ s) => (s === 'left' ? cx - d / 2 - footprint < 0 : cx + d / 2 + footprint > imageWidth);
+  const other = side === 'left' ? 'right' : 'left';
+  return leaves(side) && !leaves(other) ? other : side;
+}
+
+/**
  * Where a legend goes when nobody chose: on the right, unless it would leave the image and fits on the left.
  * @param {number} cx Center of the disc. @param {number} d @param {number} footprint @param {number} imageWidth
  * @returns {'right' | 'left'}
  */
-export function autoSide(cx, d, footprint, imageWidth) {
-  const outRight = cx + d / 2 + footprint > imageWidth;
-  const fitsLeft = cx - d / 2 - footprint >= 0;
-  return outRight && fitsLeft ? 'left' : 'right';
-}
+export const autoSide = (cx, d, footprint, imageWidth) => fitSide('right', cx, d, footprint, imageWidth);

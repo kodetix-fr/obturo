@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LEGEND_MAX, MARKER_DIAMETER, MARKER_SIDES, autoSide, boxLeft, cleanMarkerNumber, closeGaps, cleanSide, cleanLegend, discCenterX, legendBox, legendFontSize, markerDiameter, markerFontSize, markerInk, nextMarkerNumber } from './marker-pure.js';
+import { LEGEND_MAX, MARKER_DIAMETER, MARKER_SIDES, autoSide, boxLeft, fitSide, cleanMarkerNumber, closeGaps, cleanSide, cleanLegend, discCenterX, legendBox, legendFontSize, markerDiameter, markerFontSize, markerInk, nextMarkerNumber } from './marker-pure.js';
 
 test('nextMarkerNumber: 1 first, then the smallest number that is free', () => {
   assert.equal(nextMarkerNumber([]), 1);
@@ -108,4 +108,13 @@ test('autoSide: right, unless the legend leaves the image there and fits on the 
   assert.equal(autoSide(1580, 40, 100, 1600), 'left');
   assert.equal(autoSide(1459, 40, 120, 1600), 'right', 'it just fits');
   assert.equal(autoSide(1461, 40, 120, 1600), 'left', 'it just does not');
+});
+
+test('fitSide: the side that was wished, unless it leaves the image and the other one does not', () => {
+  assert.equal(fitSide('left', 800, 40, 100, 1600), 'left', 'plenty of room: the wish');
+  assert.equal(fitSide('right', 800, 40, 100, 1600), 'right');
+  assert.equal(fitSide('left', 60, 40, 100, 1600), 'right', 'it would leave the image on the left');
+  assert.equal(fitSide('right', 1550, 40, 100, 1600), 'left', 'it would leave the image on the right');
+  assert.equal(fitSide('left', 60, 40, 5000, 300), 'left', 'it leaves on both sides: the wish');
+  assert.equal(fitSide('left', 60, 40, 0, 1600), 'left', 'no legend, nothing to leave');
 });

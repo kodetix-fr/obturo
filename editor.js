@@ -12,7 +12,7 @@
 import { Canvas, IText, Rect, ActiveSelection, util } from './vendor/fabric.min.mjs';
 import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
-import { autoSide, closeGaps, nextMarkerNumber } from './marker-pure.js';
+import { autoSide, closeGaps, fitSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
 import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
@@ -498,6 +498,18 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (save) saver.schedule();
   }
 
+  // The side of the text of a marker, chosen by hand: a side that would leave the image is not given while the other one fits.
+  function setMarkerSide(side) {
+    const marker = selected();
+    if (!(marker instanceof Marker)) return;
+    marker.setSide(fitSide(side, marker.parts().disc.cx, marker.height, marker.width - marker.height, W));
+    marker.sideAuto = false;
+    marker.setCoords();
+    canvas.requestRenderAll();
+    syncPanel();
+    commit();
+  }
+
   function nameVersion(i, name) {
     if (!ready() || !shot.versions[i]) return;
     apply(renameVersion(shot, i, name));
@@ -839,7 +851,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // ---------- document listeners (set once: the page has a single editor) ----------
 
   panel.bindControls({
-    ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
+    ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
     fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });

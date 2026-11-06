@@ -207,7 +207,8 @@ Non-destructive: the original of a capture is never changed.
   text back, leaving the field keeps it, and the whole edit is one step of the
   history. The text is a short line in a pill of the color of the marker, on the
   right of the disc, and **on the left on its own when it would leave the image**;
-  the *Text side* buttons of the style bar choose (and the choice is final). The
+  the *Text side* buttons of the style bar choose (and the choice is final), but
+  a side that would leave the image is not given while the other one fits. The
   disc stays where you clicked whatever the text does. The text moves, resizes and
   is saved with the marker, and the box you select holds both.
 - Output scale (percentage or width), 50 levels of undo and redo, zoom and pan.

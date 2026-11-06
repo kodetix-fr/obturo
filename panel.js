@@ -412,12 +412,11 @@ export function bindControls(actions) {
   });
 
   // A marker: its text is typed on the image (the button, a double click on it or Enter); the side of the text is chosen here, and a choice
-  // is final: the editor no longer moves the text to the left when it leaves the image.
+  // is final: the editor no longer moves the text to the left when it leaves the image, but a side that would leave it is not given.
   dom.legendEdit.addEventListener('click', () => actions.editMarker());
   dom.sidePick.addEventListener('change', (e) => {
     const side = cleanSide(/** @type {HTMLInputElement} */ (e.target).value);
-    actions.restyle((o) => { if (o instanceof Marker) { o.setSide(side); o.sideAuto = false; } });
-    actions.commit();
+    actions.setMarkerSide(side);
   });
 
   // Highlighter.
