@@ -76,6 +76,9 @@ export function formatNumber(n) {
   return f.format(n);
 }
 
+/** The keys of a shortcut as a Mac names them: Ctrl is Cmd there, and redo is Cmd+Shift+Z. @param {string} text @param {boolean} mac */
+export const keysFor = (text, mac) => (mac ? text.replace(/(?:Ctrl|Strg)\+Y/g, 'Cmd+Shift+Z').replace(/(?:Ctrl|Strg)\+/g, 'Cmd+') : text);
+
 /** The key of a count in the language in use: `one` or `other`, for a text that has both forms ('x.one', 'x.other'). @param {number} n @param {string} one @param {string} other */
 export const pluralKey = (n, one, other) => (pluralForm(current, n) === 'one' ? one : other);
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { LANGUAGES, fmtBytes, formatDate, formatNumber, getLanguage, hasLanguage, loadLanguage, plural, pluralForm, pluralKey, resolveLanguage, setLanguage, splitBytes, t } from './i18n.js';
+import { LANGUAGES, fmtBytes, formatDate, formatNumber, getLanguage, hasLanguage, keysFor, loadLanguage, plural, pluralForm, pluralKey, resolveLanguage, setLanguage, splitBytes, t } from './i18n.js';
 import { DEFAULT_SETTINGS, normalizeSettings } from './settings.js';
 import SW_TEXTS from './locales/sw.js';
 import POPUP_TEXTS from './locales/popup.js';
@@ -312,4 +312,13 @@ test('chooser texts: every key used, every key used exists, no text in chooser.h
   const texts = [...html.replace(/<!--.*?-->/gs, '').replace(/<(script|style|symbol)\b.*?<\/\1>/gs, '').matchAll(/>([^<>]+)</g)].map((m) => m[1].trim()).filter(Boolean);
   assert.deepEqual(texts.filter((x) => !['Obturo', 'PNG', 'JPEG', 'WebP', 'PDF'].includes(x)), [], 'text written in chooser.html instead of locales/ (the names of the formats excepted)');
   assert.ok(/<script src="theme-boot\.js"><\/script>/.test(html) && /<script type="module" src="chooser\.js"><\/script>/.test(html), 'theme-boot.js before the first paint, chooser.js as a module');
+});
+
+test('keysFor: a Mac reads Cmd for Ctrl and Cmd+Shift+Z for redo, other systems read the text as it is', () => {
+  assert.equal(keysFor('Undo (Ctrl+Z)', true), 'Undo (Cmd+Z)');
+  assert.equal(keysFor('Redo (Ctrl+Y)', true), 'Redo (Cmd+Shift+Z)');
+  assert.equal(keysFor('Rückgängig (Strg+Z)', true), 'Rückgängig (Cmd+Z)');
+  assert.equal(keysFor('paste one with Ctrl+V, or drop it', true), 'paste one with Cmd+V, or drop it');
+  assert.equal(keysFor('Redo (Ctrl+Y)', false), 'Redo (Ctrl+Y)');
+  assert.equal(keysFor('No shortcut here', true), 'No shortcut here');
 });

@@ -49,7 +49,8 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     assert.equal(await text('#download .lbl'), 'Download');
     assert.equal(await text('#downloadFmt'), 'PNG', 'the format a click produces');
     assert.equal(await page.getAttribute('#undo', 'aria-label'), 'Undo');
-    assert.equal(await page.getAttribute('#undo', 'title'), 'Undo (Ctrl+Z)');
+    const mac = await page.evaluate(() => /mac/i.test(navigator.platform));
+    assert.equal(await page.getAttribute('#undo', 'title'), mac ? 'Undo (Cmd+Z)' : 'Undo (Ctrl+Z)', 'the shortcut as the system names it');
     assert.equal(await page.locator('#strip li.shot').first().locator('button.open').getAttribute('aria-label') !== null, true);
     assert.match(await page.locator('#strip li.shot').first().locator('button.open').getAttribute('aria-label'), /^Open the capture from /);
   });
