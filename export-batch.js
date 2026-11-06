@@ -48,7 +48,7 @@ const yieldToMain = () => new Promise((done) => {
  * @param {import('./versions.js').Version} version
  * @returns {Promise<HTMLCanvasElement>}
  */
-async function renderVersion(bitmap, version) {
+export async function renderVersion(bitmap, version) {
   const canvas = new StaticCanvas(undefined, { width: 1, height: 1, renderOnAddRemove: false, enableRetinaScaling: false });
   try {
     canvas.on('before:render', ({ ctx }) => {

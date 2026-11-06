@@ -45,6 +45,20 @@ export function createVersion({ versions, active }) {
   return { versions: [...versions, copy], active: versions.length };
 }
 
+export const MAX_NAME = 24;
+/** A name as it is kept: one line, spaces collapsed, at most MAX_NAME characters. @param {unknown} value */
+export const cleanVersionName = (value) => [...String(value ?? '').replace(/\s+/g, ' ').trim()].slice(0, MAX_NAME).join('').trim();
+/** Is it a name the person chose (not the `V1`, `V2` that Obturo gives)? @param {unknown} name */
+export const isChosenName = (name) => typeof name === 'string' && name !== '' && !/^V\d+$/.test(name);
+
+// A version renamed: an empty name gives it back the smallest free `Vn`.
+/** @param {VersionState} state @param {number} i @param {unknown} name @returns {VersionState} */
+export function renameVersion({ versions, active }, i, name) {
+  if (!versions[i]) return { versions, active };
+  const next = cleanVersionName(name) || nextName(versions.filter((_, j) => j !== i));
+  return { versions: versions.map((v, j) => (j === i ? { ...v, name: next } : v)), active };
+}
+
 // Deleting the displayed version falls back on the previous one (or the next one if it was the first).
 /** @param {VersionState} state @param {number} i @returns {VersionState} */
 export function deleteVersion({ versions, active }, i) {

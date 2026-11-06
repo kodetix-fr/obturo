@@ -7,7 +7,7 @@ import { meterState } from './history-model.js';
 import { getSettings } from './settings.js';
 import { fmtBytes, t } from './i18n.js';
 import { byId as $ } from './dom-i18n.js';
-import { countText, guardWith, openPurgeDialog, wipeHistory } from './history-dialogs.js';
+import { askPurge, countText, guardWith, wipeHistory } from './history-dialogs.js';
 
 
 // True in a tab where another one holds the editing lock: it looks at the history and its figures, and changes nothing.
@@ -81,12 +81,7 @@ export function build(isReadOnly) {
   readOnly = isReadOnly;
   guardWith(isReadOnly);
   $('purgeBtn').addEventListener('click', async () => {
-    if (readOnly()) return;
-    const settings = await getSettings().catch(() => null);
-    /** @type {HTMLInputElement} */ ($('pgDays')).value = String(settings?.retentionDays || 30);
-    /** @type {HTMLInputElement} */ ($('pgAgeOn')).checked = true;
-    /** @type {HTMLInputElement} */ ($('pgCapOn')).checked = false;
-    await openPurgeDialog();
+    if (!readOnly()) await askPurge();
   });
   $('wipeBtn').addEventListener('click', () => {
     if (!readOnly()) wipeHistory().catch((e) => console.error('Obturo: delete everything', e));

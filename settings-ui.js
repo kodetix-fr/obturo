@@ -103,7 +103,7 @@ async function save(/** @type {Event} */ e) {
     const stored = await setSettings({ [el.name]: value });
     showError(null);
     fill(stored);
-    onChange(stored);
+    await onChange(stored); // the new language is in place before the figures are written in it
     historySettings.refresh(stored);
   } catch (err) {
     console.error('Obturo: settings not saved', err);
@@ -112,7 +112,7 @@ async function save(/** @type {Event} */ e) {
 }
 
 /**
- * @param {(settings: import('./settings.js').Settings) => void} apply called with the settings as stored, after each
+ * @param {(settings: import('./settings.js').Settings) => void | Promise<void>} apply called with the settings as stored, after each
  *   change (language and theme are applied by the page)
  * @param {() => boolean} [isReadOnly] true in a tab where another one holds the editing lock
  */
@@ -131,4 +131,5 @@ export async function openSettings(apply, isReadOnly = () => false) {
   fill(current);
   historySettings.refresh(current);
   if (!dialog.open) dialog.showModal();
+  dialog.scrollTop = 0; // always from the first section
 }

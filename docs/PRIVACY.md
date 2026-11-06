@@ -34,7 +34,7 @@ Obturo does not read page content beyond the captured image, the address and the
 ## Where and for how long
 
 - Data is stored in the browser's local storage for the extension (IndexedDB, and a small copy of the language and the theme in `localStorage`), on your computer, private to the extension and to your profile. It is stored as is, not encrypted: anyone who has access to your browser profile can read it.
-- **No trace.** A switch in the popup and in the settings: while it is on, a capture is copied to the clipboard and saved nowhere (not in the history, no file), and the icon turns violet so that you know. Turning it off brings the history back; the captures already kept stay.
+- **No trace.** A switch in the popup and in the settings: while it is on, a capture is copied to the clipboard and saved nowhere (not in the history, no file), and the icon turns violet so that you know (the library shows it too). Importing or pasting an image is refused while it is on. Turning it off brings the history back; the captures already kept stay.
 - **How long is up to you.** By default, captures older than 30 days are deleted automatically and the history is kept under 2 GB. In the settings you can keep captures for 7 days, 30 days, 90 days, 1 year or forever, and set the size limit to 500 MB, 1 GB, 2 GB, 5 GB, 10 GB or none.
   - A capture you pin is never deleted automatically.
   - A capture you have edited is not deleted because of its age; it can be deleted, after the unedited ones, if the size limit needs the room.
@@ -54,7 +54,7 @@ None. Obturo does not send, sell, share or transfer any data to anyone.
 ## Permissions used
 
 - `activeTab`: capture the active tab, only after an action from you.
-- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page when a full-page capture is not the whole page or stopped, and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
+- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page (that the capture was copied, or that a full-page capture is not the whole page or stopped), and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
 - `contextMenus`: the icon's right-click menu: Capture and Capture and edit (each with Area, Visible part and Full page), Open the library, and Settings.
 
 Obturo requests no broad access to websites. It does not use `unlimitedStorage`.

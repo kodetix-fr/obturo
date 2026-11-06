@@ -318,6 +318,9 @@ describe('editor: free hand', () => {
     await choose('rect');
     await drag(page, m, 700, 100, 900, 200);
     await poll(async () => (await objectsOf()).some((x) => x.type === 'Rect'), { what: 'a plain rectangle' });
+    await tool(page, 'select');
+    await page.mouse.click(...m.pt(800, 150));
+    await page.waitForSelector('#shapeProps:not([hidden])');
     assert.equal(await page.locator('#shapePick input[value="free"]').isDisabled(), true, 'a selected plain area cannot become free');
     assert.equal(await page.locator('#shapePick input[value="ellipse"]').isDisabled(), false);
   });

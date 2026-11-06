@@ -9,7 +9,7 @@ import { launchExtension } from './support/browser.mjs';
 import {
   dbDump, decodePng, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, shotWhere, sleep, spec, titled, tool, waitOut,
 } from './support/editor.mjs';
-import { MIME, batchDone, chooseFormat, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip } from './support/export.mjs';
+import { MIME, batchDone, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip, setDefaultFormat } from './support/export.mjs';
 import { thumbPlan } from '../../thumb-pure.js';
 
 const BLUE = [37, 99, 235, 255]; // #2563eb
@@ -143,7 +143,9 @@ describe('hiding: solid fill and soft blur', () => {
     let list = (await shotWhere(page, id, (s) => s.versions[0]?.objects.length === 1, 'first fill saved')).versions[0].objects;
     assert.deepEqual([list[0].type, list[0].fill, list[0].opacity ?? 1], ['Rect', '#2563eb', 1]);
 
-    // the new fill is selected: recolor it from the swatches (an undoable change of that fill only)
+    // the tool stays armed; select the fill to recolor it from the swatches (an undoable change of that fill only)
+    await tool(page, 'select');
+    await page.mouse.click(...m.pt(400, 300));
     assert.equal(await visible('#flatProps'), true, 'the bar stays on the fill while it is selected');
     assert.equal(await page.isChecked('#swatches input[value="#2563eb"]'), true, 'the bar shows the color of the selected fill');
     await swatch('#e53935').click();
@@ -367,16 +369,16 @@ describe('hiding: solid fill and soft blur', () => {
 
     // the other formats draw the same canvas
     for (const format of ['jpeg', 'webp']) {
-      await chooseFormat(page, format);
+      await setDefaultFormat(page, format);
       const file = await downloadAfter(page, () => page.click('#download'));
       const image = await decodeImage(page, file.buf, MIME[format]);
       let sum = 0, n = 0;
       for (let y = 100; y < 500; y += 4) for (let x = 100; x < 900; x += 4) { sum += Math.abs(px(image, x, y)[0] - px(E, x, y)[0]); n++; }
       assert.ok(sum / n < 3, `${format}: mean difference with the PNG ${(sum / n).toFixed(2)}`);
     }
-    await chooseFormat(page, 'pdf');
+    await setDefaultFormat(page, 'pdf');
     assert.equal((await readPdf((await downloadAfter(page, () => page.click('#download'))).buf)).length, 1, 'PDF');
-    await chooseFormat(page, 'png');
+    await setDefaultFormat(page, 'png');
 
     // persistence: reload, same pixels
     await page.reload();

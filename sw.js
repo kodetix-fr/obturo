@@ -5,7 +5,7 @@ import { menuItems, libraryTarget, cleanNoTrace, cleanDelay, cleanPopupRun, clea
 import { t, plural, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
 import { DEFAULT_SETTINGS, getSettings, setSettings } from './settings.js';
-import { showNotice } from './notice.js';
+import { removeNotice, showNotice } from './notice.js';
 
 // The texts of the worker in every language (a worker cannot import() a language on demand): the menu, the tooltip, the notices.
 for (const [lang, texts] of Object.entries(SW_TEXTS)) addTexts(lang, texts);
@@ -22,6 +22,7 @@ const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 const GREEN = '#26a269', ORANGE = '#e5a50a', RED = '#c01c28', GREY = '#777', BLUE = '#1a5fb4', VIOLET = '#7c3aed';
 const RESULT_BADGE_MS = 1500; // how long a result is shown
 const IGNORED_BADGE_MS = 800; // how long the "capture ignored" badge is shown
+const COPIED_NOTE_MS = 2500; // how long the note that says the capture was copied stays on the page
 let badgeTimer;
 /** @param {string} text @param {string} color @param {number} [ms] How long it is shown, 0 = until the next badge. */
 const badge = (text, color, ms = RESULT_BADGE_MS) => {
@@ -34,6 +35,10 @@ const fail = (e) => { console.error('Obturo:', e); badge('ERR', RED); };
 
 // ponytail: one capture at a time (area, visible part, full page); a capture triggered during another one is dropped with a grey badge; queue them if people ask for it.
 let busy = false;
+// What the capture tells on the page when it is over, in one box (a note about the cover or the page does not replace the one about the copy).
+// `long`: more than the confirmation of the copy, which stays a few seconds only.
+const said = { lines: /** @type {string[]} */ ([]), error: false, long: false };
+let lastNote = { tabId: -1, at: 0 };
 let editing = false; // the capture that runs ends in the editor ("Capture and edit"): there is no question to ask about it
 /**
  * @param {() => Promise<unknown>} job A capture; what it returns says whether the shot was saved (see `save`).
@@ -43,6 +48,8 @@ const exclusive = async (job, edit) => {
   if (busy) return badge('...', GREY, IGNORED_BADGE_MS);
   busy = true;
   editing = !!edit;
+  said.lines.length = 0;
+  said.error = said.long = false;
   let saved;
   try { saved = await job(); } catch (e) { fail(e); } finally { busy = false; editing = false; }
   if (!edit || !saved) return; // nothing saved (cancelled, failed): nothing to open
@@ -142,13 +149,13 @@ async function copyToClipboard(tabId, blob, b64) {
 
 // The copy goes first (the user wants to paste right away), the IndexedDB write runs in parallel.
 // Resolves with what addShot gave back (the id of the new shot), false if it was not saved.
-/** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @returns {Promise<number | boolean>} */
-async function save(tab, blob, w, h, b64) {
+/** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @param {number} [covered] How many sensitive items the image has covered, when it was asked to cover them. @returns {Promise<number | boolean>} */
+async function save(tab, blob, w, h, b64, covered) {
   const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (copy it, keep it)
   // "Ask what to do" (a page offers the actions) and "Save the file" (the page downloads it): the capture is kept and nothing goes to the
   // clipboard unasked. Not in the no-trace mode (nothing is kept) and not for "Capture and edit" (the editor is the answer).
   if (settings.afterCapture !== 'copy' && !settings.noTrace && !editing) {
-    const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h }));
+    const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h, covered }));
     if (!kept) { badge('ERR', RED); return kept; }
     badge('OK', GREEN);
     openChooser(/** @type {number} */ (kept), tab, settings.afterCapture === 'save').catch(fail);
@@ -156,12 +163,13 @@ async function save(tab, blob, w, h, b64) {
   }
   const copied = succeeds(copyToClipboard(tab.id, blob, b64));
   if (settings.noTrace) { // no trace: the copy is the whole capture, nothing is written anywhere (so nothing to open either)
-    if (await copied) badge('OK', VIOLET);
+    if (await copied) { badge('OK', VIOLET); said.lines.push(t('sw.copied.noTrace')); }
     else { badge('ERR', RED); notice(tab, [t('sw.noTrace.copyFailed')], 'error'); } // the image is nowhere else: say so
     return false;
   }
-  const stored = succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h }));
-  if (await copied) badge('OK', GREEN); else badge('!', ORANGE);
+  const stored = succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h, covered }));
+  if (await copied) { badge('OK', GREEN); if (!editing) said.lines.push(t('sw.copied')); }
+  else { badge('!', ORANGE); said.lines.push(t('sw.copyFailed')); said.error = true; }
   const saved = await stored;
   if (!saved) badge('ERR', RED);
   return saved;
@@ -176,8 +184,10 @@ async function grabTabPng(tab) {
 
 /** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] An area, absent for the visible part. @param {boolean} [covered] The sensitive text is covered: it is uncovered as soon as the image is taken. */
 async function shoot(tab, area, covered) {
+  await dropNote(tab);
   let { blob, b64 } = await grabTabPng(tab);
   if (covered) await uncover(tab);
+  const hidden = covered ? await coveredCount(tab) : undefined;
   let { w, h } = await pngSize(blob); // PNG header, no decoding
   if (area) {
     const c = cropRect(area.rect, area.vw, area.vh, w, h);
@@ -192,10 +202,14 @@ async function shoot(tab, area, covered) {
     b64 = undefined; // the cropped image is another PNG
     w = c.w; h = c.h;
   }
-  return save(tab, blob, w, h, b64);
+  return save(tab, blob, w, h, b64, hidden);
 }
 /** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] @param {boolean} [edit] */
-const capture = (tab, area, edit) => exclusive(() => hiding(tab, (covered) => shoot(tab, area, covered), area?.rect), edit);
+const capture = (tab, area, edit) => exclusive(async () => {
+  const saved = await hiding(tab, (covered) => shoot(tab, area, covered), area?.rect);
+  await saySo(tab);
+  return saved;
+}, edit);
 
 // ---------- sensitive text ----------
 
@@ -212,6 +226,9 @@ function callRedact(tab, method, ...args) {
 const injectRedact = (tab) => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['sensitive.js', 'redact.js'] });
 // The page goes back to what it was; a tab that is gone has nothing to put back.
 const uncover = (tab) => callRedact(tab, 'clear').catch(() => {});
+
+/** How many sensitive items the image has covered, undefined when the page cannot say. @param {Tab} tab */
+const coveredCount = async (tab) => (await callRedact(tab, 'result').catch(() => null))?.hidden;
 
 /** What the capture tells the user about the hiding: how many items, that there were none, that the search was cut short. @param {Tab} tab */
 async function redactNote(tab) {
@@ -237,7 +254,8 @@ async function hiding(tab, job, region) {
     await uncover(tab);
   }
   const lines = await redactNote(tab);
-  if (lines.length) await notice(tab, lines);
+  said.lines.push(...lines);
+  if (lines.length) said.long = true;
   return saved;
 }
 
@@ -449,7 +467,7 @@ async function fullPageTiles(tab, settings, notes) {
     const { blob, w, h, k } = await stitcher.finish();
     if (isCut(plan.covered, lastMax + m.view)) notes.push(t('sw.full.cut'));
     if (k < 0.995) notes.push(t('sw.full.scaled', { n: Math.round(k * 100) }));
-    return await save(tab, blob, w, h);
+    return await save(tab, blob, w, h, undefined, settings.redactSensitive ? await coveredCount(tab) : undefined);
   } finally {
     await callPage(tab, 'end').catch(() => {}); // idempotent: safety net if an error interrupted the loop
     if (settings.redactSensitive) await uncover(tab);
@@ -459,13 +477,26 @@ async function fullPageTiles(tab, settings, notes) {
 /**
  * Says something to the user on the page of the tab: a box for a few seconds (notice.js). Never throws: a page that cannot be
  * scripted any more (closed, navigated away) has nobody to tell, and the badge already says what happened.
- * @param {Tab} tab @param {string[]} lines @param {'info' | 'error'} [tone] see showNotice
+ * @param {Tab} tab @param {string[]} lines @param {'info' | 'error'} [tone] @param {number} [ms] see showNotice
  */
-async function notice(tab, lines, tone = 'info') {
+async function notice(tab, lines, tone = 'info', ms) {
   try {
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: showNotice, args: ['Obturo', lines.join(' '), tone] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: showNotice, args: ['Obturo', lines.join(' '), tone, ms ?? null] });
   } catch { /* nobody to tell */ }
 }
+
+/** The one box of the end of a capture: the copy, the cover, the page. @param {Tab} tab */
+async function saySo(tab) {
+  if (!said.lines.length) return;
+  const lines = said.lines.splice(0);
+  lastNote = { tabId: tab.id, at: Date.now() };
+  await notice(tab, lines, said.error ? 'error' : 'info', said.long ? undefined : COPIED_NOTE_MS);
+}
+
+// A short note must not be in the image of the capture that follows it.
+const dropNote = (tab) => (lastNote.tabId === tab.id && Date.now() - lastNote.at < COPIED_NOTE_MS + 500
+  ? chrome.scripting.executeScript({ target: { tabId: tab.id }, func: removeNotice }).catch(() => {})
+  : undefined);
 
 // The full page, and what it tells the user: in the language of the settings, once the page is back in order (the box must not be
 // in the image). A capture that stops says why and is still a failure (red badge, nothing saved).
@@ -483,7 +514,9 @@ async function fullPage(tab) {
     throw e;
   }
   if (saved !== undefined && settings.redactSensitive) notes.push(...await redactNote(tab));
-  if (notes.length) await notice(tab, notes);
+  if (notes.length) said.long = true;
+  said.lines.push(...notes);
+  await saySo(tab);
   return saved;
 }
 /** @param {Tab} tab @param {boolean} [edit] */

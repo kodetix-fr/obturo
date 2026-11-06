@@ -3,6 +3,7 @@
 // openings, scale on the original, thumbnail following the version, output ceiling, rounding, accessibility,
 // two-tab lock.
 import { after, before, describe, it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
@@ -333,6 +334,105 @@ describe('editor: non-regressions', () => {
     await second.close();
   });
 
+  it('a tool stays armed after a drag: two drags draw two objects, and Escape puts Select back', async () => {
+    await reset([spec('S7')]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+    const m = await mapper(page, 1600, 900);
+    await tool(page, 'blur');
+    await drag(page, m, 100, 100, 400, 180);
+    await drag(page, m, 100, 260, 400, 340);
+    const pressed = (name) => page.getAttribute(`.tool[data-tool="${name}"]`, 'aria-pressed');
+    assert.equal(await pressed('blur'), 'true', 'still armed');
+    await poll(async () => (await objectCount()) === 2, { what: 'two objects saved' });
+    await page.keyboard.press('Escape');
+    assert.equal(await pressed('select'), 'true');
+    assert.equal(await pressed('blur'), 'false');
+  });
+
+  it('a version is renamed on its pill: double click or F2, Enter keeps, Escape leaves it, and the name is in the file and the dialog', async () => {
+    await reset([spec('S8')]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+    const m = await mapper(page, 1600, 900);
+    await tool(page, 'rect');
+    await drag(page, m, 100, 100, 400, 300);
+    const names = async () => (await shots())[0].versions.map((v) => v.name);
+    await poll(async () => (await names()).length === 1, { what: 'V1 saved' });
+    const input = page.locator('#versions input.pill-name');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('  Before   the fix ');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'Before the fix', { what: 'the name saved' });
+    assert.equal(await page.locator('#versions button[data-i="0"]').innerText(), 'Before the fix');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('Nope');
+    await input.press('Escape');
+    assert.equal(await page.locator('#versions button[data-i="0"]').innerText(), 'Before the fix', 'Escape leaves the name as it was');
+    await page.locator('#versions button[data-i="0"]').focus();
+    await page.keyboard.press('F2');
+    await input.fill('After');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'After', { what: 'F2 renames too' });
+    assert.match((await download(page)).name, /_After\.png$/, 'the name of a version the person chose ends the name of the file');
+    await page.click('#delVersion');
+    await page.waitForSelector('#confirmDlg[open]');
+    assert.match(await page.locator('#cfTitle').innerText(), /^Delete version After\?/);
+    await page.click('#cfCancel');
+    await page.locator('#versions button[data-i="0"]').dblclick();
+    await input.fill('');
+    await input.press('Enter');
+    await poll(async () => (await names())[0] === 'V1', { what: 'an empty name gives back V1' });
+    assert.doesNotMatch((await download(page)).name, /_V1\.png$/, 'V1 is not a name');
+  });
+
+  it('a read-only tab shows the capture as it was edited, copies it, downloads it and follows the strip', async () => {
+    await reset([spec('S5a', 1000, 600), spec('S5b', 1200, 700)]);
+    await ready(page);
+    await waitOut(page, 1200, 700);
+    const m = await mapper(page, 1200, 700);
+    await tool(page, 'flat');
+    await drag(page, m, 100, 100, 400, 300);
+    const edited = (await shots()).at(-1);
+    await shotWhere(page, edited.id, (s) => s.versions.length > 0, 'the edit is saved');
+    const second = await h.context.newPage();
+    second.on('dialog', onDialog);
+    try {
+      await second.goto(h.url());
+      await second.waitForSelector('#viewer:not([hidden])', { timeout: 20_000 });
+      await poll(async () => (await second.locator('#viewerImg').evaluate((img) => img.naturalWidth)) === 1200, { what: 'the edited capture' });
+      const inside = await second.locator('#viewerImg').evaluate((img) => {
+        const c = new OffscreenCanvas(img.naturalWidth, img.naturalHeight).getContext('2d');
+        c.drawImage(img, 0, 0);
+        return [...c.getImageData(250, 200, 1, 1).data];
+      });
+      assert.deepEqual(inside, [0, 0, 0, 255], 'the black fill of the edit is in the picture');
+      await second.evaluate(() => {
+        const write = navigator.clipboard.write.bind(navigator.clipboard);
+        navigator.clipboard.write = (items) => { window.__clip = items; return write(items); };
+      });
+      await second.bringToFront();
+      await second.click('#viewerCopy');
+      await second.waitForFunction(() => document.getElementById('viewerCopy').textContent === 'Copied', null, { timeout: 8000 });
+      const copied = await second.evaluate(async () => {
+        const bitmap = await createImageBitmap(await window.__clip[0].getType('image/png'));
+        return [bitmap.width, bitmap.height];
+      });
+      assert.deepEqual(copied, [1200, 700], 'the clipboard gets the edited picture');
+      const [file] = await Promise.all([second.waitForEvent('download', { timeout: 20_000 }), second.click('#viewerDownload')]);
+      const img = await decodePng(page, readFileSync(await file.path()));
+      assert.deepEqual(px(img, 250, 200), [0, 0, 0, 255], 'the file is the edited picture');
+      assert.deepEqual([img.width, img.height], [1200, 700]);
+      await second.locator('#strip button.open').nth(1).click();
+      await poll(async () => (await second.locator('#viewerImg').evaluate((i) => i.naturalWidth)) === 1000, { what: 'the other capture' });
+      assert.notEqual(await second.locator('#ui').getAttribute('disabled'), null, 'nothing to edit in this tab');
+      assert.equal(await second.locator('#pin').isDisabled(), true);
+      assert.equal((await shots()).length, 2, 'nothing was written');
+    } finally {
+      await second.close();
+    }
+  });
+
   // Last: this scenario replaces the current page.
   it('two tabs: the second one is read-only; reloading does not lock itself', async () => {
     await reset([spec('S6')]);
@@ -343,7 +443,8 @@ describe('editor: non-regressions', () => {
     await second.goto(h.url());
     await second.waitForSelector('#banner:not([hidden])', { timeout: 10_000 });
     assert.ok((await second.locator('#banner').innerText()).includes('already open in another tab'), 'read-only message');
-    assert.ok((await second.locator('#stageMsg').innerText()).includes('Read-only'), 'message of the editing area');
+    await second.waitForSelector('#viewer:not([hidden])');
+    assert.deepEqual(await second.locator('#viewerImg').evaluate((img) => [img.naturalWidth, img.naturalHeight]), [1600, 900], 'the capture is shown');
     assert.notEqual(await second.locator('#ui').getAttribute('disabled'), null, 'editor not disabled in the second tab');
     assert.equal(await second.evaluate(() => performance.getEntriesByName('obturo:editor-loaded').length), 0, 'the editor must not load');
     await second.locator('#strip button.open').first().click();

@@ -9,8 +9,9 @@
 //
 // The strings of the captured page (title, address) never go through the dictionaries as keys: they only fill
 // {variables}, and always land in textContent or an attribute.
-import { getLanguage, t } from './i18n.js';
+import { getLanguage, keysFor, t } from './i18n.js';
 
+const MAC = /mac/i.test(/** @type {any} */ (navigator).userAgentData?.platform ?? navigator.platform ?? '');
 const SELECTOR = '[data-i18n],[data-i18n-title],[data-i18n-aria],[data-i18n-label]';
 
 /** @param {HTMLElement} el */
@@ -26,10 +27,10 @@ export function applyDom(root = document) {
     const { i18n, i18nTitle, i18nAria, i18nLabel } = el.dataset;
     const vars = varsOf(el);
     if (i18n) el.textContent = t(i18n, vars);
-    if (i18nTitle) el.title = t(i18nTitle, vars);
+    if (i18nTitle) el.title = keysFor(t(i18nTitle, vars), MAC);
     if (i18nAria) el.setAttribute('aria-label', t(i18nAria, vars));
     if (i18nLabel) {
-      el.title = t(i18nLabel, vars);
+      el.title = keysFor(t(i18nLabel, vars), MAC);
       el.setAttribute('aria-label', el.title);
     }
   }

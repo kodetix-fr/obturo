@@ -49,7 +49,8 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     assert.equal(await text('#download .lbl'), 'Download');
     assert.equal(await text('#downloadFmt'), 'PNG', 'the format a click produces');
     assert.equal(await page.getAttribute('#undo', 'aria-label'), 'Undo');
-    assert.equal(await page.getAttribute('#undo', 'title'), 'Undo (Ctrl+Z)');
+    const mac = await page.evaluate(() => /mac/i.test(navigator.platform));
+    assert.equal(await page.getAttribute('#undo', 'title'), mac ? 'Undo (Cmd+Z)' : 'Undo (Ctrl+Z)', 'the shortcut as the system names it');
     assert.equal(await page.locator('#strip li.shot').first().locator('button.open').getAttribute('aria-label') !== null, true);
     assert.match(await page.locator('#strip li.shot').first().locator('button.open').getAttribute('aria-label'), /^Open the capture from /);
   });
@@ -74,6 +75,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     assert.match(await page.getAttribute('.upper-canvas', 'aria-label'), /^Capture «\u00a0Second\u00a0»/, 'label of the canvas');
     assert.match(await text('#zoomLabel'), /^\d+\xa0%$/, 'number format of the language');
     assert.equal(await text('#settingsTitle'), 'Paramètres', 'the open dialog follows too');
+    await poll(async () => /\bsur\b/.test(await text('#storageText')), { what: 'the figures of the history block in French' });
     const stored = await page.evaluate(async () => (await (await import(`${location.origin}/settings.js`)).getSettings()).language);
     assert.equal(stored, 'fr', 'language saved');
     await page.selectOption('dialog select[name="language"]', 'en');

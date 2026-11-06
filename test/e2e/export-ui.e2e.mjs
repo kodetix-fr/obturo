@@ -13,7 +13,7 @@ import {
 } from './support/editor.mjs';
 import {
   MIME, batchDone, chooseFormat, closeBatch, closeMenu, decodeImage, downloadAfter, isFormat, openBatch, openMenu, readPdf, readZip,
-  setOriginal, stored,
+  setDefaultFormat, setOriginal, stored,
 } from './support/export.mjs';
 import { suggestedFilename } from '../../encode.js';
 
@@ -70,7 +70,7 @@ describe('export: the Download button and its menu', () => {
     const [shot] = (await dbDump(page)).toReversed(); // the one on screen, the most recent
     const original = await originalHash(page, shot.id);
     for (const format of ['png', 'jpeg', 'webp', 'pdf']) {
-      if (format !== 'png') await chooseFormat(page, format);
+      await setDefaultFormat(page, format);
       const file = await downloadAfter(page, () => page.click('#download'));
       assert.ok(isFormat[format](file.buf), `${format}: signature`);
       assert.match(file.name, NAME(EXT[format]));
@@ -92,6 +92,45 @@ describe('export: the Download button and its menu', () => {
     assert.equal(await text('#downloadFmt'), 'PDF');
   });
 
+  it('the menu is a one-time "Download as": it keeps its choice for the session and never writes the Settings', async () => {
+    await library();
+    await open();
+    await chooseFormat(page, 'jpeg');
+    assert.equal(await text('#downloadFmt'), 'PNG', 'the button follows the Settings');
+    assert.equal((await stored(page)).downloadFormat, 'png');
+    await openMenu(page);
+    assert.equal(await page.isChecked('#dlPop input[value="jpeg"]'), true, 'the menu kept its choice');
+    const file = await downloadAfter(page, () => page.click('#dlPop .dl-foot .btn'));
+    assert.ok(isFormat.jpeg(file.buf));
+    assert.equal(await text('#downloadFmt'), 'PNG');
+    await setDefaultFormat(page, 'webp'); // the Settings say something else: the menu starts from them again
+    await openMenu(page);
+    assert.equal(await page.isChecked('#dlPop input[value="webp"]'), true);
+    await closeMenu(page);
+  });
+
+  it('the menu stays inside the window, however narrow it is', async () => {
+    await library();
+    await open();
+    const size = page.viewportSize() ?? { width: 1280, height: 800 };
+    try {
+      for (const [w, hh] of [[1500, 900], [820, 650], [480, 700], [360, 640]]) {
+        await page.setViewportSize({ width: w, height: hh });
+        await poll(async () => (await page.evaluate(() => innerWidth)) === w, { what: 'the window size' });
+        await openMenu(page);
+        const r = await page.evaluate(() => {
+          const b = document.getElementById('dlPop').getBoundingClientRect();
+          return { left: b.left, right: b.right, bottom: b.bottom, width: innerWidth, height: innerHeight };
+        });
+        assert.ok(r.left >= 0 && r.right <= r.width, `the menu is inside the width at ${w} x ${hh}: ${JSON.stringify(r)}`);
+        assert.ok(r.bottom <= r.height, `the menu is inside the height at ${w} x ${hh}: ${JSON.stringify(r)}`);
+        await closeMenu(page);
+      }
+    } finally {
+      await page.setViewportSize(size);
+    }
+  });
+
   it('the name of the file comes from suggestedFilename: the host and the date of the capture', async () => {
     await library([{ ...spec('Named', 1000, 500), url: 'https://app.example.test/some/page?q=1' }]);
     await open(1000, 500);
@@ -107,7 +146,7 @@ describe('export: the Download button and its menu', () => {
     await open();
     await mask();
     for (const format of ['png', 'jpeg', 'webp', 'pdf']) {
-      await chooseFormat(page, format);
+      await setDefaultFormat(page, format);
       const file = await downloadAfter(page, () => page.click('#download'));
       assert.ok(isFormat[format](file.buf), `${format}: signature`);
       if (format === 'pdf') {
@@ -120,7 +159,7 @@ describe('export: the Download button and its menu', () => {
     }
   });
 
-  it('quality: the slider changes the size, the estimate is the size of the file, and it is remembered', async () => {
+  it('quality: the slider changes the size, the estimate is the size of the file, and the Settings are not written', async () => {
     await library();
     await open();
     await chooseFormat(page, 'jpeg');
@@ -136,7 +175,7 @@ describe('export: the Download button and its menu', () => {
       const file = await downloadAfter(page, () => page.click('#dlPop .dl-foot .btn')); // the menu closes and downloads
       sizes[q] = file.buf.length;
       assert.ok(Math.abs(estimate - file.buf.length) <= Math.max(1100, file.buf.length * 0.03), `estimate ${estimate} against a file of ${file.buf.length} bytes (q=${q})`);
-      assert.equal((await stored(page)).downloadQuality, q, 'the quality is remembered');
+      assert.equal((await stored(page)).downloadQuality, 0.9, 'the default quality of the Settings is untouched');
       await openMenu(page);
     }
     assert.ok(sizes[0.1] < sizes[1] / 2, `quality 10% (${sizes[0.1]}) must be far lighter than 100% (${sizes[1]})`);
@@ -191,7 +230,7 @@ describe('export: the Download button and its menu', () => {
     await closeMenu(page);
   });
 
-  it('PDF options: one page fitted or A4, lossless or light JPEG, remembered; the quality counts for the light PDF only', async () => {
+  it('PDF options: one page fitted or A4, lossless or light JPEG, never written to the Settings; the quality counts for the light PDF only', async () => {
     await library();
     await open();
     await chooseFormat(page, 'pdf');
@@ -199,17 +238,19 @@ describe('export: the Download button and its menu', () => {
     assert.equal(await page.locator('#dlQuality').isVisible(), false, 'lossless pictures: no quality');
     await page.click('#dlPop label:has(input[name="dlLayout"][value="a4"])');
     await page.click('#dlPop label:has(input[name="dlEncoding"][value="jpeg"])');
-    await poll(async () => { const s = await stored(page); return s.pdfLayout === 'a4' && s.pdfEncoding === 'jpeg'; }, { what: 'PDF options stored' });
     assert.equal(await page.locator('#dlQuality').isVisible(), true, 'light pictures: the quality counts');
     assert.equal(await page.locator('#dlEstimate').isVisible(), false, 'no estimate for a PDF');
     assert.match(await text('#dlPop .dl-foot .btn'), /^Download PDF$/);
     const file = await downloadAfter(page, () => page.click('#dlPop .dl-foot .btn'));
     assert.deepEqual(await readPdf(file.buf), [{ width: 595, height: 842, filter: '/DCTDecode', imageWidth: 1280, imageHeight: 720 }], 'an A4 page, JPEG picture');
-    await page.reload(); // lossless pictures on a fitted page again
+    const settings = await stored(page);
+    assert.deepEqual([settings.downloadFormat, settings.pdfLayout, settings.pdfEncoding], ['png', 'fit', 'flate'], 'the Settings are as they were');
+    await page.reload(); // the menu starts from the Settings again: lossless pictures on a fitted page
     await open();
     await openMenu(page);
-    await page.click('#dlPop label:has(input[name="dlLayout"][value="fit"])');
-    await page.click('#dlPop label:has(input[name="dlEncoding"][value="flate"])');
+    await page.click('#dlPop label.dl-opt:has(input[value="pdf"])');
+    assert.equal(await page.locator('#dlPop input[name="dlLayout"][value="fit"]').isChecked(), true);
+    assert.equal(await page.locator('#dlPop input[name="dlEncoding"][value="flate"]').isChecked(), true);
     const again = await downloadAfter(page, () => page.click('#dlPop .dl-foot .btn'));
     assert.deepEqual(await readPdf(again.buf), [{ width: 960, height: 540, filter: '/FlateDecode', imageWidth: 1280, imageHeight: 720 }]);
   });
@@ -232,10 +273,10 @@ describe('export: the Download button and its menu', () => {
     assert.equal(await page.getAttribute('.dl-formats', 'aria-labelledby'), 'dlFormatLabel');
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('value')), 'png', 'the focus is on the chosen format');
     await page.keyboard.press('ArrowDown');
-    await poll(async () => (await stored(page)).downloadFormat === 'jpeg', { what: 'JPEG chosen by the arrow' });
-    assert.equal(await text('#downloadFmt'), 'JPEG');
+    await poll(async () => (await text('#dlPop .dl-foot .btn')) === 'Download JPEG', { what: 'JPEG chosen by the arrow' });
+    assert.equal(await text('#downloadFmt'), 'PNG', 'the button of the editor follows the Settings, not the menu');
     await page.keyboard.press('ArrowDown');
-    await poll(async () => (await stored(page)).downloadFormat === 'webp', { what: 'WebP chosen by the arrow' });
+    await poll(async () => (await text('#dlPop .dl-foot .btn')) === 'Download WebP', { what: 'WebP chosen by the arrow' });
     await page.keyboard.press('Tab'); // the quality slider of a lossy format comes next
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'dlQuality');
     await page.keyboard.press('Escape');
@@ -340,7 +381,7 @@ describe('export: the Download button and its menu', () => {
     assert.ok(isFormat.png(ok.buf));
 
     // the browser answers with another format than the one asked
-    await chooseFormat(page, 'webp');
+    await setDefaultFormat(page, 'webp');
     await patch('png');
     await page.evaluate(() => { document.getElementById('banner').hidden = true; });
     await page.click('#download');
@@ -396,7 +437,7 @@ describe('export: the Download button and its menu', () => {
   it('the language changes live while the menu is open: texts, units and the button', async () => {
     await library();
     await open();
-    await chooseFormat(page, 'jpeg');
+    await setDefaultFormat(page, 'jpeg');
     await openMenu(page);
     assert.equal(await text('#dlEstimate'), '(move the slider)', 'no estimate before the slider moves');
     await seedSettings(page, { language: 'fr' });
@@ -629,13 +670,11 @@ describe('export: the grouped export', () => {
     }
   });
 
-  it('JPEG ZIP: the quality counts and is remembered; the entries are JPEG files', async () => {
+  it('JPEG ZIP: the quality counts, the entries are JPEG files, and the Settings are not written', async () => {
     await openBatch(page, ids);
     await page.click('#exportDialog input[name="exFormat"][value="jpeg"]');
-    await poll(async () => (await stored(page)).downloadFormat === 'jpeg', { what: 'format stored' });
     assert.equal(await page.locator('#exQuality').isVisible(), true);
     await page.locator('#exQuality').fill('0.3');
-    await poll(async () => (await stored(page)).downloadQuality === 0.3, { what: 'quality stored' });
     assert.equal(await text('#exQualityLabel + .dl-slider .dl-pct'), '30%');
     const file = await downloadAfter(page, () => page.click('#exStart'));
     await batchDone(page);
@@ -647,8 +686,11 @@ describe('export: the grouped export', () => {
     }
     const bravo = await decodeImage(page, entries[1].data, 'image/jpeg');
     near(px(bravo, 1100, 400).slice(0, 3), [0, 0, 0], 8, 'the hidden square');
+    const s = await stored(page);
+    assert.deepEqual([s.downloadFormat, s.downloadQuality], ['png', 0.9], 'the Settings are as they were');
     await closeBatch(page);
-    await seedSettings(page, CLEAN);
+    await page.reload(); // the dialog starts from the Settings again
+    await ready(page);
   });
 
   it('multipage PDF: one page per capture, fitted or A4, lossless or light', async () => {
@@ -680,9 +722,10 @@ describe('export: the grouped export', () => {
       { width: 595, height: 842, filter: '/DCTDecode', imageWidth: 1280, imageHeight: 720 },
     ]);
     const s = await stored(page);
-    assert.deepEqual([s.pdfLayout, s.pdfEncoding], ['a4', 'jpeg'], 'the PDF options are remembered');
+    assert.deepEqual([s.pdfLayout, s.pdfEncoding], ['fit', 'flate'], 'the PDF options of the Settings are as they were');
     await closeBatch(page);
-    await seedSettings(page, CLEAN);
+    await page.reload(); // the dialog starts from the Settings again
+    await ready(page);
   });
 
   it('a PDF default makes the dialog start on the PDF output', async () => {

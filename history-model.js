@@ -188,7 +188,7 @@ export function summarizeSelection(entries, selected) {
 
 // --- Sizes and texts ---
 
-const FACTOR = { MB: 1024 ** 2, GB: 1024 ** 3 };
+const FACTOR = { MB: 1000 ** 2, GB: 1000 ** 3 };
 
 /**
  * A size typed as a number and a unit, in bytes. 0 for anything that is not a positive number.

@@ -165,10 +165,10 @@ test('summarizeSelection: counts, size, pinned and edited among the selected ent
 // --- sizes ---
 
 test('bytesFrom: a number and a unit, with a comma or a point, 0 for anything invalid', () => {
-  assert.equal(bytesFrom(500, 'MB'), 500 * 1024 ** 2);
-  assert.equal(bytesFrom('1.5', 'GB'), 1.5 * 1024 ** 3);
-  assert.equal(bytesFrom('1,5', 'GB'), 1.5 * 1024 ** 3);
-  assert.equal(bytesFrom(' 2 ', 'GB'), 2 * 1024 ** 3);
+  assert.equal(bytesFrom(500, 'MB'), 500 * 1000 ** 2);
+  assert.equal(bytesFrom('1.5', 'GB'), 1.5 * 1000 ** 3);
+  assert.equal(bytesFrom('1,5', 'GB'), 1.5 * 1000 ** 3);
+  assert.equal(bytesFrom(' 2 ', 'GB'), 2 * 1000 ** 3);
   assert.equal(bytesFrom('', 'GB'), 0);
   assert.equal(bytesFrom('abc', 'GB'), 0);
   assert.equal(bytesFrom(0, 'GB'), 0);
@@ -179,14 +179,14 @@ test('bytesFrom: a number and a unit, with a comma or a point, 0 for anything in
 
 test('purgeOptions: a switched-off or invalid criterion is not applied', () => {
   const on = { ageOn: true, days: '30', capOn: true, size: '1', unit: /** @type {'MB' | 'GB'} */ ('GB') };
-  assert.deepEqual(purgeOptions(on), { olderThanDays: 30, maxBytes: 1024 ** 3 });
-  assert.deepEqual(purgeOptions({ ...on, ageOn: false }), { olderThanDays: 0, maxBytes: 1024 ** 3 });
+  assert.deepEqual(purgeOptions(on), { olderThanDays: 30, maxBytes: 1000 ** 3 });
+  assert.deepEqual(purgeOptions({ ...on, ageOn: false }), { olderThanDays: 0, maxBytes: 1000 ** 3 });
   assert.deepEqual(purgeOptions({ ...on, capOn: false }), { olderThanDays: 30, maxBytes: 0 });
   assert.deepEqual(purgeOptions({ ...on, days: '0', size: '0' }), { olderThanDays: 0, maxBytes: 0 });
   assert.deepEqual(purgeOptions({ ...on, days: 'x', size: 'x' }), { olderThanDays: 0, maxBytes: 0 });
-  assert.deepEqual(purgeOptions({ ...on, days: '2.9' }), { olderThanDays: 2, maxBytes: 1024 ** 3 });
+  assert.deepEqual(purgeOptions({ ...on, days: '2.9' }), { olderThanDays: 2, maxBytes: 1000 ** 3 });
   assert.deepEqual(purgeOptions({ ...on, days: '99999' }).olderThanDays, 3650);
-  assert.deepEqual(purgeOptions({ ...on, unit: 'MB', size: '250' }).maxBytes, 250 * 1024 ** 2);
+  assert.deepEqual(purgeOptions({ ...on, unit: 'MB', size: '250' }).maxBytes, 250 * 1000 ** 2);
 });
 
 test('meterState: no cap, no fill; warning from 85%, full at the cap, never above 1', () => {

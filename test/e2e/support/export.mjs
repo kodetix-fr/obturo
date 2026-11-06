@@ -92,13 +92,19 @@ export const closeMenu = async (page) => {
   await page.waitForSelector('#dlPop', { state: 'hidden' });
 };
 
-/** Chooses a format in the menu, waits until it is stored, closes the menu. */
+const NAMES = { png: 'PNG', jpeg: 'JPEG', webp: 'WebP', pdf: 'PDF' };
+
+/** Chooses a format in the menu (a choice of the menu alone: the Settings are not written) and closes it. */
 export async function chooseFormat(page, format) {
   await openMenu(page);
   await page.click(`#dlPop label.dl-opt:has(input[value="${format}"])`);
-  await poll(async () => (await stored(page)).downloadFormat === format, { what: `${format} stored` });
-  await poll(async () => (await page.locator('#downloadFmt').textContent()) === { png: 'PNG', jpeg: 'JPEG', webp: 'WebP', pdf: 'PDF' }[format], { what: 'the format on the button' });
   await closeMenu(page);
+}
+
+/** Sets the default format of the Settings, which the main click of Download produces, and waits until the button says so. */
+export async function setDefaultFormat(page, format) {
+  await page.evaluate(async (format) => (await import(`${location.origin}/settings.js`)).setSettings({ downloadFormat: format }), format);
+  await poll(async () => (await page.locator('#downloadFmt').textContent()) === NAMES[format], { what: 'the format on the button' });
 }
 
 /** Opens the dialog of the grouped export for these ids, as the selection bar of the library does. */

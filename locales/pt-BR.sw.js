@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': 'sem rastro', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': 'O modo sem rastro está ativo: nada é salvo, então não há nada para editar. Desative-o no popup do Obturo para editar uma captura.',
   'sw.noTrace.copyFailed': 'Sem rastro: a cópia falhou e nada foi salvo. Tente de novo.',
+  'sw.copied': 'Captura copiada e salva no histórico.',
+  'sw.copied.noTrace': 'Captura copiada. Nada foi salvo (sem rastro).',
+  'sw.copyFailed': 'A cópia falhou. A captura está salva no histórico: copie-a de lá.',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'A página é mais longa do que uma captura comporta: a imagem para no ponto alcançado.',
   'sw.full.scaled': 'A imagem foi reduzida para {n}% para caber nos limites de uma captura.',
@@ -24,8 +27,8 @@ export default {
   'sw.full.fail.page': 'Página inteira interrompida: a página mudou ou parou de responder durante a captura. Nada foi salvo.',
   'sw.full.fail.other': 'A captura de página inteira falhou. Nada foi salvo. Tente de novo.',
   // what a capture says on the page when the sensitive text was hidden (redact.js)
-  'sw.redact.one': '{n} item sensível ocultado na captura. O Obturo pode deixar passar algum: confira antes de compartilhar.',
-  'sw.redact.other': '{n} itens sensíveis ocultados na captura. O Obturo pode deixar passar algum: confira antes de compartilhar.',
-  'sw.redact.none': 'Nenhum endereço de e-mail, número de telefone, IBAN, número de cartão ou chave encontrado no texto da página. Confira antes de compartilhar.',
+  'sw.redact.one': '{n} item sensível coberto no texto da página. Campos de formulário, imagens e frames não são cobertos: confira a imagem antes de compartilhar.',
+  'sw.redact.other': '{n} itens sensíveis cobertos no texto da página. Campos de formulário, imagens e frames não são cobertos: confira a imagem antes de compartilhar.',
+  'sw.redact.none': 'Nenhum endereço de e-mail, número de telefone, IBAN, número de cartão ou chave encontrado no texto da página. Campos de formulário, imagens e frames não são cobertos: confira a imagem antes de compartilhar.',
   'sw.redact.partial': 'A página é grande demais para ser verificada por completo: algum texto pode continuar visível.',
 };

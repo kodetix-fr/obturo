@@ -8,8 +8,9 @@
 //   'obturo:history-changed'   { reason }      shots were removed (reason 'deleted' | 'purged'); lists and gauges read again
 import { deleteShots, listEntries, previewPurge, purgeNow } from './db.js';
 import { chunks, purgeOptions, sameWord, summarizeSelection } from './history-model.js';
-import { fmtBytes, formatNumber, plural, t } from './i18n.js';
+import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { byId as $ } from './dom-i18n.js';
+import { getSettings } from './settings.js';
 import { clamp } from './pure.js';
 
 /** Shots removed per transaction when deleting many: one transaction is a progress step. */
@@ -152,6 +153,19 @@ export function confirmDialog({ title, lines = [], ok, word = '', run, error = '
   });
 }
 
+/**
+ * What the dialog that asks before a deletion says: how many captures go, what they hold and, for a single capture, which one it is.
+ * @param {number[]} ids @param {import('./db.js').Shot | null} [shot] The capture, when there is only one.
+ */
+export async function deleteWords(ids, shot) {
+  const sum = summarizeSelection(await listEntries({}), new Set(ids));
+  const lines = shot ? [[shot.title || shot.host, formatDate(shot.createdAt)].filter(Boolean).join(' · ')] : [];
+  lines.push(t('hist.del.body'));
+  if (sum.pinned || sum.edited) lines.push(t('hist.del.includes', { pinned: formatNumber(sum.pinned), edited: formatNumber(sum.edited) }));
+  lines.push(t('hist.del.size', { size: fmtBytes(sum.bytes) }));
+  return { sum, title: plural(sum.count, 'hist.del.title.one', 'hist.del.title.other'), lines, ok: t('hist.del.ok') };
+}
+
 // --- Delete everything ---
 
 /** The "Delete everything" flow of the settings: counts, strong confirmation (a word to type), then the deletion with a progress. @returns {Promise<boolean>} */
@@ -173,6 +187,16 @@ export async function wipeHistory() {
 }
 
 // --- Purge now ---
+
+/** "Purge now" from a button: the dialog starts on the age of the retention, with no size limit. */
+export async function askPurge() {
+  if (isReadOnly()) return;
+  const settings = await getSettings().catch(() => null);
+  /** @type {HTMLInputElement} */ ($('pgDays')).value = String(settings?.retentionDays || 30);
+  /** @type {HTMLInputElement} */ ($('pgAgeOn')).checked = true;
+  /** @type {HTMLInputElement} */ ($('pgCapOn')).checked = false;
+  await openPurgeDialog();
+}
 
 /** "Purge now": options, a preview of what they would remove, and the purge. Resolves when the dialog closes. @returns {Promise<void>} */
 export function openPurgeDialog() {

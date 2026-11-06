@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': '保存しない', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': '「保存しない」がオンです。何も保存されないため、編集するものがありません。キャプチャを編集するには、Obturo のポップアップでオフにしてください。',
   'sw.noTrace.copyFailed': '「保存しない」モード: コピーできず、何も保存されませんでした。もう一度お試しください。',
+  'sw.copied': 'キャプチャをコピーし、履歴に保存しました。',
+  'sw.copied.noTrace': 'キャプチャをコピーしました。何も保存されていません（保存しない）。',
+  'sw.copyFailed': 'コピーに失敗しました。キャプチャは履歴に保存されています。そこからコピーしてください。',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'ページが 1 回のキャプチャに収まる長さを超えています。画像は到達した位置で終わっています。',
   'sw.full.scaled': 'キャプチャの上限に収めるため、画像を {n}% に縮小しました。',
@@ -24,8 +27,8 @@ export default {
   'sw.full.fail.page': 'ページ全体のキャプチャを中止しました。キャプチャ中にページが変化したか、応答しなくなりました。何も保存されていません。',
   'sw.full.fail.other': 'ページ全体のキャプチャに失敗しました。何も保存されていません。もう一度お試しください。',
   // what a capture says on the page when the sensitive text was hidden (redact.js)
-  'sw.redact.one': '{n} 件の機密項目をキャプチャで隠しました。見落としがある場合があります。共有する前に確認してください。',
-  'sw.redact.other': '{n} 件の機密項目をキャプチャで隠しました。見落としがある場合があります。共有する前に確認してください。',
-  'sw.redact.none': 'ページのテキストに、メールアドレス、電話番号、IBAN、カード番号、キーは見つかりませんでした。共有する前に確認してください。',
+  'sw.redact.one': 'ページのテキスト内の機密項目 {n} 件を覆いました。入力欄、画像、フレームは覆われません。共有する前に画像を確認してください。',
+  'sw.redact.other': 'ページのテキスト内の機密項目 {n} 件を覆いました。入力欄、画像、フレームは覆われません。共有する前に画像を確認してください。',
+  'sw.redact.none': 'ページのテキストに、メールアドレス、電話番号、IBAN、カード番号、キーは見つかりませんでした。入力欄、画像、フレームは覆われません。共有する前に画像を確認してください。',
   'sw.redact.partial': 'ページが大きすぎて全体を検索できませんでした。一部のテキストが見えている可能性があります。',
 };

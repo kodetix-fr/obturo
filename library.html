@@ -100,7 +100,7 @@
   <!-- The whole editor chrome is disabled until a capture is open (display: contents: the children are grid items). -->
   <fieldset id="ui" disabled>
     <header class="appbar">
-      <div class="brand"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><h1>Obturo</h1></div>
+      <div class="brand"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><h1>Obturo</h1><button type="button" id="noTraceBadge" class="notrace" hidden data-i18n="popup.noTrace" data-i18n-title="lib.noTrace.tip"></button></div>
 
       <div class="versions" role="group" data-i18n-aria="ver.group">
         <span id="versions" class="pills"></span>
@@ -272,6 +272,14 @@
       <!-- the empty library only: the import (library.js) -->
       <button type="button" id="stageImport" class="btn state-import" hidden><svg class="ic" aria-hidden="true"><use href="#i-import"/></svg><span data-i18n="import.btn"></span></button>
     </div>
+    <!-- a read-only tab only: the capture as the editor would export it, with Copy and Download (viewer.js) -->
+    <figure id="viewer" class="viewer" hidden>
+      <img id="viewerImg" alt="">
+      <figcaption class="viewer-bar">
+        <button type="button" id="viewerCopy" class="btn" data-i18n="act.copy"></button>
+        <button type="button" id="viewerDownload" class="btn" data-i18n="act.download"></button>
+      </figcaption>
+    </figure>
   </main>
 
   <nav class="filmstrip" data-i18n-aria="strip.label">
@@ -326,11 +334,11 @@
           <div class="row">
             <label for="maxBytes" data-i18n="hist.set.cap"></label>
             <select id="maxBytes" name="maxBytes" data-type="number">
-              <option value="524288000" data-i18n="hist.cap.half"></option>
-              <option value="1073741824" data-i18n="hist.cap.single"></option>
-              <option value="2147483648" data-i18n="hist.cap.double"></option>
-              <option value="5368709120" data-i18n="hist.cap.five"></option>
-              <option value="10737418240" data-i18n="hist.cap.ten"></option>
+              <option value="500000000" data-i18n="hist.cap.half"></option>
+              <option value="1000000000" data-i18n="hist.cap.single"></option>
+              <option value="2000000000" data-i18n="hist.cap.double"></option>
+              <option value="5000000000" data-i18n="hist.cap.five"></option>
+              <option value="10000000000" data-i18n="hist.cap.ten"></option>
               <option value="0" data-i18n="hist.cap.none"></option>
             </select>
           </div>
@@ -500,6 +508,7 @@
     <footer class="hv-foot">
       <p class="hv-hint" data-i18n="hist.hint.keys"></p>
       <p id="hvStatus" class="hv-status" role="status"></p>
+      <button type="button" id="hvPurge" class="btn sm ghost" data-i18n="hist.purge.btn"></button>
       <button type="button" id="hvStorage" class="btn sm ghost" data-i18n-title="hist.footer.settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span id="hvStorageText"></span></button>
     </footer>
   </dialog>

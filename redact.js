@@ -1,7 +1,7 @@
 // Injected by sw.js (activeTab) after sensitive.js when "Hide sensitive text" is on: covers in black what sensitive.js finds in the text of the page,
 // for the length of one image. apply() searches again before every image (a full page loads content as it scrolls), clear() puts the page back.
 // The cover is the CSS Custom Highlight API: no node is added, no text changes, and it follows a panel that scrolls.
-// ponytail: only the text nodes of the document and of open shadow roots are searched; images, canvases, frames, closed shadow DOM and the value of a field are not seen. Inject in the frames (allFrames) when they matter.
+// ponytail: only the text of the document and of open shadow roots is searched, block by block; images, canvases, frames, closed shadow DOM and the value of a field are not seen. Inject in the frames (allFrames) when they matter.
 (() => {
   window.__obturoRedact?.clear(); // recovery after a crash
 
@@ -12,10 +12,13 @@
   const WATCHDOG_MS = 15_000; // with no new call from the service worker for this long, the page restores itself
   const FRAME_WAIT_MS = 150; // max wait for two frames: requestAnimationFrame does not fire if the window is hidden
   const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'TEXTAREA']);
+  const INLINE = new Set(['inline', 'contents']);
   const { find } = globalThis.__obturoSensitive;
 
   const seen = new Set(); // what an image showed (text node and offset), counted once across the images of a full page
   const ids = new WeakMap();
+  /** @type {WeakMap<Element, Element>} */
+  let blocks = new WeakMap(); // block of an element, for one search: styles can change between two images
   let nextId = 0, incomplete = false, timer;
   /** @type {{ sheet: CSSStyleSheet, roots: Set<Document | ShadowRoot> } | null} */
   let cover = null;
@@ -36,36 +39,79 @@
     requestAnimationFrame(() => requestAnimationFrame(() => { clearTimeout(late); done(undefined); }));
   });
 
+  /** The element that lays out the text of `el`: inline elements are part of the text around them. @param {Element} el @returns {Element} */
+  const blockOf = (el) => {
+    let block = blocks.get(el);
+    if (!block) {
+      block = INLINE.has(getComputedStyle(el).display) && el.parentElement ? blockOf(el.parentElement) : el;
+      blocks.set(el, block);
+    }
+    return block;
+  };
+  /** @param {Text} node */
+  const visible = (node) => node.parentElement?.checkVisibility({ visibilityProperty: true, opacityProperty: true }) ?? true;
+  /** Index of the part that holds position `pos`. @param {number[]} starts */
+  const partAt = (starts, pos) => {
+    let lo = 0, hi = starts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (starts[mid] <= pos) lo = mid; else hi = mid - 1;
+    }
+    return lo;
+  };
+
   /** The ranges to hide, and the roots they are in; the ones that `box` (the part of the window an image shows) contains are counted. */
   function search(box) {
     const deadline = performance.now() + BUDGET_MS;
+    blocks = new WeakMap();
     const ranges = [];
     const found = new Set();
     const svgText = new Set();
     const roots = [document]; // grows while it is walked: open shadow roots are added
     let nodes = 0;
+    /** @type {Text[]} */
+    let run = []; // the text nodes of one block, one after the other: a value split by the markup is found across them
+    let runBlock;
+    let lineBreak = false;
+
+    const scan = (/** @type {Document | ShadowRoot} */ root) => {
+      if (!run.length) return;
+      const starts = [];
+      let text = '';
+      for (const n of run) { starts.push(text.length); text += n.data; }
+      for (const hit of text.length < 6 ? [] : find(text)) {
+        const first = partAt(starts, hit.start), last = partAt(starts, hit.end - 1);
+        const range = new Range();
+        range.setStart(run[first], hit.start - starts[first]);
+        range.setEnd(run[last], hit.end - starts[last]);
+        ranges.push(range);
+        found.add(root);
+        for (let i = first; i <= last; i++) if (run[i].parentElement instanceof SVGElement) svgText.add(run[i].parentElement);
+        if (shown(range, box) && visible(run[first])) seen.add(`${idOf(run[first])}:${hit.start - starts[first]}`);
+      }
+      run = [];
+    };
+
     for (const root of roots) {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
         acceptNode: /** @param {any} n */ (n) => n.nodeType === Node.TEXT_NODE ? NodeFilter.FILTER_ACCEPT
           : SKIP.has(n.tagName) ? NodeFilter.FILTER_REJECT
-            : (n.shadowRoot && roots.push(n.shadowRoot), NodeFilter.FILTER_SKIP),
+            : (n.tagName === 'BR' && (lineBreak = true), n.shadowRoot && roots.push(n.shadowRoot), NodeFilter.FILTER_SKIP),
       });
       for (let n = /** @type {Text | null} */ (walker.nextNode()); n; n = /** @type {Text | null} */ (walker.nextNode())) {
         if (++nodes > MAX_NODES || (nodes % 256 === 0 && performance.now() > deadline)) {
           incomplete = true;
+          scan(root);
           return { ranges, found, svgText };
         }
-        if (n.data.length < 6) continue;
-        for (const hit of find(n.data)) {
-          const range = new Range();
-          range.setStart(n, hit.start);
-          range.setEnd(n, hit.end);
-          ranges.push(range);
-          found.add(root);
-          if (n.parentElement instanceof SVGElement) svgText.add(n.parentElement);
-          if (shown(range, box)) seen.add(`${idOf(n)}:${hit.start}`);
-        }
+        const block = n.parentElement ? blockOf(n.parentElement) : root;
+        if (lineBreak || block !== runBlock) scan(root);
+        lineBreak = false;
+        runBlock = block;
+        run.push(n);
       }
+      scan(root);
+      runBlock = undefined;
     }
     return { ranges, found, svgText };
   }

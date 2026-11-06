@@ -6,7 +6,7 @@ import { queryShots, latestShots, countShots, getShot, getOriginal, updateShot, 
 import { hostOf } from './catalog.js';
 import { looksLikeImage } from './import-pure.js';
 import { thumbPlan, THUMB_QUALITY, versionsKey } from './thumb-pure.js';
-import { DEFAULT_SETTINGS, LIBRARY_LOCK, getSettings, readAppearance, setOpenShots, writeAppearance } from './settings.js';
+import { DEFAULT_SETTINGS, LIBRARY_LOCK, getSettings, readAppearance, setOpenShots, setSettings, writeAppearance } from './settings.js';
 import { formatDate, formatNumber, loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
 import { applyDom, byId as $, icon, setI18n } from './dom-i18n.js';
 
@@ -54,7 +54,8 @@ function showStageMsg(state, title, hint) {
   document.body.toggleAttribute('data-empty', state === 'empty' || title === 'state.dbUnavailable'); // see library.css
   $('stageImport').hidden = state !== 'empty';
 }
-const showEmpty = () => showStageMsg('empty', 'state.empty', 'state.empty.hint');
+let noTrace = false; // the no-trace mode, as the settings last said
+const showEmpty = () => showStageMsg('empty', 'state.empty', noTrace ? 'state.empty.noTrace' : 'state.empty.hint');
 
 const LOCK_TRIES = 4;
 const LOCK_RETRY_MS = 120; // a reload releases the lock of the old document a moment later
@@ -107,6 +108,9 @@ let language = '';
 /** Applies the language and the theme of `s` to the page, texts already displayed included (the texts of a language other than English are loaded first). */
 async function applySettings(s) {
   const root = document.documentElement;
+  noTrace = s.noTrace;
+  $('noTraceBadge').hidden = !noTrace;
+  if (stageMsg.dataset.state === 'empty' && !stageMsg.hidden) showEmpty();
   if (s.theme === 'light' || s.theme === 'dark') root.dataset.theme = s.theme;
   else delete root.dataset.theme;
   const lang = setLanguage(await loadLanguage(resolveLanguage(s.language, chrome.i18n.getUILanguage())));
@@ -316,21 +320,43 @@ function showHistoryCount() {
 
 // ---------- actions ----------
 
+function markCurrent(/** @type {number} */ id) {
+  for (const li of /** @type {HTMLCollectionOf<HTMLElement>} */ (strip.children)) {
+    if (li.dataset.id === String(id)) li.setAttribute('aria-current', 'true');
+    else li.removeAttribute('aria-current');
+  }
+}
+
+/** @type {Promise<typeof import('./viewer.js')> | null} */
+let viewer = null;
+/** A read-only tab shows the capture, with Copy and Download (viewer.js). @param {Shot} s */
+async function view(s) {
+  current = s;
+  markCurrent(s.id);
+  try {
+    viewer ??= import('./viewer.js').then((m) => { m.setup(showBanner); return m; });
+    if (!(await (await viewer).show(s))) return showGone(false);
+    if (current === s) stageMsg.hidden = true;
+  } catch (e) {
+    console.error('Obturo: view failed', e);
+    viewer = null;
+    $('viewer').hidden = true;
+    showStageMsg('error', 'state.openFailed');
+  }
+}
+
 /** @param {number} id @param {Shot} [shot] the shot, when it does not come from the strip (the history view) */
 async function select(id, shot) {
-  if (readOnly) return;
   const s = shot ?? shots.find((x) => x.id === id);
   if (!s) return;
+  if (readOnly) return view(s);
   current = s;
   showPin();
   openedId = null;
   publishOpen(); // the new shot is protected from now on, and the one the editor still holds until it lets go
   document.body.removeAttribute('data-empty');
   hideBanner();
-  for (const li of /** @type {HTMLCollectionOf<HTMLElement>} */ (strip.children)) {
-    if (li.dataset.id === String(id)) li.setAttribute('aria-current', 'true');
-    else li.removeAttribute('aria-current');
-  }
+  markCurrent(id);
   try {
     const blob = await getOriginal(id);
     if (current?.id !== id) return; // the user clicked elsewhere during the read
@@ -372,10 +398,8 @@ async function remove(id) {
   if (readOnly) return;
   const s = shots.find((x) => x.id === id);
   if (!s) return;
-  if (s.versions.length) { // an edited shot: its versions go with it, ask first (the same dialog as the history)
-    const { confirmDialog } = await import('./history-dialogs.js');
-    if (!(await confirmDialog({ title: t('strip.confirmDelete'), ok: t('hist.del.ok') }))) return;
-  }
+  const { confirmDialog, deleteWords } = await import('./history-dialogs.js'); // the same dialog as the history
+  if (!(await confirmDialog(await deleteWords([id], s)))) return;
   try {
     if (id === current?.id) {
       current = null;
@@ -462,6 +486,7 @@ async function runImport(files) {
   if (readOnly || importing || !files.length) return;
   importing = true;
   try {
+    if ((await getSettings().catch(() => DEFAULT_SETTINGS)).noTrace) return showBanner('import.err.noTrace'); // an import is kept in the history
     const { importFiles } = await (importModule ??= import('./import.js'));
     const { ids, failed } = await importFiles(files, t('import.pasted'));
     if (ids.length) await openShot(ids.at(-1)); // the last one: the most recent, on the left of the strip
@@ -474,6 +499,7 @@ async function runImport(files) {
   }
 }
 
+$('noTraceBadge').addEventListener('click', () => setSettings({ noTrace: false }).catch((e) => console.error('Obturo: settings', e)));
 const importInput = /** @type {HTMLInputElement} */ ($('importInput'));
 $('importBtn').addEventListener('click', () => importInput.click());
 $('stageImport').addEventListener('click', () => importInput.click());
@@ -660,8 +686,9 @@ async function init() {
   if (!(await lock)) {
     readOnly = true;
     lockStripAndPin();
-    showStageMsg('error', 'state.readOnly', 'state.readOnly.hint');
     showBanner('msg.readOnly');
+    if (current) await view(current);
+    else showStageMsg('error', 'state.readOnly', 'state.readOnly.hint');
     confirmCopy();
     readTotal();
     return;

@@ -55,6 +55,7 @@ describe('full page of a panel that scrolls, in the real extension', () => {
 
   // What the page was told (notice.js): the text of the box, or null. The settings of the full page, set from the service worker.
   const noticeText = () => page.evaluate(() => document.getElementById('obturo-notice')?.shadowRoot?.textContent ?? null);
+  const COPIED = 'ObturoCapture copied and saved in the history.'; // what a complete capture says: the copy, nothing about the page
   const setFull = (patch) => sw.evaluate((p) => __t.settings.setSettings(p), patch);
   /** The bands of a panel of 5,000 px, in order, each in its own color (verifyPanel). */
   const bands = async (shot, contentH = 5000) => {
@@ -184,7 +185,7 @@ describe('full page of a panel that scrolls, in the real extension', () => {
     assert.ok(near(shot.w, win[0] * win[2]) && near(shot.h, win[1] * win[2]), `${shot.w}x${shot.h}, expected the window ${win[0] * win[2]}x${win[1] * win[2]}`);
     assert.equal((await progress()).length, 0, 'a single capture, no tiles');
     assert.deepEqual(await finalBadge(sw), ['OK', GREEN]);
-    assert.equal(await noticeText(), null, 'a page that fits is not a failure: nothing is said');
+    assert.equal(await noticeText(), COPIED, 'a page that fits is not a failure: only the copy is said');
   });
 
   it('the document scrolls and a small box scrolls too: the document, as before', async () => {
@@ -284,7 +285,7 @@ describe('full page of a panel that scrolls, in the real extension', () => {
     await goto('/s/fade.html');
     const v = await bands(await fullPage());
     assert.equal(v.header.count, 0);
-    assert.equal(await noticeText(), null, 'a complete capture says nothing');
+    assert.equal(await noticeText(), COPIED, 'a complete capture says only that it was copied');
   });
 
   it('images loaded after the scroll (lazy loading, 600 ms): the capture waits for them', async () => {
@@ -347,7 +348,7 @@ describe('full page of a panel that scrolls, in the real extension', () => {
     await goto('/s/locked.html');
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight === 3000 && getComputedStyle(document.body).overflowY === 'hidden'), 'precondition: 3,000 px and a locked scroll');
     await bands(await fullPage(), 3000);
-    assert.equal(await noticeText(), null, 'a complete capture says nothing');
+    assert.equal(await noticeText(), COPIED, 'a complete capture says only that it was copied');
   });
 
   // Only at the display scale 1, where the limits are the same for everyone: 16,384 px a side, 31 tiles of that window at most.

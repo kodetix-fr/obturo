@@ -37,6 +37,24 @@ describe('settings: the close button stays in view', () => {
     await page.click('#settings .dlg-head button');
     await page.waitForFunction(() => !(/** @type {HTMLDialogElement} */ (document.getElementById('settings'))).open);
   });
+
+  it('it opens at the top, and a fade at the bottom says there is more until the end is reached', async () => {
+    await page.click('#settingsBtn');
+    await page.waitForSelector('dialog#settings[open]');
+    const state = () => page.evaluate(() => {
+      const dialog = /** @type {HTMLElement} */ (document.getElementById('settings'));
+      return { top: dialog.scrollTop, fade: getComputedStyle(/** @type {Element} */ (document.getElementById('settingsForm')), '::after').opacity };
+    });
+    assert.deepEqual(await state(), { top: 0, fade: '1' }, 'at the top there is more below');
+    await page.evaluate(() => { const dialog = /** @type {HTMLElement} */ (document.getElementById('settings')); dialog.scrollTop = dialog.scrollHeight; });
+    await page.waitForFunction(() => getComputedStyle(/** @type {Element} */ (document.getElementById('settingsForm')), '::after').opacity === '0');
+    await page.click('#settings .dlg-head button');
+    await page.waitForFunction(() => !(/** @type {HTMLDialogElement} */ (document.getElementById('settings'))).open);
+    await page.click('#settingsBtn');
+    await page.waitForSelector('dialog#settings[open]');
+    assert.equal((await state()).top, 0, 'reopened at the first section');
+    await page.click('#settings .dlg-head button');
+  });
 });
 
 describe('settings: the support link', () => {

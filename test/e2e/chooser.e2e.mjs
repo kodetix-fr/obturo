@@ -80,6 +80,23 @@ describe('after a capture: ask what to do', () => {
     await closeChoosers();
   });
 
+  it('hide sensitive text on: the page of actions says what was covered, since the note is on the page behind it', async () => {
+    await set({ redactSensitive: true });
+    try {
+      const { win, id } = await capture();
+      assert.equal((await sw.evaluate((id) => __t.db.getShot(id), id)).covered, 0, 'the capture keeps how many it covered');
+      assert.match(await win.locator('#covered').innerText(), /^No e-mail address, phone number, IBAN, card number or key found/);
+    } finally {
+      await set({ redactSensitive: false });
+    }
+  });
+
+  it('hide sensitive text off: the page of actions says nothing about it', async () => {
+    const { win, id } = await capture();
+    assert.equal((await sw.evaluate((id) => __t.db.getShot(id), id)).covered, undefined);
+    assert.equal(await win.locator('#covered').isHidden(), true);
+  });
+
   it('it opens as the active tab, next to the captured page which is its opener; closing it brings the captured page back', async () => {
     const tab = await tabOf(sw);
     const { win } = await capture();

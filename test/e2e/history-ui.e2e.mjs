@@ -62,7 +62,7 @@ describe('history view', () => {
     L.on('dialog', (d) => d.accept());
   });
   after(async () => {
-    await setPolicy(P, { retentionDays: 30, maxBytes: 2 * 1024 ** 3 }).catch(() => {});
+    await setPolicy(P, { retentionDays: 30, maxBytes: 2e9 }).catch(() => {});
     await h?.close();
   });
   // a failing test must not leave a dialog open on top of the next one
@@ -698,6 +698,23 @@ describe('history view', () => {
       await fresh([], { open: false });
     });
 
+    it('the footer of the sheet has Purge now: the dialog opens on top of it, and the sheet follows the purge', async () => {
+      await fresh([...Array.from({ length: 10 }, (_, i) => row(i + 1, { createdAt: NOW - 100 * DAY })), ...Array.from({ length: 20 }, (_, i) => row(11 + i))]);
+      await ready();
+      await openHistory(L);
+      await viewWhere(L, (x) => x.count === '30 captures', 'thirty');
+      await L.click('#hvPurge');
+      await L.waitForSelector('#purgeDlg[open]');
+      assert.equal(await sheetOpen(), true, 'the sheet stays under the dialog');
+      assert.equal(await L.isChecked('#pgAgeOn'), true, 'it starts on the age of the retention');
+      await poll(async () => /To delete: 10 captures/.test(await L.locator('#pgPreview').innerText()), { what: 'preview' });
+      await L.click('#pgRun');
+      await poll(async () => /Deleted: 10 captures/.test(await L.locator('#pgPreview').innerText()), { what: 'purged' });
+      await L.click('#pgClose');
+      await viewWhere(L, (x) => x.count === '20 captures' && x.cards === 20, 'the sheet read the history again');
+      await closeSheet();
+    });
+
     it('the storage figures of the sheet open the settings on top of it; a purge there is seen by the sheet', async () => {
       await fresh([...Array.from({ length: 10 }, (_, i) => row(i + 1, { createdAt: NOW - 100 * DAY })), ...Array.from({ length: 20 }, (_, i) => row(11 + i))]);
       await ready();
@@ -733,15 +750,15 @@ describe('history view', () => {
       assert.deepEqual(await L.locator('#retentionDays option').allTextContents(), ['7 days', '30 days', '90 days', '1 year', 'Forever']);
       assert.deepEqual(await L.locator('#maxBytes option').allTextContents(), ['500 MB', '1 GB', '2 GB', '5 GB', '10 GB', 'No limit']);
       await L.selectOption('#retentionDays', '90');
-      await L.selectOption('#maxBytes', String(5 * 1024 ** 3));
-      await poll(async () => { const s = await settingsOf(); return s.retentionDays === 90 && s.maxBytes === 5 * 1024 ** 3; }, { what: 'settings saved' });
+      await L.selectOption('#maxBytes', '5000000000');
+      await poll(async () => { const s = await settingsOf(); return s.retentionDays === 90 && s.maxBytes === 5e9; }, { what: 'settings saved' });
       await closeSettings();
       await openSettings();
       assert.equal(await L.inputValue('#retentionDays'), '90');
-      assert.equal(await L.inputValue('#maxBytes'), String(5 * 1024 ** 3));
+      assert.equal(await L.inputValue('#maxBytes'), '5000000000');
       await closeSettings();
 
-      await setPolicy(P, { retentionDays: 14, maxBytes: 700 * 1024 ** 2 }); // not in the menus
+      await setPolicy(P, { retentionDays: 14, maxBytes: 700e6 }); // not in the menus
       await openSettings();
       assert.equal(await L.inputValue('#retentionDays'), '14');
       assert.equal(await L.locator('#retentionDays option:checked').textContent(), '14 d');
@@ -754,27 +771,27 @@ describe('history view', () => {
     });
 
     it('the gauge says how many captures, how much space, against which limit; and warns near the cap', async () => {
-      await fresh(Array.from({ length: 10 }, (_, i) => row(i + 1, { bytes: 100 * 1024 * 1024 })), { real: 0 });
-      await setPolicy(P, { retentionDays: 0, maxBytes: 2 * 1024 ** 3 });
+      await fresh(Array.from({ length: 10 }, (_, i) => row(i + 1, { bytes: 90e6 })), { real: 0 });
+      await setPolicy(P, { retentionDays: 0, maxBytes: 2e9 });
       await ready();
       await openSettings();
       await poll(async () => /10 captures/.test(await L.locator('#storageText').textContent()), { what: 'gauge text' });
-      assert.equal(await L.locator('#storageText').textContent(), `10 captures, ${fmtEn(1000 * 1024 * 1024)} of ${fmtEn(2 * 1024 ** 3)}`);
+      assert.equal(await L.locator('#storageText').textContent(), `10 captures, ${fmtEn(900e6)} of ${fmtEn(2e9)}`);
       assert.equal(await L.locator('#storageMeter').isVisible(), true);
       assert.equal(await L.locator('#storageMeter').getAttribute('data-level'), 'ok');
       assert.equal(await L.locator('#storageMeter').getAttribute('role'), 'meter');
-      assert.equal(await L.locator('#storageMeter').getAttribute('aria-valuenow'), String(1000 * 1024 * 1024));
-      assert.equal(await L.locator('#storageMeter').getAttribute('aria-valuemax'), String(2 * 1024 ** 3));
+      assert.equal(await L.locator('#storageMeter').getAttribute('aria-valuenow'), String(900e6));
+      assert.equal(await L.locator('#storageMeter').getAttribute('aria-valuemax'), '2000000000');
       assert.match(await L.locator('.dlg-body .note[data-i18n="hist.set.note"]').textContent(), /never removed automatically.*Edited captures are not removed by the age limit/);
 
-      await L.selectOption('#maxBytes', String(1024 ** 3)); // 1000 MB of 1 GB (1024 MB): 98%
+      await L.selectOption('#maxBytes', '1000000000'); // 900 MB of 1 GB: 90%
       await poll(async () => (await L.locator('#storageMeter').getAttribute('data-level')) === 'warn', { what: 'warn level' });
-      await L.selectOption('#maxBytes', String(500 * 1024 ** 2));
+      await L.selectOption('#maxBytes', '500000000');
       await poll(async () => (await L.locator('#storageMeter').getAttribute('data-level')) === 'full', { what: 'full level' });
-      assert.match(await L.locator('#storagePending').textContent(), /At the next cleanup .*: 5 captures \(500.MB\) to remove\./);
+      assert.match(await L.locator('#storagePending').textContent(), /At the next cleanup .*: 5 captures \(450.MB\) to remove\./);
       await L.selectOption('#maxBytes', '0');
       await poll(async () => (await L.locator('#storageMeter').isHidden()), { what: 'no meter without a cap' });
-      assert.equal(await L.locator('#storageText').textContent(), `10 captures, ${fmtEn(1000 * 1024 * 1024)}, no size limit`);
+      assert.equal(await L.locator('#storageText').textContent(), `10 captures, ${fmtEn(900e6)}, no size limit`);
       await closeSettings();
       await setPolicy(P, OFF);
     });
@@ -872,7 +889,7 @@ describe('history view', () => {
       await viewWhere(L, (x) => /r\u00e9sultats$/.test(x.count), 'French results');
       assert.equal(await L.getAttribute('#hvQuery', 'placeholder'), 'Rechercher un titre ou une adresse');
       assert.notEqual(await L.locator('#hvGrid .hv-sub').first().textContent(), en, 'the dates are written in French');
-      assert.match(await L.locator('#hvGrid .hv-sub').first().textContent(), /·\s+\d+\s+(janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)/);
+      assert.match(await L.locator('#hvGrid .hv-sub').first().textContent(), /^\d+\s+(janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)/);
       assert.equal(await L.getAttribute('#hvGrid .hv-card:first-child .pin', 'aria-label').then((x) => x.startsWith('\u00c9pingler la capture du')), true);
       assert.equal(await L.locator('#hvPinned span').textContent(), `\u00c9pingl${E1}es seulement`);
       await L.click('#hvGrid .hv-card:first-child input[type=checkbox]', { force: true });

@@ -68,7 +68,9 @@ opens the new capture in the editor.
   popup (and in *Settings*, *History*) turns it on: a capture is then copied to
   the clipboard and saved nowhere, no row in the history, no thumbnail, no file.
   The icon turns violet (and the tooltip says so) so that the mode is not
-  forgotten, and the result badge is violet too. *Capture and edit* is greyed
+  forgotten, the result badge is violet too, and the library shows a violet
+  *No trace* button (a click turns the mode off). Importing or pasting an image
+  is refused while it is on, since an import is kept in the history. *Capture and edit* is greyed
   out (there is nothing to edit; the shortcuts say so on the page). The captures
   you already have stay. If the copy fails, nothing is left of the capture: the
   badge turns red and a note says so.
@@ -100,8 +102,9 @@ opens the new capture in the editor.
   the page, takes the image, and puts the page back as it was: no node is added
   and no text changes, the cover is a CSS highlight that follows a panel that
   scrolls. A full page looks again at each tile, so what loads while the page
-  scrolls is covered too. A note on the page then says how many items were
-  hidden, or that none was found. It is best effort, not a guarantee: look at
+  scrolls is covered too. A note on the page then says how many items showing in
+  the image were covered, or that none was found, and that form fields, images
+  and frames are not covered. It is best effort, not a guarantee: look at
   the image before you share it. If the cover cannot be put up, no image is
   taken (red badge). What is looked for, and what is not, is under *Known
   limits*.
@@ -186,8 +189,9 @@ Non-destructive: the original of a capture is never changed.
   draw over it is not dimmed.
 - **Numbered markers** mark the steps of a procedure: pick the *Marker* tool and
   click once per step. Each click places the next number, the smallest one not
-  used yet (delete the 2 and the next marker is a 2 again), and the tool stays
-  until you press **Esc**. The color is the one of the style bar (the number
+  used yet, and the tool stays until you press **Esc**. Delete a step and the
+  ones after it come down (delete the 2 of 1, 2, 3, 4 and you read 1, 2, 3);
+  numbers you typed yourself are never touched. The color is the one of the style bar (the number
   turns dark on a light color) and the thin / medium / thick choice is the size
   of the disc, which follows the width of the image. Select a marker to change
   its color or size, move it, or resize it by a corner (it stays a circle). A
@@ -203,7 +207,8 @@ Non-destructive: the original of a capture is never changed.
   text back, leaving the field keeps it, and the whole edit is one step of the
   history. The text is a short line in a pill of the color of the marker, on the
   right of the disc, and **on the left on its own when it would leave the image**;
-  the *Text side* buttons of the style bar choose (and the choice is final). The
+  the *Text side* buttons of the style bar choose (and the choice is final), but
+  a side that would leave the image is not given while the other one fits. The
   disc stays where you clicked whatever the text does. The text moves, resizes and
   is saved with the marker, and the box you select holds both.
 - Output scale (percentage or width), 50 levels of undo and redo, zoom and pan.
@@ -245,6 +250,9 @@ without losing anything.
   the button; the arrow next to it opens the options: format (PNG, JPEG, WebP or
   PDF), quality, and for a PDF the pages and the images. For JPEG and WebP the
   menu shows an estimate of the file size once you move the quality slider.
+  The menu is a one-time *Download as*: it keeps your choices until the page is
+  reloaded, and never changes the defaults of *Settings*, *Download* (the same
+  goes for the dialog of the grouped export).
 - An unedited capture downloaded as PNG is the original file, not re-encoded.
 - **PDF** pages are images. *Fit to image*: one page the size of the image
   (96 dpi). *A4*: the image scaled to the width of an A4 page and cut into A4
@@ -307,8 +315,11 @@ full page is scrolled and stitched instead, with the limits below.
 ## Known limits
 
 - **Hide sensitive text** reads the text of the page, so it does not see what is
-  not text: images, canvases, the content of frames, closed shadow DOM and what
-  is typed in a field (the value of an input or a textarea). It looks for
+  not text: images, canvases, the content of frames, closed shadow DOM and the
+  content of form fields (the value of an input, a text area or a drop-down,
+  whether the page or you filled it). The text is searched block by block: a
+  value split by inline elements (a phone number in two spans) is found, one
+  split by a line break or by two blocks is not. It looks for
   e-mail addresses, phone numbers (international and French forms), IBANs and
   card numbers (both with their checksum), and the keys of a few services
   (Stripe, GitHub, AWS, Slack, Google, a JWT, a private key block); a name, an
@@ -316,7 +327,8 @@ full page is scrolled and stitched instead, with the limits below.
   more than 200,000 text nodes, or a search that takes more than 0.4 s per
   image, is searched only as far as that goes, and the note says so. Open
   shadow roots are searched; the note is a box on the page, so with *Ask what
-  to do* it is on the captured tab, behind the page of actions.
+  to do* it is on the captured tab, behind the page of actions, which says how
+  many items were covered too.
 - **Full page**: one scrolling area per capture, the document or the panel that
   shows the most: a second column or a sidebar that scrolls is not in the image,
   and what a frame shows is captured as it shows, not scrolled. A page that
@@ -339,7 +351,10 @@ full page is scrolled and stitched instead, with the limits below.
 - **Pages that cannot be captured**: Chrome forbids extensions on some pages
   (`chrome://`, the Chrome Web Store...).
 - **One editing tab**: with the library open in two tabs, the second one is
-  read-only, so that two tabs never overwrite each other.
+  read-only, so that two tabs never overwrite each other. It shows the capture
+  you pick in the strip or the history, as the editor would export it, and
+  keeps *Copy image* and *Download*; editing, versions, pins, deletions and
+  imports stay off.
 - **The very last change**: edits are saved 500 ms after the last one, and at
   once when the tab is hidden, reloaded or closed. A change made less than about
   25 ms before the tab goes away can still be lost on a busy machine.
@@ -381,7 +396,7 @@ Two things to know before sharing a capture:
 | Permission | Why |
 |---|---|
 | `activeTab` | Capture the active tab, only after a gesture from you (icon click, shortcut, menu). No access to websites in general. |
-| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, the one that covers the sensitive text while the image is taken (only with *Hide sensitive text* on), and write the image to the clipboard from there; after a full-page capture, show a short note on the page when the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
+| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, the one that covers the sensitive text while the image is taken (only with *Hide sensitive text* on), and write the image to the clipboard from there; show a short note on the page that says the capture was copied, or that the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
 | `contextMenus` | The icon's right-click menu: *Capture* and *Capture and edit* (submenus), *Open the library* and *Settings*. |
 
 Obturo asks for no access to websites, reads the clipboard only when you paste
@@ -419,8 +434,8 @@ databases, the retention, the version model and the budgets.
 - `gestures.js`: what the icon menu holds and where a gesture sends the user.
 - `overlay.js`, `fullpage.js`: injected into the tab on demand. The area
   selection, and the page driver of a full-page capture. `notice.js` is the
-  short note a full-page capture leaves on the page when it is not the whole
-  page or stops.
+  short note a capture leaves on the page: that it was copied, or that a
+  full-page capture is not the whole page or stops.
 - `sensitive.js`, `redact.js`: injected together when *Hide sensitive text* is
   on. The first finds what to hide in a text (a pure function, tested without a
   browser); the second covers it for the length of an image.
@@ -431,7 +446,7 @@ databases, the retention, the version model and the budgets.
   settings database, the translation, the texts of each language, the
   translation of the page, and the theme applied before the first paint.
 - `library.html`, `library.css`, `library.js`: the library page, the strip of
-  captures and the editing lock.
+  captures and the editing lock. `viewer.js` shows a capture in a read-only tab.
 - `history-view.js`, `history-model.js`, `history-dialogs.js`,
   `history-settings.js`, `settings-ui.js`: the history sheet, its logic, its
   confirmations, the history block of the settings, and the settings dialog.

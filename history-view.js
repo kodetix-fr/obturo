@@ -13,11 +13,11 @@
 //  - getSelectedIds(): the ids of the selected captures, most recent first;
 //  - a 'selection-changed' event on `document` each time the selection changes, with detail { ids, count };
 //  - <div id="bulkExtra"> in the selection bar: empty, whatever is put in it shows between Unpin and Delete.
-import { listEntries, listHosts, queryShots, setPinnedMany, storageUsage } from './db.js';
+import { getShot, listEntries, listHosts, queryShots, setPinnedMany, storageUsage } from './db.js';
 import {
-  GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, summarizeSelection, windowRows, withRange,
+  GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, windowRows, withRange,
 } from './history-model.js';
-import { confirmDialog, countText, deleteWithProgress, guardWith, notify } from './history-dialogs.js';
+import { confirmDialog, countText, deleteWithProgress, deleteWords, guardWith, notify, askPurge } from './history-dialogs.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { icon, setI18n } from './dom-i18n.js';
 import { clamp } from './pure.js';
@@ -115,7 +115,7 @@ function wire() {
     dialog: 'history', count: 'hvCount', query: 'hvQuery', close: 'hvClose', filters: 'hvFilters', host: 'hvHost', period: 'hvPeriod',
     pinned: 'hvPinned', bulk: 'hvBulk', selCount: 'hvSelCount', selectAll: 'hvSelectAll', clear: 'hvClear', pin: 'hvPin', unpin: 'hvUnpin',
     del: 'hvDelete', scroll: 'hvScroll', grid: 'hvGrid', sentinel: 'hvSentinel', more: 'hvMore', state: 'hvState', stateTitle: 'hvStateTitle',
-    stateHint: 'hvStateHint', stateAction: 'hvStateAction', status: 'hvStatus', storage: 'hvStorage', storageText: 'hvStorageText',
+    stateHint: 'hvStateHint', stateAction: 'hvStateAction', status: 'hvStatus', purge: 'hvPurge', storage: 'hvStorage', storageText: 'hvStorageText',
   })) ui[key] = document.getElementById(id);
 
   ui.query.placeholder = t('hist.search.placeholder');
@@ -145,6 +145,7 @@ function wire() {
   ui.unpin.addEventListener('click', () => setPins(getSelectedIds(), false));
   ui.del.addEventListener('click', () => deleteShotsAsk(getSelectedIds()));
   ui.storage.addEventListener('click', () => deps.openSettings());
+  ui.purge.addEventListener('click', () => { if (!deps.readOnly()) askPurge().catch((e) => console.error('Obturo: purge', e)); });
 
   // the grid: one listener each, for every card
   ui.grid.addEventListener('click', onGridClick);
@@ -572,7 +573,7 @@ function fill(card, i) {
   card.open.title = `${s.title || ''}\n${s.url || ''}`.trim(); // an attribute: never read as HTML
   card.open.tabIndex = i === active ? 0 : -1;
   card.title.textContent = s.title || host || ''; // textContent: the title and the address come from the captured page
-  card.sub.textContent = host ? `${host}${DOT}${when}` : when;
+  card.sub.textContent = host ? `${when}${DOT}${host}` : when; // the date first: it is what a narrow card must not cut
   card.check.setAttribute('aria-label', t('hist.card.select', { when }));
   card.pin.setAttribute('aria-label', t('hist.pin.card', { when }));
   card.badge.textContent = t('strip.edited');
@@ -736,22 +737,18 @@ function removeFromList(ids) {
 async function deleteShotsAsk(ids) {
   if (!ids.length) return;
   if (deps.readOnly()) { status(t('hist.readonly')); return; }
-  let sum;
+  let words;
   try {
-    sum = summarizeSelection(await listEntries({}), new Set(ids));
+    words = await deleteWords(ids, ids.length === 1 ? await getShot(ids[0]) : null);
   } catch (e) {
     console.error('Obturo: delete failed', e);
     status(t('hist.del.failed'));
     return;
   }
+  const { sum } = words;
   if (!sum.count) { removeFromList(ids); return; } // already gone
-  const lines = [t('hist.del.body')];
-  if (sum.pinned || sum.edited) lines.push(t('hist.del.includes', { pinned: formatNumber(sum.pinned), edited: formatNumber(sum.edited) }));
-  lines.push(t('hist.del.size', { size: fmtBytes(sum.bytes) }));
   const ok = await confirmDialog({
-    title: plural(sum.count, 'hist.del.title.one', 'hist.del.title.other'),
-    lines,
-    ok: t('hist.del.ok'),
+    ...words,
     run: async (progress) => {
       selfChange = true;
       try {

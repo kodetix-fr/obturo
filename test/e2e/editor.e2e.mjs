@@ -221,6 +221,46 @@ describe('editor: full walkthrough', () => {
     m = await mapper(page, 1600, 900);
   });
 
+  it('the tool rail fits a short window, and Crop stays under the pointer when the tools must scroll', async () => {
+    const label = () => page.locator('#zoomLabel').innerText();
+    const before = await label();
+    for (const [w, hh, fits] of [[1440, 813, true], [1100, 768, true], [1440, 700, true], [820, 650, false], [480, 650, false]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      await poll(async () => (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
+      const r = await page.evaluate(() => {
+        const tools = document.getElementById('tools');
+        const box = document.getElementById('crop').getBoundingClientRect();
+        return { tools: [tools.clientHeight, tools.scrollHeight], hit: document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('button')?.id };
+      });
+      assert.equal(r.hit, 'crop', `a click in the middle of Crop reaches it at ${w} x ${hh}`);
+      if (fits) assert.ok(r.tools[1] <= r.tools[0], `all the tools show at ${w} x ${hh}: ${r.tools}`);
+    }
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
+    m = await mapper(page, 1600, 900);
+  });
+
+  it('at 480 px wide the chrome leaves room to the image, and nothing hides the version buttons', async () => {
+    const label = () => page.locator('#zoomLabel').innerText();
+    const before = await label();
+    await tool(page, 'rect');
+    for (const [w, hh, share] of [[480, 900, 0.54], [480, 650, 0.35]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      await poll(async () => (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
+      const r = await page.evaluate(() => {
+        const box = document.getElementById('newVersion').getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('button')?.id;
+        return { stage: document.getElementById('stage').clientHeight, hit };
+      });
+      assert.ok(r.stage >= hh * share, `the stage is ${r.stage} px of ${hh} at ${w} x ${hh}`);
+      assert.equal(r.hit, 'newVersion', `the plus button is not covered at ${w} x ${hh}`);
+    }
+    await tool(page, 'select');
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
+    m = await mapper(page, 1600, 900);
+  });
+
   it('pixelated region: its content follows its position, alone then in a multiple selection', async () => {
     await seed(page, { w: 1600, h: 900, title: 'Capture D', url: 'https://example.test/d', stripes: true });
     await grabCsp();
@@ -328,11 +368,18 @@ describe('editor: full walkthrough', () => {
     assert.ok(!(await dbDump(page)).some((s) => s.id === B.id), 'the autosave recreated the evicted shot');
   });
 
-  it('deleting a shot also removes its original', async () => {
+  it('deleting a shot asks first and names it, cancel keeps it, and confirming also removes its original', async () => {
     const before = await dbDump(page);
     const victim = before.at(-1);
-    await page.locator(`#strip li.shot[data-id="${victim.id}"] button.del`).click();
-    if (victim.versions?.length) await page.click('#cfOk'); // an edited shot asks first
+    const del = page.locator(`#strip li.shot[data-id="${victim.id}"] button.del`);
+    await del.click();
+    await page.waitForSelector('#confirmDlg[open]');
+    assert.equal(await page.locator('#cfTitle').innerText(), 'Delete this capture?');
+    assert.ok((await page.locator('#cfBody').innerText()).includes(victim.title || victim.host), 'the dialog names the capture');
+    await page.click('#cfCancel');
+    assert.equal((await dbDump(page)).length, before.length, 'cancel keeps it');
+    await del.click();
+    await page.click('#cfOk');
     await poll(async () => (await dbDump(page)).length === before.length - 1, { what: 'shot deleted' });
     const gone = await page.evaluate(async (id) => {
       const { getOriginal } = await import(`${location.origin}/db.js`);
