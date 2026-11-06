@@ -5,7 +5,7 @@
 // answer is given. Nothing leaves the machine and no permission is needed. With `&save=1` (setting "Save the file") the tab opens in the
 // background and downloads the capture by itself, in the stored format; it comes forward only if that fails.
 import { DEFAULT_SETTINGS, getSettings } from './settings.js';
-import { loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
+import { loadLanguage, plural, resolveLanguage, setLanguage, t } from './i18n.js';
 import { applyDom, byId as $, setI18n } from './dom-i18n.js';
 import { getOriginal, getShot } from './db.js';
 import { hostOf } from './catalog.js';
@@ -122,6 +122,10 @@ async function start() {
   const host = hostOf(shot.url);
   const size = t('chooser.size', { w: shot.w, h: shot.h });
   $('caption').textContent = host ? `${host} · ${size}` : size;
+  if (shot.covered !== undefined) { // the note on the captured page is behind this one
+    $('covered').textContent = shot.covered ? plural(shot.covered, 'sw.redact.one', 'sw.redact.other') : t('sw.redact.none');
+    $('covered').hidden = false;
+  }
   for (const b of buttons()) b.disabled = false;
   /** @type {HTMLElement} */ ($('edit')).focus();
   if (!auto) return;

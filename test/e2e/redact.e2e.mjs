@@ -128,6 +128,8 @@ describe('hide sensitive text', () => {
     assert.ok(await dark(await boxOf('plain')) < SHOWN, 'a text with nothing sensitive in it is left alone');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
     assert.match(await note(), /sensitive items? covered in the text of the page/);
+    const count = Number((await note()).match(/(\d+) sensitive/)[1]);
+    assert.equal(await sw.evaluate(async () => (await __t.db.getShot((await __t.db.queryShots({ limit: 1 })).items[0].id)).covered), count, 'the capture keeps how many it covered');
     assert.deepEqual(await state(), before, 'no node, no sheet, no highlight left behind');
     assert.deepEqual((await finalBadge(sw))?.[0], 'OK');
   });

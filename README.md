@@ -320,7 +320,8 @@ full page is scrolled and stitched instead, with the limits below.
   more than 200,000 text nodes, or a search that takes more than 0.4 s per
   image, is searched only as far as that goes, and the note says so. Open
   shadow roots are searched; the note is a box on the page, so with *Ask what
-  to do* it is on the captured tab, behind the page of actions.
+  to do* it is on the captured tab, behind the page of actions, which says how
+  many items were covered too.
 - **Full page**: one scrolling area per capture, the document or the panel that
   shows the most: a second column or a sidebar that scrolls is not in the image,
   and what a frame shows is captured as it shows, not scrolled. A page that

@@ -23,6 +23,7 @@ import { done, wait } from './idb.js';
  * @property {string} host Host of the page address, '' if it has none.
  * @property {number} bytes Size of the original, in bytes.
  * @property {boolean} pinned Kept by the user: the retention never removes it.
+ * @property {number} [covered] How many sensitive items the capture covered; absent when it was not asked to cover them.
  */
 
 /**
@@ -217,10 +218,10 @@ async function applyPolicy(policy, keepId, { verify = false, lots = Infinity } =
  * Adds a shot, then applies the retention settings without ever removing the new shot or a shot a live library has open. A
  * retention that fails does not fail the capture: the shot is saved, and the next pass catches up. The pass is one lot at most (a
  * backlog does not keep the capture waiting): the library finishes it when it opens, and every capture takes another lot.
- * @param {{ original: Blob, url: string, title: string, w: number, h: number, thumb?: Blob }} shot
+ * @param {{ original: Blob, url: string, title: string, w: number, h: number, thumb?: Blob, covered?: number }} shot
  * @returns {Promise<number>} the id of the new shot
  */
-export async function addShot({ original, url, title, w, h, thumb }) {
+export async function addShot({ original, url, title, w, h, thumb, covered }) {
   const policy = policyOf();
   const db = await open();
   const tx = db.transaction(['shots', 'originals', 'catalog'], 'readwrite');
@@ -228,6 +229,7 @@ export async function addShot({ original, url, title, w, h, thumb }) {
   /** @type {Omit<Shot, 'id'>} */
   const row = { url: text.url, title: text.title, w, h, createdAt: Date.now(), versions: [], active: -1, host: hostOf(text.url), bytes: original.size, pinned: false };
   if (thumb) row.thumb = thumb;
+  if (Number.isInteger(covered) && covered >= 0) row.covered = covered;
   const id = await wait(tx.objectStore('shots').put(row));
   tx.objectStore('originals').put(original, /** @type {number} */ (id));
   await patchCatalog(tx.objectStore('catalog'), { upsert: [entryOf({ ...row, id: /** @type {number} */ (id) })] });

@@ -142,13 +142,13 @@ async function copyToClipboard(tabId, blob, b64) {
 
 // The copy goes first (the user wants to paste right away), the IndexedDB write runs in parallel.
 // Resolves with what addShot gave back (the id of the new shot), false if it was not saved.
-/** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @returns {Promise<number | boolean>} */
-async function save(tab, blob, w, h, b64) {
+/** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @param {number} [covered] How many sensitive items the image has covered, when it was asked to cover them. @returns {Promise<number | boolean>} */
+async function save(tab, blob, w, h, b64, covered) {
   const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (copy it, keep it)
   // "Ask what to do" (a page offers the actions) and "Save the file" (the page downloads it): the capture is kept and nothing goes to the
   // clipboard unasked. Not in the no-trace mode (nothing is kept) and not for "Capture and edit" (the editor is the answer).
   if (settings.afterCapture !== 'copy' && !settings.noTrace && !editing) {
-    const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h }));
+    const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h, covered }));
     if (!kept) { badge('ERR', RED); return kept; }
     badge('OK', GREEN);
     openChooser(/** @type {number} */ (kept), tab, settings.afterCapture === 'save').catch(fail);
@@ -160,7 +160,7 @@ async function save(tab, blob, w, h, b64) {
     else { badge('ERR', RED); notice(tab, [t('sw.noTrace.copyFailed')], 'error'); } // the image is nowhere else: say so
     return false;
   }
-  const stored = succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h }));
+  const stored = succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h, covered }));
   if (await copied) badge('OK', GREEN); else badge('!', ORANGE);
   const saved = await stored;
   if (!saved) badge('ERR', RED);
@@ -178,6 +178,7 @@ async function grabTabPng(tab) {
 async function shoot(tab, area, covered) {
   let { blob, b64 } = await grabTabPng(tab);
   if (covered) await uncover(tab);
+  const hidden = covered ? await coveredCount(tab) : undefined;
   let { w, h } = await pngSize(blob); // PNG header, no decoding
   if (area) {
     const c = cropRect(area.rect, area.vw, area.vh, w, h);
@@ -192,7 +193,7 @@ async function shoot(tab, area, covered) {
     b64 = undefined; // the cropped image is another PNG
     w = c.w; h = c.h;
   }
-  return save(tab, blob, w, h, b64);
+  return save(tab, blob, w, h, b64, hidden);
 }
 /** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] @param {boolean} [edit] */
 const capture = (tab, area, edit) => exclusive(() => hiding(tab, (covered) => shoot(tab, area, covered), area?.rect), edit);
@@ -212,6 +213,9 @@ function callRedact(tab, method, ...args) {
 const injectRedact = (tab) => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['sensitive.js', 'redact.js'] });
 // The page goes back to what it was; a tab that is gone has nothing to put back.
 const uncover = (tab) => callRedact(tab, 'clear').catch(() => {});
+
+/** How many sensitive items the image has covered, undefined when the page cannot say. @param {Tab} tab */
+const coveredCount = async (tab) => (await callRedact(tab, 'result').catch(() => null))?.hidden;
 
 /** What the capture tells the user about the hiding: how many items, that there were none, that the search was cut short. @param {Tab} tab */
 async function redactNote(tab) {
@@ -449,7 +453,7 @@ async function fullPageTiles(tab, settings, notes) {
     const { blob, w, h, k } = await stitcher.finish();
     if (isCut(plan.covered, lastMax + m.view)) notes.push(t('sw.full.cut'));
     if (k < 0.995) notes.push(t('sw.full.scaled', { n: Math.round(k * 100) }));
-    return await save(tab, blob, w, h);
+    return await save(tab, blob, w, h, undefined, settings.redactSensitive ? await coveredCount(tab) : undefined);
   } finally {
     await callPage(tab, 'end').catch(() => {}); // idempotent: safety net if an error interrupted the loop
     if (settings.redactSensitive) await uncover(tab);
