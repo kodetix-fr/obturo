@@ -248,6 +248,9 @@ without losing anything.
   the button; the arrow next to it opens the options: format (PNG, JPEG, WebP or
   PDF), quality, and for a PDF the pages and the images. For JPEG and WebP the
   menu shows an estimate of the file size once you move the quality slider.
+  The menu is a one-time *Download as*: it keeps your choices until the page is
+  reloaded, and never changes the defaults of *Settings*, *Download* (the same
+  goes for the dialog of the grouped export).
 - An unedited capture downloaded as PNG is the original file, not re-encoded.
 - **PDF** pages are images. *Fit to image*: one page the size of the image
   (96 dpi). *A4*: the image scaled to the width of an A4 page and cut into A4

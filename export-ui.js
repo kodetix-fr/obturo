@@ -7,7 +7,7 @@
 //
 // A single export renders the VERSION DISPLAYED by the editor (the context the editor hands over), then encodes it. The
 // original goes out untouched as a PNG. "Copy image" stays a PNG, it is not handled here.
-import { DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FORMAT_NAMES, PDF_ENCODINGS, PDF_LAYOUTS, getSettings, setSettings } from './settings.js';
+import { DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FORMAT_NAMES, PDF_ENCODINGS, PDF_LAYOUTS, getSettings } from './settings.js';
 import { fmtBytes, pluralKey, t } from './i18n.js';
 import { getShots } from './db.js';
 import { applyDom, byId as $, h, icon, setAria, setI18n } from './dom-i18n.js';
@@ -190,6 +190,7 @@ export async function download({ context, warn, settings }) {
 let menu = null; // the elements of the menu, built on first opening
 let menuOpen = false;
 let menuOpening = false;
+let menuDefaults = '';
 const choice = { format: 'png', quality: 0.9, layout: 'fit', encoding: 'flate' };
 // ponytail: the live estimate covers JPEG and WebP only (a light PDF shows no size, its pages are encoded one by one); the PDF would need a run of buildPdf per move of the slider.
 /**
@@ -245,7 +246,6 @@ function buildMenu() {
 
   refs.formats.addEventListener('change', (e) => {
     choice.format = valueOf(e);
-    save({ downloadFormat: choice.format });
     syncMenu();
     requestEstimate(); // only if the slider has already asked for an estimate
   });
@@ -255,16 +255,24 @@ function buildMenu() {
     estimate.asked = true; // the first move of the slider starts the estimate
     requestEstimate();
   });
-  pct.input.addEventListener('change', () => save({ downloadQuality: choice.quality })); // when the slider is let go, not at each step
-  refs.layout.addEventListener('change', (e) => { choice.layout = valueOf(e); save({ pdfLayout: choice.layout }); });
-  refs.encoding.addEventListener('change', (e) => { choice.encoding = valueOf(e); save({ pdfEncoding: choice.encoding }); syncMenu(); });
+  refs.layout.addEventListener('change', (e) => { choice.layout = valueOf(e); });
+  refs.encoding.addEventListener('change', (e) => { choice.encoding = valueOf(e); syncMenu(); });
   $('split').append(refs.root);
   applyDom(refs.root);
   setAria(refs.root, 'dl.options'); // applyDom only translates what is inside
   return refs;
 }
 
-const save = (patch) => setSettings(patch).catch((e) => console.error('Obturo: settings not saved', e));
+/** The menu hangs from the right edge of the button, which can sit anywhere in a narrow window: it is moved back inside, and scrolls if it is taller than the room below. @param {HTMLElement} root */
+function keepInside(root) {
+  const margin = 8;
+  root.style.right = '0px';
+  root.style.maxHeight = '';
+  const box = root.getBoundingClientRect();
+  const shift = box.left < margin ? margin - box.left : Math.min(0, innerWidth - margin - box.right);
+  if (shift) root.style.right = `${-shift}px`;
+  root.style.maxHeight = `${Math.max(160, innerHeight - box.top - margin)}px`;
+}
 
 /** The elements of the menu follow `choice`. */
 function syncMenu() {
@@ -367,12 +375,17 @@ async function openMenu(options) {
     if (!ctx) return;
     const s = await getSettings().catch(() => DEFAULT_SETTINGS);
     menuOptions = options;
-    Object.assign(choice, { format: s.downloadFormat, quality: s.downloadQuality, layout: s.pdfLayout, encoding: s.pdfEncoding });
+    const defaults = JSON.stringify([s.downloadFormat, s.downloadQuality, s.pdfLayout, s.pdfEncoding]);
+    if (defaults !== menuDefaults) { // the choices of the menu stay as they were until the Settings say something else; they never write there
+      menuDefaults = defaults;
+      Object.assign(choice, { format: s.downloadFormat, quality: s.downloadQuality, layout: s.pdfLayout, encoding: s.pdfEncoding });
+    }
     estimate.size = ctx.size;
     menu ??= buildMenu();
     startEstimator();
     syncMenu();
     menu.root.hidden = false;
+    keepInside(menu.root);
     menuOpen = true;
     $('downloadMenu').setAttribute('aria-expanded', 'true');
     (menu.root.querySelector('input[name="dlFormat"]:checked') ?? menu.root).focus();
@@ -414,6 +427,7 @@ export const isMenuOpen = () => menuOpen;
 // choice of the version by name, are one radio away in buildDialog and one `displayedVersion` in export-batch.js if people ask.
 /** @type {Record<string, any> | null} */
 let box = null; // the dialog and its elements, built on first opening
+let batchDefaultsSeen = '';
 const run = { ids: [], controller: null, state: 'setup', template: undefined }; // template: the name template of the settings, read when the dialog opens
 
 function buildDialog() {
@@ -463,11 +477,9 @@ function buildDialog() {
     h('footer', { class: 'dlg-foot' }, refs.cancel, refs.start, refs.close));
 
   refs.output.addEventListener('change', (e) => { syncDialog(); e.stopPropagation(); });
-  refs.format.addEventListener('change', (e) => { save({ downloadFormat: valueOf(e) }); syncDialog(); });
+  refs.format.addEventListener('change', () => syncDialog());
   pct.input.addEventListener('input', () => pct.show(Number(pct.input.value)));
-  pct.input.addEventListener('change', () => save({ downloadQuality: Number(pct.input.value) }));
-  refs.layout.addEventListener('change', (e) => save({ pdfLayout: valueOf(e) }));
-  refs.encoding.addEventListener('change', (e) => { save({ pdfEncoding: valueOf(e) }); syncDialog(); });
+  refs.encoding.addEventListener('change', () => syncDialog());
   refs.cancel.addEventListener('click', () => requestClose());
   refs.close.addEventListener('click', () => refs.dialog.close());
   refs.start.addEventListener('click', () => start());
@@ -586,11 +598,14 @@ export async function openBatchExport(ids) {
   const d = batchDefaults(s);
   run.ids = list;
   run.template = s.filenameTemplate;
-  pick(box.output, d.output);
-  pick(box.format, d.format);
-  pick(box.layout, d.layout);
-  pick(box.encoding, d.encoding);
-  box.pct.show(d.quality);
+  if (JSON.stringify(d) !== batchDefaultsSeen) { // the choices of the dialog stay as they were until the Settings say something else
+    batchDefaultsSeen = JSON.stringify(d);
+    pick(box.output, d.output);
+    pick(box.format, d.format);
+    pick(box.layout, d.layout);
+    pick(box.encoding, d.encoding);
+    box.pct.show(d.quality);
+  }
   setI18n(box.count, countKey(list.length), { n: list.length });
   setI18n(box.countRunning, countKey(list.length), { n: list.length });
   const asIs = countShownAsOriginal(rows);
