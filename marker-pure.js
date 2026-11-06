@@ -27,6 +27,19 @@ export function nextMarkerNumber(numbers) {
 }
 
 /**
+ * The numbers of the markers that stay after others were deleted: when the markers made a plain sequence 1, 2, 3... the numbers above a
+ * deleted one come down, so that the steps read 1, 2, 3 again. Numbers typed by hand (a repeated one, a gap) are left as they are.
+ * @param {number[]} kept The numbers of the markers that stay. @param {number[]} removed The numbers of the deleted ones.
+ * @returns {number[]} The new numbers of the markers that stay, in the same order.
+ */
+export function closeGaps(kept, removed) {
+  const before = [...kept, ...removed].sort((a, b) => a - b);
+  if (!removed.length || before.some((n, i) => n !== i + 1)) return kept;
+  const gone = removed.toSorted((a, b) => a - b);
+  return kept.map((n) => n - gone.filter((g) => g < n).length);
+}
+
+/**
  * White or near black, whichever suits `fill`: white as long as it keeps a contrast of 3:1 (what WCAG asks of large text, and a number
  * in a disc is large and bold), that is on a color of relative luminance up to 0.3. That keeps white on red, blue, green and gray, the
  * colors of a marker, and goes dark on yellow and the light colors. A color that is not `#rrggbb` gets white.

@@ -9,7 +9,7 @@ import { launchExtension } from './support/browser.mjs';
 import {
   dbDump, decodePng, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, shotWhere, sleep, spec, titled, tool, waitOut,
 } from './support/editor.mjs';
-import { MIME, batchDone, chooseFormat, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip } from './support/export.mjs';
+import { MIME, batchDone, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip, setDefaultFormat } from './support/export.mjs';
 import { thumbPlan } from '../../thumb-pure.js';
 
 const BLUE = [37, 99, 235, 255]; // #2563eb
@@ -367,16 +367,16 @@ describe('hiding: solid fill and soft blur', () => {
 
     // the other formats draw the same canvas
     for (const format of ['jpeg', 'webp']) {
-      await chooseFormat(page, format);
+      await setDefaultFormat(page, format);
       const file = await downloadAfter(page, () => page.click('#download'));
       const image = await decodeImage(page, file.buf, MIME[format]);
       let sum = 0, n = 0;
       for (let y = 100; y < 500; y += 4) for (let x = 100; x < 900; x += 4) { sum += Math.abs(px(image, x, y)[0] - px(E, x, y)[0]); n++; }
       assert.ok(sum / n < 3, `${format}: mean difference with the PNG ${(sum / n).toFixed(2)}`);
     }
-    await chooseFormat(page, 'pdf');
+    await setDefaultFormat(page, 'pdf');
     assert.equal((await readPdf((await downloadAfter(page, () => page.click('#download'))).buf)).length, 1, 'PDF');
-    await chooseFormat(page, 'png');
+    await setDefaultFormat(page, 'png');
 
     // persistence: reload, same pixels
     await page.reload();

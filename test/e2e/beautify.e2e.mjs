@@ -8,7 +8,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, decodePng, download, outText, poll, px, ready, resetLibrary, shotWhere, spec, titled, waitOut } from './support/editor.mjs';
-import { MIME, batchDone, chooseFormat, closeBatch, decodeImage, downloadAfter, readPdf, readZip } from './support/export.mjs';
+import { MIME, batchDone, closeBatch, decodeImage, downloadAfter, readPdf, readZip, setDefaultFormat } from './support/export.mjs';
 
 const CLEAN = { language: 'en', theme: 'auto', downloadFormat: 'png', downloadQuality: 0.9, pdfLayout: 'fit', pdfEncoding: 'flate' };
 const BLUE = [37, 99, 235, 255]; // #2563eb, the blue of the palette
@@ -184,7 +184,7 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
     await flat({ bg: 'none', padding: 40, radius: 24 });
     await waitOut(page, 1360, 800);
     await closePanel();
-    await chooseFormat(page, 'jpeg');
+    await setDefaultFormat(page, 'jpeg');
     const file = await downloadAfter(page, () => page.click('#download'));
     const image = await decodeImage(page, file.buf, MIME.jpeg);
     assert.deepEqual([image.width, image.height], [1360, 800]);

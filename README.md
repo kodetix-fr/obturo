@@ -189,8 +189,9 @@ Non-destructive: the original of a capture is never changed.
   draw over it is not dimmed.
 - **Numbered markers** mark the steps of a procedure: pick the *Marker* tool and
   click once per step. Each click places the next number, the smallest one not
-  used yet (delete the 2 and the next marker is a 2 again), and the tool stays
-  until you press **Esc**. The color is the one of the style bar (the number
+  used yet, and the tool stays until you press **Esc**. Delete a step and the
+  ones after it come down (delete the 2 of 1, 2, 3, 4 and you read 1, 2, 3);
+  numbers you typed yourself are never touched. The color is the one of the style bar (the number
   turns dark on a light color) and the thin / medium / thick choice is the size
   of the disc, which follows the width of the image. Select a marker to change
   its color or size, move it, or resize it by a corner (it stays a circle). A

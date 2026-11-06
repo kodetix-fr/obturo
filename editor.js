@@ -12,7 +12,7 @@
 import { Canvas, IText, Rect, ActiveSelection, util } from './vendor/fabric.min.mjs';
 import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
-import { autoSide, nextMarkerNumber } from './marker-pure.js';
+import { autoSide, closeGaps, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
 import { createVersion, deleteVersion, pickVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
@@ -314,6 +314,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (!objs.length) return;
     canvas.discardActiveObject();
     drop(objs);
+    const removed = objs.filter((o) => o instanceof Marker).map((o) => o.n);
+    if (removed.length) { // the steps that follow come down: 1, 2, 3 again
+      const markers = canvas.getObjects().filter((o) => o instanceof Marker);
+      const numbers = closeGaps(markers.map((m) => m.n), removed);
+      markers.forEach((m, i) => m.set({ n: numbers[i], dirty: true }));
+    }
     canvas.requestRenderAll();
     commit();
   }
@@ -385,9 +391,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     adopt(obj);
     ensureVersion(); // first object really added: V1 is born here (and protects the shot from eviction)
     if (obj instanceof Spot) canvas.sendObjectToBack(obj); // under the annotations: the shade must not dim them
-    canvas.setActiveObject(obj);
-    setTool('select');
-    commit();
+    commit(); // the tool stays armed for the next one, until Escape or a click on Select
   }
 
   // ---------- tools and settings ----------

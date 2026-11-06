@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LEGEND_MAX, MARKER_DIAMETER, MARKER_SIDES, autoSide, boxLeft, cleanMarkerNumber, cleanSide, cleanLegend, discCenterX, legendBox, legendFontSize, markerDiameter, markerFontSize, markerInk, nextMarkerNumber } from './marker-pure.js';
+import { LEGEND_MAX, MARKER_DIAMETER, MARKER_SIDES, autoSide, boxLeft, cleanMarkerNumber, closeGaps, cleanSide, cleanLegend, discCenterX, legendBox, legendFontSize, markerDiameter, markerFontSize, markerInk, nextMarkerNumber } from './marker-pure.js';
 
 test('nextMarkerNumber: 1 first, then the smallest number that is free', () => {
   assert.equal(nextMarkerNumber([]), 1);
@@ -12,6 +12,17 @@ test('nextMarkerNumber: 1 first, then the smallest number that is free', () => {
   assert.equal(nextMarkerNumber([1, 1, 2]), 3, 'a duplicate changes nothing');
   assert.equal(nextMarkerNumber(new Set([1, 2])), 3, 'any iterable');
   assert.equal(nextMarkerNumber([1, 2.5, '3', null, undefined, -1, 0, NaN, {}]), 2, 'what is not a positive whole number is ignored');
+});
+
+test('closeGaps: a plain sequence closes up after a deletion, numbers typed by hand are left alone', () => {
+  assert.deepEqual(closeGaps([1, 3, 4], [2]), [1, 2, 3]);
+  assert.deepEqual(closeGaps([1, 4, 5], [2, 3]), [1, 2, 3]);
+  assert.deepEqual(closeGaps([1, 2, 3], [4]), [1, 2, 3], 'the last one leaves nothing to close');
+  assert.deepEqual(closeGaps([2, 3], [1]), [1, 2]);
+  assert.deepEqual(closeGaps([], [1]), []);
+  assert.deepEqual(closeGaps([1, 2, 2, 3], [2]), [1, 2, 2, 3], 'a repeated number was typed by hand');
+  assert.deepEqual(closeGaps([1, 5, 9], [5]), [1, 5, 9], 'a gap was typed by hand');
+  assert.deepEqual(closeGaps([1, 2], []), [1, 2]);
 });
 
 test('markerDiameter: follows the width of the image within bounds, scaled by the setting, never unreadable', () => {

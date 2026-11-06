@@ -334,6 +334,22 @@ describe('editor: non-regressions', () => {
     await second.close();
   });
 
+  it('a tool stays armed after a drag: two drags draw two objects, and Escape puts Select back', async () => {
+    await reset([spec('S7')]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+    const m = await mapper(page, 1600, 900);
+    await tool(page, 'blur');
+    await drag(page, m, 100, 100, 400, 180);
+    await drag(page, m, 100, 260, 400, 340);
+    const pressed = (name) => page.getAttribute(`.tool[data-tool="${name}"]`, 'aria-pressed');
+    assert.equal(await pressed('blur'), 'true', 'still armed');
+    await poll(async () => (await objectCount()) === 2, { what: 'two objects saved' });
+    await page.keyboard.press('Escape');
+    assert.equal(await pressed('select'), 'true');
+    assert.equal(await pressed('blur'), 'false');
+  });
+
   it('a read-only tab shows the capture as it was edited, copies it, downloads it and follows the strip', async () => {
     await reset([spec('S5a', 1000, 600), spec('S5b', 1200, 700)]);
     await ready(page);

@@ -70,17 +70,17 @@ describe('editor: numbered markers', () => {
     assert.equal((await dbDump(page)).find((x) => x.id === id).versions[0].objects.length, 5);
   });
 
-  it('the smallest free number comes next: delete the 2 and the next marker is the 2', async () => {
+  it('delete the 2 and the steps after it come down, so the steps read 1, 2, 3, 4 and the next marker is a 5', async () => {
     await tool(page, 'select');
     const two = await marker(2);
     await click(two.cx, two.cy);
     await page.keyboard.press('Delete');
     await poll(async () => (await numbers()).length === 4, { what: 'the 2 is deleted' });
-    assert.deepEqual((await numbers()).sort(), [1, 3, 4, 5]);
+    assert.deepEqual((await numbers()).sort(), [1, 2, 3, 4], 'the gap is closed');
     await tool(page, 'marker');
     await click(400, 500);
     await poll(async () => (await numbers()).length === 5, { what: 'a marker placed again' });
-    assert.deepEqual((await numbers()).sort(), [1, 2, 3, 4, 5], 'the 2 is back, not a 6');
+    assert.deepEqual((await numbers()).sort(), [1, 2, 3, 4, 5]);
   });
 
   it('the export draws the disc in its color, the number in white, inside a ring of the same ink', async () => {
