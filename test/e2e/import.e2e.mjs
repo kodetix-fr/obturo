@@ -135,7 +135,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
       g.fillRect(0, 0, 280, 180);
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': await canvas.convertToBlob({ type: 'image/png' }) })]);
     });
-    await page.keyboard.press('Control+V');
+    await page.keyboard.press('ControlOrMeta+V');
     await grew(before);
     await waitOut(page, 280, 180);
     assert.equal((await stored((await last()).id)).title, enUi['import.pasted'], 'a browser names a pasted image "image.png"');

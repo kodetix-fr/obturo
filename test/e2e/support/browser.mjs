@@ -43,6 +43,19 @@ globalThis.__menu = [];
 globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, badge: __badge };
 `;
 
+// macOS ignores --lang: the language of the interface comes from AppleLanguages, which the command line of the process can set
+// without touching the settings of the machine. Playwright takes no such argument, and headless takes one address at most (the
+// value of the setting counts as one), so a launcher script adds the setting and leaves Playwright's blank page out.
+function languageLauncher(root, lang) {
+  const file = join(root, 'chromium-lang.sh');
+  const script = `#!/bin/sh
+for a in "$@"; do shift; [ "$a" = about:blank ] || set -- "$@" "$a"; done
+exec '${chromium.executablePath()}' -AppleLanguages '(${lang})' "$@"
+`;
+  writeFileSync(file, script, { mode: 0o755 });
+  return file;
+}
+
 function copyExtension(dest, { hook, hostPermissions, realDefaults }) {
   for (const rel of listRuntimeFiles(REPO)) {
     mkdirSync(dirname(join(dest, rel)), { recursive: true });
@@ -87,7 +100,8 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
   copyExtension(ext, { hook, hostPermissions, realDefaults });
 
   const cleanup = () => rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
-  const args = [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, '--no-first-run', '--no-default-browser-check'];
+  // Software rendering on every machine: the pixel-for-pixel tests compare two renderings, which a GPU can round differently.
+  const args = [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, '--no-first-run', '--no-default-browser-check', '--disable-gpu'];
   if (lang) args.push(`--lang=${lang}`);
   if (realWindow) args.push(`--window-size=${size.width},${size.height}`, `--force-device-scale-factor=${DPR}`, '--hide-scrollbars');
   let context;
@@ -96,6 +110,7 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
       channel: 'chromium', // "full" Chromium in headless mode: the only one that loads extensions
       headless: true,
       args,
+      ...(lang && process.platform === 'darwin' && { executablePath: languageLauncher(root, lang) }),
       ...(lang && { env: { ...process.env, LANGUAGE: lang.replace('-', '_') } }), // Chrome on Linux reads the language of its interface from LANGUAGE
       acceptDownloads: true,
       ...(realWindow ? { viewport: null } : { viewport: size, deviceScaleFactor: DPR }),

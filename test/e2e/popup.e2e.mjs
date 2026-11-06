@@ -125,7 +125,8 @@ describe('popup: content, language, theme, keys', () => {
     assert.ok(assigned.length >= 1, 'the suggested keys of the manifest are assigned');
     for (const r of list) {
       const shortcut = byName[r.id ?? ''] || '';
-      assert.deepEqual(r.keys, shortcut ? shortcut.split('+') : [], `${r.id}: ${shortcut || 'no key'}`);
+      const keys = shortcut.includes('+') ? shortcut.split('+') : [...shortcut]; // a Mac reports one symbol per key, with no separator
+      assert.deepEqual(r.keys, keys, `${r.id}: ${shortcut || 'no key'}`);
       assert.equal(r.keyshortcuts, shortcut || null, r.id);
     }
     for (const id of ['capture-area-edit', 'capture-visible-edit', 'capture-full-edit', 'open-settings']) assert.deepEqual(list.find((r) => r.id === id)?.keys, [], `${id} has no suggested key`);

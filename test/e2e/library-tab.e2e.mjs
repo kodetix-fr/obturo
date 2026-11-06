@@ -75,6 +75,38 @@ describe('library: reactivating the existing tab', () => {
     }
   });
 
+  it('two library tabs: the capture asked for opens in the one that can edit, which comes forward', async () => {
+    await closeLibrary();
+    const holder = await h.context.newPage();
+    await holder.goto(h.url('manifest.json'));
+    await holder.evaluate(() => new Promise((granted) => {
+      navigator.locks.request('obturo-lib', () => new Promise((release) => { window.__release = release; granted(true); }));
+    }));
+    await openLibrary();
+    await waitTabs(1, 'first library tab');
+    const readOnly = library()[0];
+    await readOnly.waitForSelector('#banner:not([hidden])');
+    await holder.evaluate(() => window.__release(true));
+    await holder.close();
+    const editing = await h.context.newPage();
+    await editing.goto(h.url('library.html'));
+    await editing.waitForFunction(() => !document.documentElement.classList.contains('pending') && document.getElementById('banner').hidden);
+    await waitTabs(2, 'both library tabs');
+    const editingId = await editing.evaluate(() => chrome.tabs.getCurrent().then((tab) => tab.id));
+    const id = await sw.evaluate(async () => {
+      const canvas = new OffscreenCanvas(40, 30);
+      canvas.getContext('2d').fillRect(0, 0, 40, 30);
+      return __t.db.addShot({ original: await canvas.convertToBlob({ type: 'image/png' }), url: 'https://example.test/two', title: 'Two tabs', w: 40, h: 30 });
+    });
+    await page.bringToFront();
+    await poll(async () => (await isActive(editingId)) === false, { what: 'the editing tab in the background' });
+    await sw.evaluate((shot) => __t.openLibrary({ shot }), id);
+    await poll(() => isActive(editingId), { what: 'the editing tab comes forward', timeout: 6000 });
+    await editing.waitForFunction((shot) => document.querySelector('li.shot[aria-current="true"]')?.getAttribute('data-id') === String(shot), id);
+    await readOnly.close();
+    await waitTabs(1, 'the editing tab alone');
+  });
+
   it('after closing, a call creates one again (just one)', async () => {
     const [{ tabId: previous }] = await tabs();
     await closeLibrary();

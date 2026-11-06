@@ -6,6 +6,14 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Edit and annotate** (the page that follows a capture) now leaves the editor in front. The page closed itself by
+  bringing the captured page back, which could hide the editor it had just opened.
+- A capture opened in a library tab that is already open now goes there by the address of the tab, so it is no
+  longer lost when that tab is still loading. When several library tabs are open, the one that may edit takes the
+  capture and comes forward, instead of the first one found, which could be the read-only one.
+
 ## [0.2.0] - 2026-11-03
 
 ### Added

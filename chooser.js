@@ -51,11 +51,11 @@ async function act(job) {
   }
 }
 
-/** Closes this tab and shows the captured page again (what the browser does for the opener of a tab that is closed, made certain). */
-async function closeTab() {
+/** Closes this tab and shows the captured page again (what the browser does for the opener of a tab that is closed, made certain), unless another tab was brought forward. @param {boolean} [showOpener] */
+async function closeTab(showOpener = true) {
   try {
     const here = await chrome.tabs.getCurrent();
-    if (here?.openerTabId !== undefined && !auto) await chrome.tabs.update(here.openerTabId, { active: true }).catch(() => {}); // gone, or in another window: nothing to show
+    if (showOpener && here?.openerTabId !== undefined && !auto) await chrome.tabs.update(here.openerTabId, { active: true }).catch(() => {}); // gone, or in another window: nothing to show
     if (here?.id !== undefined) { await chrome.tabs.remove(here.id); return; }
   } catch { /* fall through */ }
   window.close();
@@ -95,16 +95,17 @@ const download = (/** @type {string} */ format) => act(async () => {
   }
 });
 
+// The worker answers once the editor is in front: closing this tab earlier would bring the captured page back over it.
 const edit = () => act(async () => {
-  await chrome.runtime.sendMessage({ type: 'chooser-edit', id });
-  closeTab();
+  if (!(await chrome.runtime.sendMessage({ type: 'chooser-edit', id }))) throw new Error('the editor did not open');
+  closeTab(false);
 });
 
 async function start() {
   const settings = await getSettings().catch(() => DEFAULT_SETTINGS);
   setLanguage(await loadLanguage(resolveLanguage(settings.language, chrome.i18n.getUILanguage())));
   applyDom();
-  $('close').addEventListener('click', closeTab);
+  $('close').addEventListener('click', () => closeTab());
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTab(); });
   $('edit').addEventListener('click', edit);
   $('copy').addEventListener('click', copy);
