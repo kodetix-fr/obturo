@@ -3,6 +3,7 @@
 //   shot.active   = index of the displayed version, -1 = the original (immutable)
 // Each function takes { versions, active } and returns a new state, without mutating anything.
 import { extraOf, framedSize, styleOf } from './beautify-pure.js';
+import { clamp } from './pure.js';
 
 /**
  * Rectangle in image (or canvas) px.
@@ -62,10 +63,10 @@ export function pickVersion({ versions, active }, i) {
 // Crop clamped to the image, in integers, at least 1 px. null if it covers the whole image (= no crop).
 /** @param {Rect} c @param {number} w @param {number} h @returns {Rect | null} */
 export function clampCrop(c, w, h) {
-  const x = Math.min(Math.max(0, Math.round(c.x)), w - 1);
-  const y = Math.min(Math.max(0, Math.round(c.y)), h - 1);
-  const cw = Math.min(Math.max(1, Math.round(c.w)), w - x);
-  const ch = Math.min(Math.max(1, Math.round(c.h)), h - y);
+  const x = clamp(Math.round(c.x), 0, w - 1);
+  const y = clamp(Math.round(c.y), 0, h - 1);
+  const cw = clamp(Math.round(c.w), 1, w - x);
+  const ch = clamp(Math.round(c.h), 1, h - y);
   return x === 0 && y === 0 && cw === w && ch === h ? null : { x, y, w: cw, h: ch };
 }
 

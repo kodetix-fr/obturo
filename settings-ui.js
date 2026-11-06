@@ -8,11 +8,11 @@
 import { DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FORMAT_NAMES, getSettings, setSettings } from './settings.js';
 import { t } from './i18n.js';
 import { LANGUAGES } from './languages.js';
-import { setI18n } from './dom-i18n.js';
+import { byId, setI18n } from './dom-i18n.js';
 import * as historySettings from './history-settings.js';
 
-const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('settings'));
-const form = /** @type {HTMLFormElement} */ (document.getElementById('settingsForm'));
+const dialog = byId('settings', HTMLDialogElement);
+const form = byId('settingsForm', HTMLFormElement);
 
 /** @type {(settings: import('./settings.js').Settings) => void} */
 let onChange = () => {};
@@ -23,7 +23,7 @@ const RETENTION_KEYS = ['retentionDays', 'maxBytes'];
 // A setting that could not be read or saved says so, in the dialog, where the user is looking.
 /** @param {'settings.saveFailed' | 'settings.readFailed' | null} key null clears it */
 function showError(key) {
-  const el = document.getElementById('settingsError');
+  const el = byId('settingsError');
   if (key) setI18n(el, key);
   el.hidden = !key;
 }
@@ -31,7 +31,7 @@ function showError(key) {
 function build() {
   built = true;
   // One option per language, after "Auto". The names are autonyms: they are not translated.
-  const select = document.getElementById('language');
+  const select = byId('language');
   for (const [code, name] of Object.entries(LANGUAGES)) {
     const option = document.createElement('option');
     option.value = code;
@@ -63,7 +63,7 @@ function fill(settings) {
 // The format choices come from DOWNLOAD_FORMATS, like the languages: the names are not translated. The quality is written
 // beside its slider, and again when the language changes (a percentage is written differently in French).
 function buildExport() {
-  const group = document.getElementById('downloadFormatChoices');
+  const group = byId('downloadFormatChoices');
   for (const format of DOWNLOAD_FORMATS) {
     const label = document.createElement('label');
     const input = document.createElement('input');
@@ -75,14 +75,14 @@ function buildExport() {
     label.append(input, text);
     group.append(label);
   }
-  document.getElementById('downloadQualityRange').addEventListener('input', showQuality);
+  byId('downloadQualityRange').addEventListener('input', showQuality);
   new MutationObserver(showQuality).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 }
 
 function showQuality() {
-  const range = /** @type {HTMLInputElement} */ (document.getElementById('downloadQualityRange'));
+  const range = byId('downloadQualityRange', HTMLInputElement);
   const text = t('dl.quality.value', { n: Math.round(Number(range.value) * 100) });
-  document.getElementById('downloadQualityOut').textContent = text;
+  byId('downloadQualityOut').textContent = text;
   range.setAttribute('aria-valuetext', text);
 }
 

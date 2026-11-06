@@ -2,6 +2,7 @@
 // settings block (history-settings.js) hold the DOM and the I/O, this file holds every calculation they need: the date
 // ranges of the period filter, the geometry of the windowed grid, the keyboard moves, the selection ranges, the purge
 // options. Sizes and plurals as texts are i18n.js (fmtBytes, plural).
+import { clamp } from './pure.js';
 
 export const DAY = 24 * 60 * 60 * 1000;
 
@@ -85,8 +86,8 @@ export function windowRows({ scrollTop, viewH, rowH, rows, overscan = OVERSCAN }
   if (rows <= 0) return { first: 0, last: -1 };
   const top = Math.floor(Math.max(0, scrollTop) / rowH);
   const bottom = Math.ceil((Math.max(0, scrollTop) + Math.max(0, viewH)) / rowH) - 1;
-  const first = Math.min(rows - 1, Math.max(0, top - overscan));
-  const last = Math.min(rows - 1, Math.max(first, bottom + overscan));
+  const first = clamp(top - overscan, 0, rows - 1);
+  const last = clamp(bottom + overscan, first, rows - 1);
   return { first, last };
 }
 
@@ -119,18 +120,18 @@ export function scrollToShow({ index, cols, rowH, gap, scrollTop, viewH }) {
 export function moveIndex(key, index, { cols, count, pageRows = 3, ctrl = false }) {
   if (count <= 0) return null;
   const last = count - 1;
-  const clamp = (n) => Math.min(last, Math.max(0, n));
+  const inRange = (n) => clamp(n, 0, last);
   switch (key) {
-    case 'ArrowLeft': return clamp(index - 1);
-    case 'ArrowRight': return clamp(index + 1);
+    case 'ArrowLeft': return inRange(index - 1);
+    case 'ArrowRight': return inRange(index + 1);
     case 'ArrowUp': return index - cols >= 0 ? index - cols : index;
     case 'ArrowDown':
       if (index + cols <= last) return index + cols;
       return Math.floor(index / cols) < Math.floor(last / cols) ? last : index; // a shorter last row: its last card
-    case 'PageUp': return clamp(index - pageRows * cols);
-    case 'PageDown': return clamp(index + pageRows * cols);
+    case 'PageUp': return inRange(index - pageRows * cols);
+    case 'PageDown': return inRange(index + pageRows * cols);
     case 'Home': return ctrl ? 0 : index - (index % cols);
-    case 'End': return ctrl ? last : clamp(index - (index % cols) + cols - 1);
+    case 'End': return ctrl ? last : inRange(index - (index % cols) + cols - 1);
     default: return null;
   }
 }
@@ -221,7 +222,7 @@ export function purgeOptions({ ageOn, days, capOn, size, unit }) {
  */
 export function meterState(bytes, cap) {
   if (!(cap > 0)) return { ratio: 0, level: 'none' };
-  const ratio = Math.min(1, Math.max(0, bytes / cap));
+  const ratio = clamp(bytes / cap, 0, 1);
   return { ratio, level: ratio >= 1 ? 'full' : ratio >= 0.85 ? 'warn' : 'ok' };
 }
 

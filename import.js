@@ -4,7 +4,7 @@
 // anything else decoded and written again without loss (a JPEG becomes a bigger PNG, a GIF gives its first image). The address of
 // an imported shot is empty, its title the name of the file.
 import { addShot } from './db.js';
-import { IMPORT_MAX_BYTES, declaredSize, importFits, importTitle, isPng, looksLikeImage } from './pure.js';
+import { IMPORT_MAX_BYTES, declaredSize, importFits, importTitle, isPng, looksLikeImage } from './import-pure.js';
 
 /** A refusal with the key of its text (locales/*.ui.js). @param {string} key */
 const refuse = (key) => Object.assign(new Error(key), { key });

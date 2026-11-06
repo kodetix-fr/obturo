@@ -10,7 +10,7 @@ import {
   dbDump, decodePng, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, shotWhere, sleep, spec, titled, tool, waitOut,
 } from './support/editor.mjs';
 import { MIME, batchDone, chooseFormat, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip } from './support/export.mjs';
-import { thumbPlan } from '../../pure.js';
+import { thumbPlan } from '../../thumb-pure.js';
 
 const BLUE = [37, 99, 235, 255]; // #2563eb
 

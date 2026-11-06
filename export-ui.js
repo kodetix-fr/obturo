@@ -10,7 +10,7 @@
 import { DEFAULT_SETTINGS, DOWNLOAD_FORMATS, FORMAT_NAMES, PDF_ENCODINGS, PDF_LAYOUTS, getSettings, setSettings } from './settings.js';
 import { fmtBytes, pluralKey, t } from './i18n.js';
 import { getShots } from './db.js';
-import { applyDom, h, icon, setAria, setI18n } from './dom-i18n.js';
+import { applyDom, byId as $, h, icon, setAria, setI18n } from './dom-i18n.js';
 import {
   ESTIMATE_DELAY_MS, IMAGE_FORMATS, MAX_ITEMS, batchDefaults, canEstimate, classifyExportError, countShownAsOriginal, createLatest,
   estimateBand, imageFilename, isLossy, usesQuality,
@@ -35,7 +35,6 @@ const REVOKE_DELAY_MS = 10_000;
  * @typedef {(passive?: boolean) => ExportContext | null} ContextFn
  */
 
-const $ = (id) => document.getElementById(id);
 const valueOf = (/** @type {Event} */ e) => /** @type {HTMLInputElement} */ (e.target).value;
 
 let stylesheet = null;
@@ -121,12 +120,12 @@ function quality(id) {
 // ---------- the single download ----------
 
 let busy = false;
-/** The editor shows that an export is running (the button, and a status for assistive technology). */
+/** The editor shows that an export is running (the button, and a status for assistive technology). The page of actions after a capture exports too, without these elements. */
 function setBusy(on) {
   busy = on;
-  $('split')?.toggleAttribute('data-busy', on);
-  $('download')?.setAttribute('aria-busy', String(on));
-  const status = $('dlStatus');
+  document.getElementById('split')?.toggleAttribute('data-busy', on);
+  document.getElementById('download')?.setAttribute('aria-busy', String(on));
+  const status = document.getElementById('dlStatus');
   if (status) setI18n(status, on ? 'dl.busy' : undefined);
 }
 

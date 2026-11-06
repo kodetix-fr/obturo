@@ -8,7 +8,7 @@ const HTML_SINKS = ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'createConte
 
 // Files that run in the service worker, or that it may import (the export engines build the batch downloads): no
 // document or window.
-const WORKER = ['sw.js', 'db.js', 'idb.js', 'pure.js', 'encode.js', 'pdf.js', 'zip.js'];
+const WORKER = ['sw.js', 'db.js', 'idb.js', 'pure.js', 'fullpage-pure.js', 'thumb-pure.js', 'encode.js', 'pdf.js', 'zip.js'];
 const NODE = ['**/*.test.js', 'scripts/**/*.mjs', 'test/**/*.mjs', 'eslint.config.js'];
 
 export default [
