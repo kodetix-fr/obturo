@@ -18,6 +18,7 @@
   --danger: #b3261e; --danger-solid: #b3261e; --on-danger: #fff; --danger-soft: #fdecea;
   --pin: #b45309; --pin-soft: #fff4d1;
   --hv-card-h: 184px; --hv-gap: 14px; --hv-thumb-h: 132px;
+  --notrace: #7c3aed;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -29,6 +30,7 @@
     --warn-bg: #3b2f08; --warn-fg: #ffe7a0; --warn-line: #5b4812; --warn-icon: #fbbf24;
     --pop: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 36px rgba(0, 0, 0, .55);
     --danger: #ff8f85; --danger-solid: #c7372f; --danger-soft: #3a1613; --pin: #fbbf24; --pin-soft: #3b2f08; /* history */
+    --notrace: #a78bfa;
   }
 }
 :root[data-theme="light"] { color-scheme: light; }
@@ -42,6 +44,7 @@
   --warn-bg: #3b2f08; --warn-fg: #ffe7a0; --warn-line: #5b4812; --warn-icon: #fbbf24;
   --pop: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 36px rgba(0, 0, 0, .55);
   --danger: #ff8f85; --danger-solid: #c7372f; --danger-soft: #3a1613; --pin: #fbbf24; --pin-soft: #3b2f08; /* history */
+  --notrace: #a78bfa;
 }
 @media (max-width: 1099px) { :root { --rail: 52px; } }
 
@@ -98,6 +101,7 @@ input[type="color"] { width: 34px; height: 30px; padding: 2px; border: 1px solid
 input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
 input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 4px; }
 input[type="range"], input[type="checkbox"] { accent-color: var(--accent); }
+input#noTrace { accent-color: var(--notrace); }
 input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 .field { display: inline-flex; align-items: center; gap: 7px; }
 .fl { color: var(--muted); font-size: 12px; }
@@ -120,6 +124,8 @@ input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 }
 #settingsBtn { grid-area: appbar; justify-self: end; align-self: center; margin-right: 12px; z-index: 2; }
 .brand { display: flex; align-items: center; gap: 9px; margin-right: 8px; }
+.notrace { padding: 2px 10px; border: 1px solid var(--notrace); border-radius: 999px; background: transparent; color: var(--notrace); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.notrace[hidden] { display: none; }
 .logo { width: 28px; height: 28px; }
 h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 .versions, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }

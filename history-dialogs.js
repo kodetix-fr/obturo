@@ -8,7 +8,7 @@
 //   'obturo:history-changed'   { reason }      shots were removed (reason 'deleted' | 'purged'); lists and gauges read again
 import { deleteShots, listEntries, previewPurge, purgeNow } from './db.js';
 import { chunks, purgeOptions, sameWord, summarizeSelection } from './history-model.js';
-import { fmtBytes, formatNumber, plural, t } from './i18n.js';
+import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { byId as $ } from './dom-i18n.js';
 import { clamp } from './pure.js';
 
@@ -150,6 +150,19 @@ export function confirmDialog({ title, lines = [], ok, word = '', run, error = '
     dlg.showModal();
     (word ? typeInput : cancelBtn).focus(); // never the destructive button
   });
+}
+
+/**
+ * What the dialog that asks before a deletion says: how many captures go, what they hold and, for a single capture, which one it is.
+ * @param {number[]} ids @param {import('./db.js').Shot | null} [shot] The capture, when there is only one.
+ */
+export async function deleteWords(ids, shot) {
+  const sum = summarizeSelection(await listEntries({}), new Set(ids));
+  const lines = shot ? [[shot.title || shot.host, formatDate(shot.createdAt)].filter(Boolean).join(' · ')] : [];
+  lines.push(t('hist.del.body'));
+  if (sum.pinned || sum.edited) lines.push(t('hist.del.includes', { pinned: formatNumber(sum.pinned), edited: formatNumber(sum.edited) }));
+  lines.push(t('hist.del.size', { size: fmtBytes(sum.bytes) }));
+  return { sum, title: plural(sum.count, 'hist.del.title.one', 'hist.del.title.other'), lines, ok: t('hist.del.ok') };
 }
 
 // --- Delete everything ---

@@ -149,14 +149,15 @@ export default {
   'strip.label': 'Captures',
   'strip.open': 'Ouvrir la capture du {when}',
   'strip.delete': 'Supprimer la capture',
+  'lib.noTrace.tip': 'Le mode sans trace est actif\u00a0: les captures sont copiées et enregistrées nulle part. Clique pour le désactiver.',
   'strip.edited': 'éditée',
-  'strip.confirmDelete': 'Supprimer cette capture et ses versions\u00a0? Cette action est définitive.',
 
   // états de la zone d'édition
   'state.loading': 'Chargement…',
   'state.loadingEditor': "Chargement de l'éditeur…",
   'state.empty': "Aucune capture pour l'instant",
   'state.empty.hint': "Clique sur l'icône Obturo ou utilise Alt+Maj+Z pour en faire une, ou colle, dépose ou importe une image.",
+  'state.empty.noTrace': "Le mode sans trace est actif\u00a0: les captures sont copiées et enregistrées nulle part, aucune n'apparaîtra donc ici. Désactive-le dans la fenêtre de l'icône Obturo ou dans les Paramètres.",
   'state.openFailed': "Impossible d'ouvrir cette capture",
   'state.dbUnavailable': 'Base de données indisponible',
   'state.readOnly': 'Lecture seule',
@@ -186,6 +187,7 @@ export default {
   'import.err.type': "«\u00a0{name}\u00a0» n'est pas une image qu'Obturo peut lire. Les fichiers PNG, JPEG, WebP, GIF, BMP et AVIF sont acceptés.",
   'import.err.big': '«\u00a0{name}\u00a0» est trop grande pour Obturo. Les limites sont de 32 millions de pixels, 16\u202f384\u00a0px de côté et 64\u00a0Mo.',
   'import.err.failed': "L'image n'a pas pu être ajoutée\u00a0: l'historique est indisponible. Recharge la page et réessaie.",
+  'import.err.noTrace': "Le mode sans trace est actif\u00a0: rien n'est enregistré, une image ne peut donc pas être importée. Désactive-le dans la fenêtre de l'icône Obturo ou dans les Paramètres.",
 
   // boîte des paramètres
   'settings.title': 'Paramètres',

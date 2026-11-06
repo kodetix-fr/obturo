@@ -148,14 +148,15 @@ export default {
   'strip.label': 'Tangkapan',
   'strip.open': 'Buka tangkapan pada {when}',
   'strip.delete': 'Hapus tangkapan',
+  'lib.noTrace.tip': 'Mode tanpa jejak aktif: tangkapan disalin dan tidak disimpan di mana pun. Klik untuk mematikannya.',
   'strip.edited': 'diedit',
-  'strip.confirmDelete': 'Hapus tangkapan ini beserta versinya? Tindakan ini tidak dapat diurungkan.',
 
   // states of the editing area
   'state.loading': 'Memuat…',
   'state.loadingEditor': 'Memuat editor…',
   'state.empty': 'Belum ada tangkapan',
   'state.empty.hint': 'Klik ikon Obturo atau tekan Alt+Shift+Z untuk menangkap layar, atau tempel, seret, atau impor gambar.',
+  'state.empty.noTrace': 'Mode tanpa jejak aktif: tangkapan disalin dan tidak disimpan di mana pun, jadi tidak ada yang muncul di sini. Matikan di popup Obturo atau di Pengaturan.',
   'state.openFailed': 'Tangkapan ini tidak dapat dibuka',
   'state.dbUnavailable': 'Basis data tidak tersedia',
   'state.readOnly': 'Hanya baca',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '"{name}" bukan gambar yang dapat dibaca Obturo. File PNG, JPEG, WebP, GIF, BMP, dan AVIF didukung.',
   'import.err.big': '"{name}" terlalu besar untuk Obturo: maksimum 32 juta piksel, 16.384\u00A0px per sisi, dan 64\u00A0MB.',
   'import.err.failed': 'Gambar tidak dapat ditambahkan: riwayat tidak tersedia. Muat ulang halaman dan coba lagi.',
+  'import.err.noTrace': 'Mode tanpa jejak aktif: tidak ada yang disimpan, jadi gambar tidak dapat diimpor. Matikan di popup Obturo atau di Pengaturan.',
 
   // settings dialog
   'settings.title': 'Pengaturan',

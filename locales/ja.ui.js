@@ -148,14 +148,15 @@ export default {
   'strip.label': 'キャプチャ',
   'strip.open': '{when} のキャプチャを開く',
   'strip.delete': 'キャプチャを削除',
+  'lib.noTrace.tip': '「保存しない」がオンです。キャプチャはコピーされ、どこにも保存されません。クリックするとオフにします。',
   'strip.edited': '編集済み',
-  'strip.confirmDelete': 'このキャプチャとそのバージョンを削除しますか？この操作は元に戻せません。',
 
   // states of the editing area
   'state.loading': '読み込んでいます…',
   'state.loadingEditor': 'エディタを読み込んでいます…',
   'state.empty': 'キャプチャはまだありません',
   'state.empty.hint': 'Obturo のアイコンをクリックするか Alt+Shift+Z を押してキャプチャします。画像を貼り付ける、ドロップする、インポートすることもできます。',
+  'state.empty.noTrace': '「保存しない」がオンです。キャプチャはコピーされ、どこにも保存されないため、ここには表示されません。Obturo のポップアップまたは設定でオフにしてください。',
   'state.openFailed': 'このキャプチャを開けません',
   'state.dbUnavailable': 'データベースを利用できません',
   'state.readOnly': '読み取り専用',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '「{name}」は Obturo が読み取れる画像ではありません。PNG、JPEG、WebP、GIF、BMP、AVIF のファイルに対応しています。',
   'import.err.big': '「{name}」は Obturo には大きすぎます。上限は 3,200 万ピクセル、1 辺 16,384\u00A0px、64\u00A0MB です。',
   'import.err.failed': '画像を追加できませんでした。履歴を利用できません。ページを再読み込みしてからもう一度お試しください。',
+  'import.err.noTrace': '「保存しない」がオンです。何も保存されないため、画像をインポートできません。Obturo のポップアップまたは設定でオフにしてください。',
 
   // settings dialog
   'settings.title': '設定',

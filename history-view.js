@@ -13,11 +13,11 @@
 //  - getSelectedIds(): the ids of the selected captures, most recent first;
 //  - a 'selection-changed' event on `document` each time the selection changes, with detail { ids, count };
 //  - <div id="bulkExtra"> in the selection bar: empty, whatever is put in it shows between Unpin and Delete.
-import { listEntries, listHosts, queryShots, setPinnedMany, storageUsage } from './db.js';
+import { getShot, listEntries, listHosts, queryShots, setPinnedMany, storageUsage } from './db.js';
 import {
-  GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, summarizeSelection, windowRows, withRange,
+  GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, windowRows, withRange,
 } from './history-model.js';
-import { confirmDialog, countText, deleteWithProgress, guardWith, notify } from './history-dialogs.js';
+import { confirmDialog, countText, deleteWithProgress, deleteWords, guardWith, notify } from './history-dialogs.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { icon, setI18n } from './dom-i18n.js';
 import { clamp } from './pure.js';
@@ -736,22 +736,18 @@ function removeFromList(ids) {
 async function deleteShotsAsk(ids) {
   if (!ids.length) return;
   if (deps.readOnly()) { status(t('hist.readonly')); return; }
-  let sum;
+  let words;
   try {
-    sum = summarizeSelection(await listEntries({}), new Set(ids));
+    words = await deleteWords(ids, ids.length === 1 ? await getShot(ids[0]) : null);
   } catch (e) {
     console.error('Obturo: delete failed', e);
     status(t('hist.del.failed'));
     return;
   }
+  const { sum } = words;
   if (!sum.count) { removeFromList(ids); return; } // already gone
-  const lines = [t('hist.del.body')];
-  if (sum.pinned || sum.edited) lines.push(t('hist.del.includes', { pinned: formatNumber(sum.pinned), edited: formatNumber(sum.edited) }));
-  lines.push(t('hist.del.size', { size: fmtBytes(sum.bytes) }));
   const ok = await confirmDialog({
-    title: plural(sum.count, 'hist.del.title.one', 'hist.del.title.other'),
-    lines,
-    ok: t('hist.del.ok'),
+    ...words,
     run: async (progress) => {
       selfChange = true;
       try {

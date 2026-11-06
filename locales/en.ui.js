@@ -148,14 +148,15 @@ export default {
   'strip.label': 'Captures',
   'strip.open': 'Open the capture from {when}',
   'strip.delete': 'Delete capture',
+  'lib.noTrace.tip': 'No trace is on: captures are copied and saved nowhere. Click to turn it off.',
   'strip.edited': 'edited',
-  'strip.confirmDelete': 'Delete this capture and its versions? This cannot be undone.',
 
   // states of the editing area
   'state.loading': 'Loading…',
   'state.loadingEditor': 'Loading the editor…',
   'state.empty': 'No captures yet',
   'state.empty.hint': 'Click the Obturo icon or press Alt+Shift+Z to take one, or paste, drop or import an image.',
+  'state.empty.noTrace': 'No trace is on: captures are copied and saved nowhere, so none will show up here. Turn it off in the Obturo popup or in Settings.',
   'state.openFailed': "Can't open this capture",
   'state.dbUnavailable': 'Database unavailable',
   'state.readOnly': 'Read-only',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '"{name}" is not an image Obturo can read. PNG, JPEG, WebP, GIF, BMP and AVIF files are supported.',
   'import.err.big': '"{name}" is too large for Obturo. The limits are 32 million pixels, 16,384 px per side and 64 MB.',
   'import.err.failed': "The image couldn't be added: the history is unavailable. Reload the page and try again.",
+  'import.err.noTrace': 'No trace is on: nothing is saved, so an image cannot be imported. Turn it off in the Obturo popup or in Settings.',
 
   // settings dialog
   'settings.title': 'Settings',

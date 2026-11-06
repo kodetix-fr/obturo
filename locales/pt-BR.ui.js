@@ -148,14 +148,15 @@ export default {
   'strip.label': 'Capturas',
   'strip.open': 'Abrir a captura de {when}',
   'strip.delete': 'Excluir captura',
+  'lib.noTrace.tip': 'O modo sem rastro está ativo: as capturas são copiadas e não são salvas em lugar nenhum. Clique para desativá-lo.',
   'strip.edited': 'editada',
-  'strip.confirmDelete': 'Excluir esta captura e suas versões? Isso não pode ser desfeito.',
 
   // states of the editing area
   'state.loading': 'Carregando…',
   'state.loadingEditor': 'Carregando o editor…',
   'state.empty': 'Nenhuma captura ainda',
   'state.empty.hint': 'Clique no ícone do Obturo ou pressione Alt+Shift+Z para fazer uma, ou cole, arraste ou importe uma imagem.',
+  'state.empty.noTrace': 'O modo sem rastro está ativo: as capturas são copiadas e não são salvas em lugar nenhum, então nenhuma aparecerá aqui. Desative-o no popup do Obturo ou em Configurações.',
   'state.openFailed': 'Não foi possível abrir esta captura',
   'state.dbUnavailable': 'Banco de dados indisponível',
   'state.readOnly': 'Somente leitura',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '"{name}" não é uma imagem que o Obturo consiga ler. Arquivos PNG, JPEG, WebP, GIF, BMP e AVIF são aceitos.',
   'import.err.big': '"{name}" é grande demais para o Obturo. Os limites são 32 milhões de pixels, 16.384\u00A0px de lado e 64\u00A0MB.',
   'import.err.failed': 'A imagem não pôde ser adicionada: o histórico está indisponível. Recarregue a página e tente de novo.',
+  'import.err.noTrace': 'O modo sem rastro está ativo: nada é salvo, então não é possível importar uma imagem. Desative-o no popup do Obturo ou em Configurações.',
 
   // settings dialog
   'settings.title': 'Configurações',

@@ -257,6 +257,37 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     await page.waitForSelector('dialog#settings:not([open])', { state: 'attached' });
   });
 
+  it('with No trace on, nothing is imported and the banner says why; the pill shows the mode and turns it off', async () => {
+    await fresh();
+    const before = await count();
+    const noTrace = () => page.evaluate(async () => (await (await import(`${location.origin}/settings.js`)).getSettings()).noTrace);
+    await page.evaluate(async () => (await import(`${location.origin}/settings.js`)).setSettings({ noTrace: true }));
+    await page.waitForSelector('#noTraceBadge:not([hidden])');
+    assert.equal(await page.locator('#noTraceBadge').innerText(), 'No trace');
+    await paste([{ name: 'secret.png', type: 'image/png' }]);
+    await poll(async () => (await bannerText())?.startsWith('No trace is on: nothing is saved'), { what: 'the banner after a paste' });
+    await page.evaluate(() => { document.getElementById('banner').hidden = true; });
+    await drag([{ name: 'secret.png', type: 'image/png' }]);
+    await poll(async () => (await bannerText())?.startsWith('No trace is on: nothing is saved'), { what: 'the banner after a drop' });
+    await new Promise((done) => setTimeout(done, 600));
+    assert.equal(await count(), before, 'nothing was kept');
+    await page.click('#noTraceBadge');
+    await page.waitForSelector('#noTraceBadge', { state: 'hidden' });
+    assert.equal(await noTrace(), false, 'the pill turned the mode off');
+    await paste([{ name: 'kept.png', type: 'image/png' }]);
+    await grew(before);
+  });
+
+  it('with No trace on, the empty library says that nothing will show up in it', async () => {
+    await fresh([]);
+    const hint = () => page.locator('#stageHint').innerText();
+    assert.match(await hint(), /^Click the Obturo icon/);
+    await page.evaluate(async () => (await import(`${location.origin}/settings.js`)).setSettings({ noTrace: true }));
+    await poll(async () => (await hint()).startsWith('No trace is on: captures are copied'), { what: 'the hint of the empty library' });
+    await page.evaluate(async () => (await import(`${location.origin}/settings.js`)).setSettings({ noTrace: false }));
+    await poll(async () => (await hint()).startsWith('Click the Obturo icon'), { what: 'the usual hint again' });
+  });
+
   it('a second tab (read-only): the button is disabled, a paste imports nothing, a drop does not open the file', async () => {
     await fresh();
     const before = await count();

@@ -328,11 +328,18 @@ describe('editor: full walkthrough', () => {
     assert.ok(!(await dbDump(page)).some((s) => s.id === B.id), 'the autosave recreated the evicted shot');
   });
 
-  it('deleting a shot also removes its original', async () => {
+  it('deleting a shot asks first and names it, cancel keeps it, and confirming also removes its original', async () => {
     const before = await dbDump(page);
     const victim = before.at(-1);
-    await page.locator(`#strip li.shot[data-id="${victim.id}"] button.del`).click();
-    if (victim.versions?.length) await page.click('#cfOk'); // an edited shot asks first
+    const del = page.locator(`#strip li.shot[data-id="${victim.id}"] button.del`);
+    await del.click();
+    await page.waitForSelector('#confirmDlg[open]');
+    assert.equal(await page.locator('#cfTitle').innerText(), 'Delete this capture?');
+    assert.ok((await page.locator('#cfBody').innerText()).includes(victim.title || victim.host), 'the dialog names the capture');
+    await page.click('#cfCancel');
+    assert.equal((await dbDump(page)).length, before.length, 'cancel keeps it');
+    await del.click();
+    await page.click('#cfOk');
     await poll(async () => (await dbDump(page)).length === before.length - 1, { what: 'shot deleted' });
     const gone = await page.evaluate(async (id) => {
       const { getOriginal } = await import(`${location.origin}/db.js`);

@@ -148,14 +148,15 @@ export default {
   'strip.label': '截图',
   'strip.open': '打开 {when} 的截图',
   'strip.delete': '删除截图',
+  'lib.noTrace.tip': '“不留痕”模式已开启：截图只会被复制，不会保存到任何地方。点击即可关闭。',
   'strip.edited': '已编辑',
-  'strip.confirmDelete': '要删除此截图及其所有版本吗？此操作无法撤销。',
 
   // states of the editing area
   'state.loading': '正在加载…',
   'state.loadingEditor': '正在加载编辑器…',
   'state.empty': '还没有截图',
   'state.empty.hint': '点击 Obturo 图标或按 Alt+Shift+Z 截一张，也可以粘贴、拖放或导入图片。',
+  'state.empty.noTrace': '“不留痕”模式已开启：截图只会被复制，不会保存到任何地方，所以这里不会出现截图。请在 Obturo 弹出窗口或设置中关闭它。',
   'state.openFailed': '无法打开此截图',
   'state.dbUnavailable': '数据库不可用',
   'state.readOnly': '只读',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '“{name}”不是 Obturo 能读取的图片。支持 PNG、JPEG、WebP、GIF、BMP 和 AVIF 文件。',
   'import.err.big': '“{name}”对 Obturo 来说太大。上限为 3200 万像素、每边 16384 像素和 64\u00A0MB。',
   'import.err.failed': '无法添加图片：历史记录不可用。请重新加载页面后重试。',
+  'import.err.noTrace': '“不留痕”模式已开启：不会保存任何内容，因此无法导入图片。请在 Obturo 弹出窗口或设置中关闭它。',
 
   // settings dialog
   'settings.title': '设置',

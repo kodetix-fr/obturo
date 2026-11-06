@@ -68,7 +68,9 @@ opens the new capture in the editor.
   popup (and in *Settings*, *History*) turns it on: a capture is then copied to
   the clipboard and saved nowhere, no row in the history, no thumbnail, no file.
   The icon turns violet (and the tooltip says so) so that the mode is not
-  forgotten, and the result badge is violet too. *Capture and edit* is greyed
+  forgotten, the result badge is violet too, and the library shows a violet
+  *No trace* button (a click turns the mode off). Importing or pasting an image
+  is refused while it is on, since an import is kept in the history. *Capture and edit* is greyed
   out (there is nothing to edit; the shortcuts say so on the page). The captures
   you already have stay. If the copy fails, nothing is left of the capture: the
   badge turns red and a note says so.

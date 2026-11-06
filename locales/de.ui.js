@@ -148,14 +148,15 @@ export default {
   'strip.label': 'Aufnahmen',
   'strip.open': 'Aufnahme vom {when} öffnen',
   'strip.delete': 'Aufnahme löschen',
+  'lib.noTrace.tip': '„Spurlos“ ist an: Aufnahmen werden kopiert und nirgends gespeichert. Klicke, um es auszuschalten.',
   'strip.edited': 'bearbeitet',
-  'strip.confirmDelete': 'Diese Aufnahme und ihre Versionen löschen? Das lässt sich nicht rückgängig machen.',
 
   // states of the editing area
   'state.loading': 'Wird geladen…',
   'state.loadingEditor': 'Der Editor wird geladen…',
   'state.empty': 'Noch keine Aufnahmen',
   'state.empty.hint': 'Klicke auf das Obturo-Symbol oder drücke Alt+Umschalt+Z, um eine Aufnahme zu machen, oder füge ein Bild ein, ziehe es hierher oder importiere es.',
+  'state.empty.noTrace': '„Spurlos“ ist an: Aufnahmen werden kopiert und nirgends gespeichert, deshalb erscheint hier keine. Schalte den Modus im Obturo-Popup oder in den Einstellungen aus.',
   'state.openFailed': 'Diese Aufnahme lässt sich nicht öffnen',
   'state.dbUnavailable': 'Datenbank nicht verfügbar',
   'state.readOnly': 'Schreibgeschützt',
@@ -185,6 +186,7 @@ export default {
   'import.err.type': '„{name}“ ist kein Bild, das Obturo lesen kann. PNG, JPEG, WebP, GIF, BMP und AVIF werden unterstützt.',
   'import.err.big': '„{name}“ ist zu groß für Obturo. Die Grenzen sind 32 Millionen Pixel, 16.384\u00A0px je Seite und 64\u00A0MB.',
   'import.err.failed': 'Das Bild konnte nicht hinzugefügt werden: Der Verlauf ist nicht verfügbar. Lade die Seite neu und versuche es noch einmal.',
+  'import.err.noTrace': '„Spurlos“ ist an: Es wird nichts gespeichert, also kann kein Bild importiert werden. Schalte den Modus im Obturo-Popup oder in den Einstellungen aus.',
 
   // settings dialog
   'settings.title': 'Einstellungen',
