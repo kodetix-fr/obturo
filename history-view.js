@@ -17,7 +17,7 @@ import { getShot, listEntries, listHosts, queryShots, setPinnedMany, storageUsag
 import {
   GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, windowRows, withRange,
 } from './history-model.js';
-import { confirmDialog, countText, deleteWithProgress, deleteWords, guardWith, notify } from './history-dialogs.js';
+import { confirmDialog, countText, deleteWithProgress, deleteWords, guardWith, notify, askPurge } from './history-dialogs.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { icon, setI18n } from './dom-i18n.js';
 import { clamp } from './pure.js';
@@ -115,7 +115,7 @@ function wire() {
     dialog: 'history', count: 'hvCount', query: 'hvQuery', close: 'hvClose', filters: 'hvFilters', host: 'hvHost', period: 'hvPeriod',
     pinned: 'hvPinned', bulk: 'hvBulk', selCount: 'hvSelCount', selectAll: 'hvSelectAll', clear: 'hvClear', pin: 'hvPin', unpin: 'hvUnpin',
     del: 'hvDelete', scroll: 'hvScroll', grid: 'hvGrid', sentinel: 'hvSentinel', more: 'hvMore', state: 'hvState', stateTitle: 'hvStateTitle',
-    stateHint: 'hvStateHint', stateAction: 'hvStateAction', status: 'hvStatus', storage: 'hvStorage', storageText: 'hvStorageText',
+    stateHint: 'hvStateHint', stateAction: 'hvStateAction', status: 'hvStatus', purge: 'hvPurge', storage: 'hvStorage', storageText: 'hvStorageText',
   })) ui[key] = document.getElementById(id);
 
   ui.query.placeholder = t('hist.search.placeholder');
@@ -145,6 +145,7 @@ function wire() {
   ui.unpin.addEventListener('click', () => setPins(getSelectedIds(), false));
   ui.del.addEventListener('click', () => deleteShotsAsk(getSelectedIds()));
   ui.storage.addEventListener('click', () => deps.openSettings());
+  ui.purge.addEventListener('click', () => { if (!deps.readOnly()) askPurge().catch((e) => console.error('Obturo: purge', e)); });
 
   // the grid: one listener each, for every card
   ui.grid.addEventListener('click', onGridClick);

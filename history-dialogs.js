@@ -10,6 +10,7 @@ import { deleteShots, listEntries, previewPurge, purgeNow } from './db.js';
 import { chunks, purgeOptions, sameWord, summarizeSelection } from './history-model.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { byId as $ } from './dom-i18n.js';
+import { getSettings } from './settings.js';
 import { clamp } from './pure.js';
 
 /** Shots removed per transaction when deleting many: one transaction is a progress step. */
@@ -186,6 +187,16 @@ export async function wipeHistory() {
 }
 
 // --- Purge now ---
+
+/** "Purge now" from a button: the dialog starts on the age of the retention, with no size limit. */
+export async function askPurge() {
+  if (isReadOnly()) return;
+  const settings = await getSettings().catch(() => null);
+  /** @type {HTMLInputElement} */ ($('pgDays')).value = String(settings?.retentionDays || 30);
+  /** @type {HTMLInputElement} */ ($('pgAgeOn')).checked = true;
+  /** @type {HTMLInputElement} */ ($('pgCapOn')).checked = false;
+  await openPurgeDialog();
+}
 
 /** "Purge now": options, a preview of what they would remove, and the purge. Resolves when the dialog closes. @returns {Promise<void>} */
 export function openPurgeDialog() {

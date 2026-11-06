@@ -698,6 +698,23 @@ describe('history view', () => {
       await fresh([], { open: false });
     });
 
+    it('the footer of the sheet has Purge now: the dialog opens on top of it, and the sheet follows the purge', async () => {
+      await fresh([...Array.from({ length: 10 }, (_, i) => row(i + 1, { createdAt: NOW - 100 * DAY })), ...Array.from({ length: 20 }, (_, i) => row(11 + i))]);
+      await ready();
+      await openHistory(L);
+      await viewWhere(L, (x) => x.count === '30 captures', 'thirty');
+      await L.click('#hvPurge');
+      await L.waitForSelector('#purgeDlg[open]');
+      assert.equal(await sheetOpen(), true, 'the sheet stays under the dialog');
+      assert.equal(await L.isChecked('#pgAgeOn'), true, 'it starts on the age of the retention');
+      await poll(async () => /To delete: 10 captures/.test(await L.locator('#pgPreview').innerText()), { what: 'preview' });
+      await L.click('#pgRun');
+      await poll(async () => /Deleted: 10 captures/.test(await L.locator('#pgPreview').innerText()), { what: 'purged' });
+      await L.click('#pgClose');
+      await viewWhere(L, (x) => x.count === '20 captures' && x.cards === 20, 'the sheet read the history again');
+      await closeSheet();
+    });
+
     it('the storage figures of the sheet open the settings on top of it; a purge there is seen by the sheet', async () => {
       await fresh([...Array.from({ length: 10 }, (_, i) => row(i + 1, { createdAt: NOW - 100 * DAY })), ...Array.from({ length: 20 }, (_, i) => row(11 + i))]);
       await ready();
