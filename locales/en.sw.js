@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': 'no trace', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': 'No trace is on: nothing is saved, so there is nothing to edit. Turn it off in the Obturo popup to edit a capture.',
   'sw.noTrace.copyFailed': 'No trace: the copy failed, and nothing was saved. Try again.',
+  'sw.copied': 'Capture copied and saved in the history.',
+  'sw.copied.noTrace': 'Capture copied. Nothing was saved (no trace).',
+  'sw.copyFailed': 'The copy failed. The capture is saved in the history: copy it from there.',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'The page is longer than a capture can hold: the image stops at the point reached.',
   'sw.full.scaled': 'The image was reduced to {n}% to fit the limits of a capture.',

@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': 'spurlos', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': '„Spurlos“ ist an: Es wird nichts gespeichert, also gibt es nichts zu bearbeiten. Schalte den Modus im Obturo-Popup aus, um eine Aufnahme zu bearbeiten.',
   'sw.noTrace.copyFailed': 'Spurlos: Das Kopieren ist fehlgeschlagen, und nichts wurde gespeichert. Versuche es noch einmal.',
+  'sw.copied': 'Aufnahme kopiert und im Verlauf gespeichert.',
+  'sw.copied.noTrace': 'Aufnahme kopiert. Es wurde nichts gespeichert (Spurlos).',
+  'sw.copyFailed': 'Das Kopieren ist fehlgeschlagen. Die Aufnahme ist im Verlauf gespeichert: Kopiere sie von dort.',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'Die Seite ist länger, als eine Aufnahme fassen kann: Das Bild endet an der erreichten Stelle.',
   'sw.full.scaled': 'Das Bild wurde auf {n}\u00A0% verkleinert, um die Grenzen einer Aufnahme einzuhalten.',

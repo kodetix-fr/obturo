@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': '保存しない', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': '「保存しない」がオンです。何も保存されないため、編集するものがありません。キャプチャを編集するには、Obturo のポップアップでオフにしてください。',
   'sw.noTrace.copyFailed': '「保存しない」モード: コピーできず、何も保存されませんでした。もう一度お試しください。',
+  'sw.copied': 'キャプチャをコピーし、履歴に保存しました。',
+  'sw.copied.noTrace': 'キャプチャをコピーしました。何も保存されていません（保存しない）。',
+  'sw.copyFailed': 'コピーに失敗しました。キャプチャは履歴に保存されています。そこからコピーしてください。',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'ページが 1 回のキャプチャに収まる長さを超えています。画像は到達した位置で終わっています。',
   'sw.full.scaled': 'キャプチャの上限に収めるため、画像を {n}% に縮小しました。',

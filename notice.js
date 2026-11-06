@@ -6,8 +6,9 @@
  * @param {string} title
  * @param {string} text
  * @param {'info' | 'error'} tone A remark (blue), a failure (red).
+ * @param {number | null} [ms] How long it stays; about the time it takes to read it by default.
  */
-export function showNotice(title, text, tone) {
+export function showNotice(title, text, tone, ms = null) {
   const ID = 'obturo-notice'; // fullpage.js removes it when the next capture starts: it must not be in that image
   // The light values of --accent and --danger in library.css: the host page has no theme of ours to follow.
   const TONES = { info: ['#2563eb', '#fff', '#2563eb'], error: ['#b3261e', '#fff', '#b3261e'] };
@@ -29,5 +30,10 @@ export function showNotice(title, text, tone) {
   box.addEventListener('click', () => host.remove());
   host.attachShadow({ mode: 'open' }).append(box);
   document.documentElement.append(host);
-  setTimeout(() => host.remove(), Math.min(15000, Math.max(8000, 70 * (title.length + text.length)))); // about the time it takes to read it
+  setTimeout(() => host.remove(), ms ?? Math.min(15000, Math.max(8000, 70 * (title.length + text.length)))); // about the time it takes to read it
+}
+
+/** Takes the note off the page, if it is there. Serialized into the page like showNotice. */
+export function removeNotice() {
+  document.getElementById('obturo-notice')?.remove();
 }

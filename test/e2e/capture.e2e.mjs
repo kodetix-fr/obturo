@@ -27,6 +27,7 @@ describe('captures in the real extension', () => {
   const restored = (expectedY = 0) => page.evaluate((y) => window.scrollY === y && getComputedStyle(document.getElementById('footer')).visibility === 'visible'
     && getComputedStyle(document.documentElement).scrollBehavior === 'auto', expectedY);
   const call = (name, tab) => sw.evaluate(([n, t]) => __t[n](t), [name, tab]);
+  const noticeText = () => page.evaluate(() => document.getElementById('obturo-notice')?.shadowRoot?.textContent ?? null);
   // a gesture, by the name of its command (the same table as the shortcuts and the icon menu)
   const run = (name, tab) => sw.evaluate(([n, t]) => __t.run(n, t), [name, tab]);
 
@@ -34,6 +35,7 @@ describe('captures in the real extension', () => {
     site = await startSite();
     h = await launchExtension({ hook: true, hostPermissions: true, realWindow: true, instrumented: false, size: { width: 1920, height: 1080 } });
     sw = h.sw;
+    await sw.evaluate(() => __t.settings.setSettings({ language: 'en' })); // the texts of the notes are the English ones, whatever the system
     await h.context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: site.origin });
     page = await h.context.newPage();
   });
@@ -52,9 +54,11 @@ describe('captures in the real extension', () => {
     assert.ok(Math.abs(shot.w - viewport[0] * DPR) <= 1 && Math.abs(shot.h - viewport[1] * DPR) <= 1, `size ${shot.w}x${shot.h}`);
     assert.deepEqual(await finalBadge(sw), ['OK', GREEN]);
     assert.ok(shot.url.startsWith(site.origin) && shot.title === 'Test page', 'address and title of the page');
+    assert.equal(await noticeText(), 'ObturoCapture copied and saved in the history.', 'the page says it was copied');
+    await until(async () => (await noticeText()) === null, 'the confirmation goes by itself', 6000);
   });
 
-  it('copy refused: orange "!" badge AND the shot is saved', async () => {
+  it('copy refused: orange "!" badge AND the shot is saved, and the page says so', async () => {
     await quota();
     const tab = await tabOf(sw);
     const before = await maxId(sw);
@@ -64,6 +68,7 @@ describe('captures in the real extension', () => {
     await sw.evaluate(() => { globalThis.__failCopy = false; });
     assert.deepEqual(await finalBadge(sw), ['!', ORANGE]);
     assert.equal((await maxId(sw)) - before, 1, 'the shot is saved despite the refused copy');
+    assert.match(await noticeText(), /^ObturoThe copy failed\. The capture is saved in the history/, 'the page says the copy failed');
   });
 
   it('area: cropped dimensions, clipboard, green badge', async () => {

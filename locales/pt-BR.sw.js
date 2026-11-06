@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': 'sem rastro', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': 'O modo sem rastro está ativo: nada é salvo, então não há nada para editar. Desative-o no popup do Obturo para editar uma captura.',
   'sw.noTrace.copyFailed': 'Sem rastro: a cópia falhou e nada foi salvo. Tente de novo.',
+  'sw.copied': 'Captura copiada e salva no histórico.',
+  'sw.copied.noTrace': 'Captura copiada. Nada foi salvo (sem rastro).',
+  'sw.copyFailed': 'A cópia falhou. A captura está salva no histórico: copie-a de lá.',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'A página é mais longa do que uma captura comporta: a imagem para no ponto alcançado.',
   'sw.full.scaled': 'A imagem foi reduzida para {n}% para caber nos limites de uma captura.',

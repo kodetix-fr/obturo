@@ -14,6 +14,9 @@ export default {
   'sw.noTrace.title': 'без следа', // after the name in the tooltip of the icon, while the mode is on
   'sw.noTrace.edit': 'Включён режим «без следа»: ничего не сохраняется, поэтому редактировать нечего. Выключите его во всплывающем окне Obturo, чтобы редактировать снимок.',
   'sw.noTrace.copyFailed': 'Без следа: не удалось скопировать, и ничего не сохранено. Попробуйте снова.',
+  'sw.copied': 'Снимок скопирован и сохранён в истории.',
+  'sw.copied.noTrace': 'Снимок скопирован. Ничего не сохранено (без следа).',
+  'sw.copyFailed': 'Не удалось скопировать. Снимок сохранён в истории: скопируйте его оттуда.',
   // what a full-page capture tells the user on the page (notice.js): what the image is not, or why the capture stopped
   'sw.full.cut': 'Страница длиннее, чем вмещает снимок: изображение обрывается на достигнутом месте.',
   'sw.full.scaled': 'Изображение уменьшено до {n} %, чтобы уложиться в пределы снимка.',

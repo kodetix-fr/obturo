@@ -241,14 +241,14 @@ describe('hide sensitive text', () => {
     await setting(true);
     await capture('capture-visible');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /^Obturo\s*1 sensitive item covered/);
+    assert.match(await note(), /^ObturoCapture copied and saved in the history\. 1 sensitive item covered/);
   });
 
   it('the setting off: nothing is covered, nothing is said', async () => {
     await build();
     await capture('capture-visible');
     for (const id of ['mail', 'phone', 'iban', 'card', 'key']) assert.ok(await dark(await boxOf(id)) < SHOWN, `${id} is as the page shows it`);
-    assert.equal(await note(), null);
+    assert.equal(await note(), 'ObturoCapture copied and saved in the history.', 'the copy is said, the cover is not');
   });
 
   it('a scrolling panel: the text that scrolls into view is covered too', async () => {
@@ -281,7 +281,7 @@ describe('hide sensitive text', () => {
     assert.ok(await dark(await boxOf('mail'), origin) > HIDDEN, 'the e-mail');
     assert.ok(await dark(await boxOf('phone'), origin) > HIDDEN, 'the phone number');
     await page.waitForSelector('#obturo-notice', { state: 'attached' });
-    assert.match(await note(), /^Obturo\s*2 sensitive items covered/, 'the two the area keeps, not the ones outside it');
+    assert.match(await note(), /^ObturoCapture copied and saved in the history\. 2 sensitive items covered/, 'the two the area keeps, not the ones outside it');
   });
 
   it('an element: what the element holds is covered', async () => {
