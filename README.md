@@ -396,7 +396,7 @@ Two things to know before sharing a capture:
 | Permission | Why |
 |---|---|
 | `activeTab` | Capture the active tab, only after a gesture from you (icon click, shortcut, menu). No access to websites in general. |
-| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, the one that covers the sensitive text while the image is taken (only with *Hide sensitive text* on), and write the image to the clipboard from there; after a full-page capture, show a short note on the page when the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
+| `scripting` | With `activeTab`, inject into the active tab, on demand, the script that selects an area or scrolls the full page, the one that covers the sensitive text while the image is taken (only with *Hide sensitive text* on), and write the image to the clipboard from there; show a short note on the page that says the capture was copied, or that the image is not the whole page or the capture stopped. Nothing is injected without a gesture from you. |
 | `contextMenus` | The icon's right-click menu: *Capture* and *Capture and edit* (submenus), *Open the library* and *Settings*. |
 
 Obturo asks for no access to websites, reads the clipboard only when you paste
@@ -434,8 +434,8 @@ databases, the retention, the version model and the budgets.
 - `gestures.js`: what the icon menu holds and where a gesture sends the user.
 - `overlay.js`, `fullpage.js`: injected into the tab on demand. The area
   selection, and the page driver of a full-page capture. `notice.js` is the
-  short note a full-page capture leaves on the page when it is not the whole
-  page or stops.
+  short note a capture leaves on the page: that it was copied, or that a
+  full-page capture is not the whole page or stops.
 - `sensitive.js`, `redact.js`: injected together when *Hide sensitive text* is
   on. The first finds what to hide in a text (a pure function, tested without a
   browser); the second covers it for the length of an image.

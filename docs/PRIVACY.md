@@ -54,7 +54,7 @@ None. Obturo does not send, sell, share or transfer any data to anyone.
 ## Permissions used
 
 - `activeTab`: capture the active tab, only after an action from you.
-- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page when a full-page capture is not the whole page or stopped, and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
+- `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page (that the capture was copied, or that a full-page capture is not the whole page or stopped), and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
 - `contextMenus`: the icon's right-click menu: Capture and Capture and edit (each with Area, Visible part and Full page), Open the library, and Settings.
 
 Obturo requests no broad access to websites. It does not use `unlimitedStorage`.
