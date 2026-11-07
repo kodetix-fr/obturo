@@ -14,7 +14,7 @@ describe('editor: turn', () => {
   const pageErrors = () => h.errors.filter((e) => e.startsWith('[pageerror]'));
   const near = (a, b, what) => assert.ok(Math.abs(a - b) <= 1, `${what}: ${a} is not ${b}`);
   const turn = async (w, hh) => { await page.click('#rotate'); await waitOut(page, w, hh); m = await mapper(page, w, hh); };
-  const center = (o) => ({ x: o.left + (o.width * (o.scaleX ?? 1)) / 2, y: o.top + (o.height * (o.scaleY ?? 1)) / 2 });
+  const center = (o) => ({ x: o.left + (o.width * (o.scaleX ?? 1) + (o.strokeWidth || 0)) / 2, y: o.top + (o.height * (o.scaleY ?? 1) + (o.strokeWidth || 0)) / 2 });
 
   before(async () => {
     h = await launchExtension();
@@ -61,18 +61,31 @@ describe('editor: turn', () => {
     m = await mapper(page, H, W);
     await tool(page, 'pixel');
     await drag(page, m, 300, 1200, 700, 1400); // 400 x 200 in the turned image
+    await tool(page, 'rect');
+    await drag(page, m, 100, 100, 260, 220); // an outline, 160 x 120
+    await tool(page, 'flat');
+    await drag(page, m, 500, 300, 640, 380); // a solid fill, 140 x 80
     await tool(page, 'marker');
     await page.mouse.click(...m.pt(300, 500));
     await page.keyboard.press('Escape');
     await tool(page, 'select');
-    await poll(async () => (await objectsOf()).some((o) => o.type === 'PixelRegion') && (await objectsOf()).some((o) => o.type === 'Marker'), { what: 'a region and a marker saved' });
+    await poll(async () => (await objectsOf()).some((o) => o.type === 'PixelRegion') && (await objectsOf()).some((o) => o.type === 'Marker') && (await objectsOf()).filter((o) => o.type === 'Rect').length === 2, { what: 'a region, two rectangles and a marker saved' });
     const before = await objectsOf();
     const region = before.find((o) => o.type === 'PixelRegion'), marker = before.find((o) => o.type === 'Marker');
     const rc = center(region), mc = { x: marker.left + marker.height / 2, y: marker.top + marker.height / 2 };
     await turn(W, H);
-    const after = await poll(async () => { const o = await objectsOf(); return (await version()).turn === 2 ? o : null; }, { what: 'turned again' });
+    const after = await poll(async () => { const v = await version(); return v.turn === 2 ? v.objects : null; }, { what: 'turned again' });
     const region2 = after.find((o) => o.type === 'PixelRegion'), marker2 = after.find((o) => o.type === 'Marker');
     assert.equal(region2.angle ?? 0, 0, 'a hiding region is never tilted');
+    for (const kind of ['rect', 'flat']) {
+      const o = after.find((x) => x.type === 'Rect' && !!x.fill === (kind === 'flat'));
+      const was = before.find((x) => x.type === 'Rect' && !!x.fill === (kind === 'flat'));
+      assert.equal(o.angle ?? 0, 0, `${kind}: a rectangle stays upright, its box turns`);
+      near(o.width, was.height, `${kind}: the box turns (width)`);
+      near(o.height, was.width, `${kind}: the box turns (height)`);
+      near(center(o).x, W - center(was).y, `${kind}: it follows the image (x)`);
+      near(center(o).y, center(was).x, `${kind}: it follows the image (y)`);
+    }
     near(region2.width, region.height, 'the sides of the region box are swapped (width)');
     near(region2.height, region.width, 'the sides of the region box are swapped (height)');
     near(center(region2).x, W - rc.y, 'the region follows the image (x)');

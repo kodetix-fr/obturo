@@ -183,8 +183,9 @@ Non-destructive: the original of a capture is never changed.
   can hold a query. An imported image has no address: its stamp is the date alone.
 - **Rotate** (the *Rotate* button, under the editor): a quarter turn clockwise of the
   whole capture, with its crop and what is drawn on it. Each version has its own
-  turn, undone with the rest, and the original is never rewritten. The hiding
-  regions, the highlighter, the spotlight and the numbered markers stay upright.
+  turn, undone with the rest, and the original is never rewritten. Rectangles
+  (outlines, solid fills, hiding regions, highlighter, spotlight) and numbered
+  markers stay upright: their box turns with the image.
 - **One color control everywhere**: the line of an outline or an arrow, a text and
   its background, a marker, the highlighter and the solid fill all use the same
   swatches (black, white, gray, blue, red, yellow, green, orange, pink) and a free

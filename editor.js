@@ -400,9 +400,9 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     installFrame(next, quarter);
   }
 
-  // An object after a quarter turn clockwise of an image `h` px high. The hiding regions, the highlighter and the spotlight stay upright
-  // (they read the image under them): their box turns. A marker stays upright too, its disc goes where the turn takes it. Anything else
-  // turns with the image.
+  // An object after a quarter turn clockwise of an image `h` px high. A rectangle that is not tilted (an outline, a solid fill, a free area,
+  // a hiding region, the highlighter, the spotlight) stays upright: its box turns. A marker stays upright too, its disc goes where the turn
+  // takes it. Anything else turns with the image.
   function turnObject(o, h) {
     const to = turnPoint(o.getCenterPoint().x, o.getCenterPoint().y, h);
     if (o instanceof Marker) {
@@ -411,9 +411,10 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       o.set({ top: c.y - o.height / 2 });
       o.fit(c.x);
       if (o.sideAuto && o.label) o.setSide(autoSide(c.x, o.height, o.width - o.height, h));
-    } else if (o.lockRotation) {
-      o.set({ width: o.height, height: o.width, rx: o.ry, ry: o.rx, pts: turnPts(o.pts ?? []) });
-      o.set({ left: to.x - o.width / 2, top: to.y - o.height / 2 });
+    } else if (o instanceof Rect && !o.angle) {
+      o.set({ width: o.height, height: o.width, rx: o.ry, ry: o.rx });
+      if (o.pts) o.set({ pts: turnPts(o.pts) });
+      o.setPositionByOrigin(to, 'center', 'center');
     } else {
       o.set({ angle: ((o.angle || 0) + 90) % 360 });
       o.setPositionByOrigin(to, 'center', 'center');
