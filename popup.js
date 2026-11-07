@@ -321,6 +321,8 @@ async function init() {
   document.documentElement.classList.remove('pending');
   items[0].focus();
   performance.mark('obturo:popup-painted');
+  // The dot of the news and the request for a review read the settings database: after the paint, never before.
+  import('./popup-notice.js').then((m) => m.run(t, openPage)).catch((e) => console.error('Obturo:', e));
 }
 init().catch((e) => {
   console.error('Obturo:', e);

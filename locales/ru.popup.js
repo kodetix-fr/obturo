@@ -10,4 +10,11 @@ export default {
   'popup.delay': 'Задержка',
   'popup.delayOff': 'Нет',
   'popup.delayValue': '{n} с',
+  'popup.ask.label': 'Просьба об отзыве',
+  'popup.ask.text': 'Obturo бесплатно и хранит всё на вашем компьютере. Отзыв помогает другим людям найти его.',
+  'popup.ask.review': 'Оставить отзыв',
+  'popup.ask.later': 'Позже',
+  'popup.ask.never': 'Нет, спасибо',
+  'popup.ask.problem': 'Проблема? Сообщите нам',
+  'popup.news': 'Новое',
 };

@@ -10,4 +10,11 @@ export default {
   'popup.delay': 'Délai',
   'popup.delayOff': 'Aucun',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': "Demande d'avis",
+  'popup.ask.text': "Obturo est gratuit et garde tout sur ton ordinateur. Un avis aide d'autres personnes à le trouver.",
+  'popup.ask.review': 'Donner un avis',
+  'popup.ask.later': 'Plus tard',
+  'popup.ask.never': 'Non merci',
+  'popup.ask.problem': 'Un souci ? Dis-le nous',
+  'popup.news': 'Nouveau',
 };

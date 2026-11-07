@@ -10,4 +10,11 @@ export default {
   'popup.delay': 'Atraso',
   'popup.delayOff': 'Desativado',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': 'Pedido de avaliação',
+  'popup.ask.text': 'O Obturo é gratuito e mantém tudo no seu computador. Uma avaliação ajuda outras pessoas a encontrá-lo.',
+  'popup.ask.review': 'Deixar uma avaliação',
+  'popup.ask.later': 'Mais tarde',
+  'popup.ask.never': 'Não, obrigado',
+  'popup.ask.problem': 'Um problema? Conte para nós',
+  'popup.news': 'Novo',
 };

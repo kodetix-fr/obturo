@@ -277,7 +277,7 @@ test('library.html: no visible text of its own, every marked element has a key',
 // icon menu (locales/*.sw.js), which gestures.test.js checks one by one.
 test('popup texts: every key used, every key used exists, no text in popup.html', () => {
   for (const key of Object.keys(enPopup)) assert.ok(/^popup(\.[A-Za-z]+)+$/.test(key), `${key}: letters and dots only, so that the next check can find it in the source`);
-  const source = readFileSync(new URL('popup.js', import.meta.url), 'utf8');
+  const source = ['popup.js', 'popup-notice.js'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8')).join('\n');
   const used = new Set([...source.matchAll(/['"`](popup(?:\.[A-Za-z]+)+)['"`]/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((k) => !Object.hasOwn(en, k)), [], 'keys used by popup.js but missing from the dictionaries');
   assert.deepEqual(Object.keys(enPopup).filter((k) => !used.has(k)), [], 'keys of locales/*.popup.js used nowhere');
@@ -294,7 +294,9 @@ test('popup.html loads theme-boot.js before the first paint and popup.js as a mo
 test('popup.js loads the sw and popup parts of every language of the extension, statically, and nothing else', () => {
   const source = readFileSync(new URL('popup.js', import.meta.url), 'utf8');
   assert.deepEqual([...source.matchAll(/^import .* from '\.\/locales\/(.+)';/gm)].map((m) => m[1]), ['popup.js'], 'one module gathers the texts of the popup');
-  assert.ok(!source.replace(/\/\/.*$/gm, '').includes('import('), 'no import() on demand: it came too late on a cold start');
+  const code = source.replace(/\/\/.*$/gm, '');
+  assert.ok(!code.replace("import('./popup-notice.js')", '').includes('import('), 'no import() on demand: it came too late on a cold start');
+  assert.ok(code.indexOf("import('./popup-notice.js')") > code.indexOf("'obturo:popup-painted'"), 'the notice (dot, request for a review) comes after the first paint');
   assert.deepEqual(Object.keys(POPUP_TEXTS).sort(), [...CODES].sort(), 'locales/popup.js carries every language');
   for (const code of CODES) assert.deepEqual(POPUP_TEXTS[code], { ...parts[code].sw, ...parts[code].popup }, `locales/popup.js: the texts of ${code}`);
   assert.ok(source.includes("'obturo.appearance'"), 'the key of the copy of settings.js');

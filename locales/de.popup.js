@@ -10,4 +10,11 @@ export default {
   'popup.delay': 'Verzögerung',
   'popup.delayOff': 'Aus',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': 'Bitte um eine Bewertung',
+  'popup.ask.text': 'Obturo ist kostenlos und behält alles auf deinem Computer. Eine Bewertung hilft anderen, es zu finden.',
+  'popup.ask.review': 'Bewertung abgeben',
+  'popup.ask.later': 'Später',
+  'popup.ask.never': 'Nein danke',
+  'popup.ask.problem': 'Ein Problem? Sag es uns',
+  'popup.news': 'Neu',
 };

@@ -10,4 +10,11 @@ export default {
   'popup.delay': 'Jeda',
   'popup.delayOff': 'Nonaktif',
   'popup.delayValue': '{n}\u00A0dtk',
+  'popup.ask.label': 'Permintaan ulasan',
+  'popup.ask.text': 'Obturo gratis dan menyimpan semuanya di komputer Anda. Ulasan membantu orang lain menemukannya.',
+  'popup.ask.review': 'Beri ulasan',
+  'popup.ask.later': 'Nanti',
+  'popup.ask.never': 'Tidak, terima kasih',
+  'popup.ask.problem': 'Ada masalah? Beri tahu kami',
+  'popup.news': 'Baru',
 };
