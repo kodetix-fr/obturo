@@ -33,7 +33,7 @@ export default {
   'tool.blur.tip': 'Einen Bereich sanft weichzeichnen (glatter als Verpixeln, aber nicht sicherer). Für Text besser eine Vollfläche.',
   'tool.flat': 'Vollfläche',
   'tool.flat.tip': 'Einen Bereich mit einer deckenden Fläche verbergen, standardmäßig schwarz (am sichersten für Text)',
-  'tool.crop': 'Zuschneiden',
+  'tool.crop': 'Zuschnitt',
   'tool.crop.tip': 'Die angezeigte Version zuschneiden',
 
   // style bar

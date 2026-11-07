@@ -276,7 +276,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     ensureVersion();
     const area = cur().crop ?? { x: 0, y: 0, w: W, h: H };
     const when = new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(shot.createdAt);
-    const text = new IText(stampText(shot.url, when, { query: !redactSensitive }), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#111111', backgroundColor: '#ffffff', stamp: true });
+    const text = new IText(stampText(shot.url, when, { query: !redactSensitive }), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#000000', backgroundColor: '#ffffff', stamp: true });
     const fontSize = stampFontSize(area.w, text.width / 100);
     const margin = Math.round(fontSize * 0.6);
     text.set({ fontSize });
@@ -289,13 +289,15 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     commit();
   }
 
-  // Pans the view so that an object placed out of sight shows (the stamp, at the bottom of a very tall capture).
+  // Pans the view so that an object placed out of sight shows (the stamp, at the bottom of a very tall capture, or off to the side of a zoomed one).
   function reveal(o) {
+    const left = view.tx + o.left * view.z, right = left + o.width * (o.scaleX || 1) * view.z;
     const top = view.ty + o.top * view.z, bottom = top + o.height * (o.scaleY || 1) * view.z;
+    const dx = right > canvas.width ? canvas.width - 16 - right : left < 0 ? 16 - left : 0;
     const dy = bottom > canvas.height ? canvas.height - 16 - bottom : top < 0 ? 16 - top : 0;
-    if (!dy) return;
+    if (!dx && !dy) return;
     fitMode = false;
-    setView(panBy(view, 0, dy, canvas.width, canvas.height, W, H, viewBox()));
+    setView(panBy(view, dx, dy, canvas.width, canvas.height, W, H, viewBox()));
   }
 
   // A pen stroke is over (Fabric drew it): it becomes an object of the version, with the width kept as it is when it is resized.

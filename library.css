@@ -153,6 +153,7 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 }
 .tool .ic { width: 22px; height: 22px; }
 .tool:hover:not(:disabled) { background: var(--surface-2); color: var(--fg); }
+.tool:focus-visible { outline-offset: -2px; } /* inside the button: the scrolling box of the rail would cut a ring drawn outside it */
 .tool[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); }
 .rail-sep { height: 1px; margin: 6px 8px; background: var(--line); }
 
