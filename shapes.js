@@ -1,11 +1,12 @@
 // Obturo's own Fabric objects. None holds pixels in its serialization:
 // the pixelated and the blurred regions reread the original image (source.img) to draw themselves.
-import { FabricObject, Rect, classRegistry } from './vendor/fabric.min.mjs';
+import { FabricObject, IText, Path, Rect, classRegistry } from './vendor/fabric.min.mjs';
+import { EMOJI_FONT, cleanEmoji } from './emoji-pure.js';
 import { blockAverages, regionBox, tilePlan } from './mask-pure.js';
 import { boxLeft, cleanLegend, cleanSide, discCenterX, legendBox, legendFontSize, markerFontSize, markerInk } from './marker-pure.js';
 import { DEFAULT_HIGHLIGHT, HIGHLIGHT_OPACITY } from './highlight-pure.js';
 import { SPOT_SHADE } from './spot-pure.js';
-import { shapeOf, shapeRadii } from './shape-pure.js';
+import { DEFAULT_ENDS, cleanEnds, shapeOf, shapeRadii } from './shape-pure.js';
 
 // Decoded original image (ImageBitmap), full resolution. Set by the editor when a shot is opened.
 export const source = { img: null };
@@ -66,12 +67,28 @@ function clipped(ctx, o, draw) {
 const HEAD_ANGLE = 0.45; // rad: half-opening of the arrow head
 const headLength = (strokeWidth) => strokeWidth * 4 + 8; // px
 
+// A head with its tip at (x, y), pointing along angle `a`.
+function arrowHead(ctx, x, y, a, len) {
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - len * Math.cos(a - HEAD_ANGLE), y - len * Math.sin(a - HEAD_ANGLE));
+  ctx.lineTo(x - len * Math.cos(a + HEAD_ANGLE), y - len * Math.sin(a + HEAD_ANGLE));
+  ctx.closePath();
+  ctx.fill();
+}
+
 // Arrow: a width x height box that goes from the top-left corner to the bottom-right one; flipX / flipY give the direction.
+// `ends`: a head at the end ('end'), none, a plain line ('none'), or a head at both ends ('both').
 export class Arrow extends FabricObject {
   static type = 'Arrow';
 
   constructor(options) {
-    super({ objectCaching: false, stroke: '#e53935', strokeWidth: 6, ...options });
+    super({ objectCaching: false, stroke: '#e53935', strokeWidth: 6, ends: DEFAULT_ENDS, ...options });
+    this.ends = cleanEnds(this.ends);
+  }
+
+  toObject(extra = []) {
+    return super.toObject([...extra, 'ends']);
   }
 
   _render(ctx) {
@@ -80,22 +97,30 @@ export class Arrow extends FabricObject {
     const w = this.width * sx, h = this.height * sy;
     const a = Math.atan2(h, w), len = headLength(this.strokeWidth);
     const x = w / 2, y = h / 2;
+    const ends = cleanEnds(this.ends);
+    const tail = ends === 'both' ? len * 0.5 : 0, tip = ends === 'none' ? 0 : len * 0.5; // the line stops inside a head
     ctx.save();
     ctx.scale(1 / sx, 1 / sy);
     ctx.lineWidth = this.strokeWidth;
     ctx.lineCap = ctx.lineJoin = 'round';
     ctx.strokeStyle = ctx.fillStyle = this.stroke;
     ctx.beginPath();
-    ctx.moveTo(-x, -y);
-    ctx.lineTo(x - Math.cos(a) * len * 0.5, y - Math.sin(a) * len * 0.5);
+    ctx.moveTo(-x + Math.cos(a) * tail, -y + Math.sin(a) * tail);
+    ctx.lineTo(x - Math.cos(a) * tip, y - Math.sin(a) * tip);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x - len * Math.cos(a - HEAD_ANGLE), y - len * Math.sin(a - HEAD_ANGLE));
-    ctx.lineTo(x - len * Math.cos(a + HEAD_ANGLE), y - len * Math.sin(a + HEAD_ANGLE));
-    ctx.closePath();
-    ctx.fill();
+    if (ends !== 'none') arrowHead(ctx, x, y, a, len);
+    if (ends === 'both') arrowHead(ctx, -x, -y, a + Math.PI, len);
     ctx.restore();
+  }
+}
+
+// An emoji placed on the image: a text of one emoji that is sized and moved like any object, and never typed into (its glyph is picked in the
+// style bar). Drawn by the color emoji font of the system, so it looks as it does there.
+export class Emoji extends IText {
+  static type = 'Emoji';
+
+  constructor(text, options) {
+    super(cleanEmoji(text), { fontFamily: EMOJI_FONT, editable: false, ...options });
   }
 }
 
@@ -501,8 +526,8 @@ const isPlainRect = (o) => o instanceof Rect && !(o instanceof PixelRegion) && !
 // Every rectangle can take a shape (rectangle, rounded, ellipse): the plain ones, the hiding regions, the highlighter and the spotlight.
 export const hasShape = (o) => o instanceof Rect;
 
-// Objects whose color is the stroke color: arrow and hollow rectangle (neither a hiding region nor a solid fill).
-export const isOutlined = (o) => o instanceof Arrow || (isPlainRect(o) && !o.fill);
+// Objects whose color is the stroke color: arrow, pen stroke and hollow rectangle (neither a hiding region nor a solid fill).
+export const isOutlined = (o) => o instanceof Arrow || o instanceof Path || (isPlainRect(o) && !o.fill);
 
 // A solid fill is a plain rectangle with a color (`fill`) and no object cache; an object saved before the colors existed is
 // black, its fill being '#000'. Its color is always opaque (mask-pure.js: solidColor).
@@ -510,6 +535,7 @@ export const isSolid = (o) => isPlainRect(o) && !!o.fill;
 
 classRegistry.setClass(Lasso);
 classRegistry.setClass(Arrow);
+classRegistry.setClass(Emoji);
 classRegistry.setClass(Marker);
 classRegistry.setClass(Highlight);
 classRegistry.setClass(Spot);

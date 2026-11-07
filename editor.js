@@ -9,11 +9,12 @@
 // Layout: this file is the controller (canvas, drawing tools, versions, crop, saving). The controls of
 // library.html are in panel.js, the history in history.js, the rendering of images (export, thumbnail)
 // in output.js, the Fabric objects specific to Obturo in shapes.js.
-import { Canvas, IText, Rect, ActiveSelection, util } from './vendor/fabric.min.mjs';
-import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
+import { Canvas, IText, Rect, ActiveSelection, PencilBrush, util } from './vendor/fabric.min.mjs';
+import { Arrow, BlurRegion, Emoji, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, closeGaps, fitSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
+import { stampFontSize, stampText } from './stamp-pure.js';
 import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
@@ -24,7 +25,7 @@ import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
 import { getSettings } from './settings.js';
 import { clamp } from './pure.js';
 import { versionsKey } from './thumb-pure.js';
-import { t } from './i18n.js';
+import { getLanguage, t } from './i18n.js';
 import { setAria } from './dom-i18n.js';
 import * as panel from './panel.js';
 
@@ -225,7 +226,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (t === 'spot') return new Spot(base);
     if (t === 'pixel') return new PixelRegion({ ...base, block: panel.pixelBlock() });
     if (t === 'blur') return new BlurRegion({ ...base, block: panel.blurBlock(), live: true }); // live: a cheap preview until the mouse is released
-    return new Arrow({ ...base, stroke: panel.color(), strokeWidth: panel.strokeWidth(W) });
+    return new Arrow({ ...base, stroke: panel.color(), strokeWidth: panel.strokeWidth(W), ends: panel.arrowEnds() });
   }
 
   // The box and the points of a free shape follow the path drawn so far (a pen stroke has the width of the pen all around it).
@@ -243,6 +244,45 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     text.enterEditing();
     text.selectAll();
     canvas.requestRenderAll();
+  }
+
+  // A click places the emoji of the style bar, centered on the point; the tool stays armed for the next one.
+  function addEmoji(p) {
+    const emoji = new Emoji(panel.emoji(), { fontSize: panel.emojiSize(W), fill: panel.color() });
+    emoji.set({ left: p.x - emoji.width / 2, top: p.y - emoji.height / 2 });
+    adopt(emoji);
+    canvas.add(emoji);
+    canvas.requestRenderAll();
+    commit();
+  }
+
+  // The address of the page and the date of the capture, as a text at the bottom left of the image (or of the crop): a text like any other.
+  function addStamp() {
+    if (!ready()) return;
+    setTool('select');
+    ensureVersion();
+    const area = cur().crop ?? { x: 0, y: 0, w: W, h: H };
+    const when = new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(shot.createdAt);
+    const text = new IText(stampText(shot.url, when), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#111111', backgroundColor: '#ffffff' });
+    const fontSize = stampFontSize(area.w, text.width / 100);
+    const margin = Math.round(fontSize * 0.6);
+    text.set({ fontSize });
+    text.set({ left: area.x + margin, top: area.y + area.h - text.height - margin });
+    adopt(text);
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    canvas.requestRenderAll();
+    commit();
+  }
+
+  // A pen stroke is over (Fabric drew it): it becomes an object of the version, with the width kept as it is when it is resized.
+  function onPath({ path }) {
+    if (!canvas) return;
+    path.set({ strokeUniform: true, objectCaching: false });
+    adopt(path);
+    ensureVersion();
+    canvas.requestRenderAll();
+    commit();
   }
 
   // Objects that leave the canvas: a blurred region gives its small canvases back now, not at the next garbage collection.
@@ -329,10 +369,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   const pt = (o) => canvas.getScenePoint(o.e);
 
   function onDown(o) {
-    if (!ready() || tool === 'select' || cropBox) return;
+    if (!ready() || tool === 'select' || tool === 'pen' || cropBox) return; // the pen is Fabric's own drawing mode
     const p = pt(o);
     if (tool === 'text') { drawing = { start: p, text: true }; return; }
     if (tool === 'marker') { drawing = { start: p, marker: true }; return; }
+    if (tool === 'emoji') { drawing = { start: p, emoji: true }; return; }
     const obj = make(tool, p); // the version is only created at the end of the gesture, if the object really exists
     canvas.add(obj);
     drawing = { obj, start: p, path: panel.shape(tool) === 'free' && hasShape(obj) ? [[p.x, p.y]] : null };
@@ -370,10 +411,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     pressed = false;
     release();
     if (!drawing || !canvas) return;
-    const { obj, start: s, text, marker, path } = drawing;
+    const { obj, start: s, text, marker, emoji, path } = drawing;
     drawing = null;
     if (text) { ensureVersion(); addText(s); return; }
     if (marker) { ensureVersion(); addMarker(s); return; }
+    if (emoji) { ensureVersion(); addEmoji(s); return; }
     let tooSmall;
     if (path) { // a free shape: simplified, and it needs some length (and, for an area, some width and height)
       const kept = simplify(path, Math.max(0.5, FREE_TOLERANCE_PX / view.z));
@@ -398,11 +440,15 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   const syncPanel = () => panel.showSelection(selected(), tool);
 
+  // The pen is the drawing mode of Fabric, which takes the mouse itself; a crop in progress keeps it.
+  const syncDrawingMode = () => { if (canvas) canvas.isDrawingMode = tool === 'pen' && !cropBox; };
+
   function setTool(t) {
     closeMarkerEdit(true);
     tool = t;
     panel.showTool(t);
     if (canvas) {
+      syncDrawingMode();
       const sel = t === 'select';
       canvas.skipTargetFind = !sel;
       canvas.selection = sel;
@@ -595,6 +641,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     cropBox = null;
     for (const o of canvas.getObjects()) o.set({ selectable: true, evented: true });
     panel.showCropButtons(false);
+    syncDrawingMode();
     if (ok) {
       ensureVersion();
       cur().crop = clampCrop(r, W, H);
@@ -767,6 +814,13 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     canvas.upperCanvasEl.setAttribute('role', 'img');
     setAria(canvas.upperCanvasEl, 'editor.canvas', { title: shot.title || t('editor.untitled'), w: W, h: H }); // re-translated by applyDom
     canvas.lowerCanvasEl.setAttribute('aria-hidden', 'true');
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
+    canvas.on('mouse:down:before', () => { // the stroke that starts takes the color and the width of the style bar
+      if (tool !== 'pen' || !canvas.freeDrawingBrush) return;
+      canvas.freeDrawingBrush.color = panel.color();
+      canvas.freeDrawingBrush.width = panel.strokeWidth(W);
+    });
+    canvas.on('path:created', onPath);
     canvas.on('before:render', drawBase);
     canvas.on('after:render', drawCrop);
     canvas.on('mouse:down', () => { pressed = true; });
@@ -852,7 +906,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   panel.bindControls({
     ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
+    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 

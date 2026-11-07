@@ -6,6 +6,14 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **A stamp**: the *Stamp* button adds the address of the page and the date of the capture as a text at the bottom left
+  of the image (or of the crop). It is a text like any other, to move, edit or delete.
+- **A pen** to draw freehand, with the color and the stroke of the style bar.
+- **Emoji**: twenty of them, placed with one click and picked in the style bar.
+- **A line and a double arrow**: the arrow tool takes its *Ends* in the style bar (a head at the end, none, or both).
+
 ## [0.2.1] - 2026-11-06
 
 ### Added
