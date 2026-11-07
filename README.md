@@ -181,6 +181,10 @@ Non-destructive: the original of a capture is never changed.
   the bottom left of the image, or of the crop. It is a text like any other: move
   it, edit it, delete it. Check the address before you share the image, since it
   can hold a query. An imported image has no address: its stamp is the date alone.
+- **Rotate** (the *Rotate* button, under the editor): a quarter turn clockwise of the
+  whole capture, with its crop and what is drawn on it. Each version has its own
+  turn, undone with the rest, and the original is never rewritten. The hiding
+  regions, the highlighter, the spotlight and the numbered markers stay upright.
 - **One color control everywhere**: the line of an outline or an arrow, a text and
   its background, a marker, the highlighter and the solid fill all use the same
   swatches (black, white, gray, blue, red, yellow, green, orange, pink) and a free
@@ -474,7 +478,7 @@ databases, the retention, the version model and the budgets.
   `encode.js`, `pdf.js`, `zip.js`: the download menu, the grouped export, and the
   encoders (images, PDF and ZIP written without a library). Loaded on first use.
 - `pure.js`, `fullpage-pure.js`, `import-pure.js`, `thumb-pure.js`, `stamp-pure.js`,
-  `emoji-pure.js`,
+  `emoji-pure.js`, `turn-pure.js`,
   `versions.js`, `view.js`, `history.js` (the undo and redo stack),
   `saver.js`: the logic, without `chrome.*`, IndexedDB or the DOM, tested with
   `node --test`.

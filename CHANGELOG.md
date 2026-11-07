@@ -13,6 +13,8 @@ Notable changes to Obturo. The format follows
 - **A pen** to draw freehand, with the color and the stroke of the style bar.
 - **Emoji**: twenty of them, placed with one click and picked in the style bar.
 - **A line and a double arrow**: the arrow tool takes its *Ends* in the style bar (a head at the end, none, or both).
+- **Rotate**: the *Rotate* button turns the whole capture a quarter turn clockwise, with its crop and what is drawn on it.
+  Each version has its own turn, and the original is never changed.
 
 ## [0.2.1] - 2026-11-06
 
