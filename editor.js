@@ -273,8 +273,18 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     adopt(text);
     canvas.add(text);
     canvas.setActiveObject(text);
+    reveal(text);
     canvas.requestRenderAll();
     commit();
+  }
+
+  // Pans the view so that an object placed out of sight shows (the stamp, at the bottom of a very tall capture).
+  function reveal(o) {
+    const top = view.ty + o.top * view.z, bottom = top + o.height * (o.scaleY || 1) * view.z;
+    const dy = bottom > canvas.height ? canvas.height - 16 - bottom : top < 0 ? 16 - top : 0;
+    if (!dy) return;
+    fitMode = false;
+    setView(panBy(view, 0, dy, canvas.width, canvas.height, W, H, viewBox()));
   }
 
   // A pen stroke is over (Fabric drew it): it becomes an object of the version, with the width kept as it is when it is resized.

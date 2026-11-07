@@ -144,3 +144,27 @@ describe('editor: stamp, arrow ends, pen, emoji', () => {
     assert.deepEqual(pageErrors(), [], 'no error on the page');
   });
 });
+
+describe('editor: the stamp on a very tall capture', () => {
+  let h, page;
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('Tall', 800, 6000, false)]);
+    await ready(page);
+    await waitOut(page, 800, 6000);
+  });
+  after(() => h?.close());
+
+  it('the stamp is brought into view, not left thousands of pixels below it', async () => {
+    const darkPixels = async () => {
+      const img = await decodePng(page, await page.locator('#stage').screenshot());
+      let n = 0;
+      for (let i = 0; i < img.data.length; i += 4) if (img.data[i] < 120 && img.data[i + 1] < 120 && img.data[i + 2] < 120) n++;
+      return n;
+    };
+    assert.equal(await darkPixels(), 0, 'nothing dark on the stage before the stamp');
+    await page.click('#stamp');
+    await poll(async () => (await darkPixels()) > 200, { what: 'the text of the stamp on the stage' });
+  });
+});
