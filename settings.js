@@ -105,6 +105,28 @@ export async function setSettings(patch) {
   return merged;
 }
 
+/** One value of the small key-value store, as stored (undefined if none). @param {string} key */
+export async function readKv(key) {
+  const db = await open();
+  return wait(db.transaction('kv').objectStore('kv').get(key));
+}
+
+/**
+ * Replaces a value of the key-value store with `change` of the one stored, in one transaction (two writers never lose each other's change).
+ * @template T
+ * @param {string} key @param {(stored: unknown) => T} change
+ * @returns {Promise<T>} the value as stored
+ */
+export async function updateKv(key, change) {
+  const db = await open();
+  const tx = db.transaction('kv', 'readwrite');
+  const store = tx.objectStore('kv');
+  const next = change(await wait(store.get(key)));
+  store.put(next, key);
+  await done(tx);
+  return next;
+}
+
 // --- The shots the library has open ---
 
 // The library page publishes here the shots its editor holds (or is about to hold), and the retention reads them: a pass that

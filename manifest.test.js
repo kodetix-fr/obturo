@@ -44,7 +44,7 @@ test('no network API and no remote address in the code of the extension', () => 
   const code = (file) => readFileSync(new URL(`./${file}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
   const files = listRuntimeFiles(fileURLToPath(new URL('.', import.meta.url))).filter((f) => /\.(js|html)$/.test(f) && !f.startsWith('vendor/'));
   assert.ok(files.includes('sw.js') && files.includes('library.js') && files.includes('popup.html'), 'the scan reads the real files');
-  const allowed = new Set(['http://www.w3.org/2000/svg', 'https://obturo/', 'https://kodetix.fr/soutenir']); // the SVG namespace and the placeholder of batchFilename (not fetched), the support page (opened by a click on a link)
+  const allowed = new Set(['http://www.w3.org/2000/svg', 'https://obturo/', 'https://kodetix.fr/soutenir', 'https://chromewebstore.google.com/detail', 'https://github.com/kodetix-fr/obturo/issues']); // the SVG namespace and the placeholder of batchFilename (not fetched), the pages opened by a click on a link (support, store reviews and publisher, issues)
   for (const file of files) {
     const text = code(file);
     assert.doesNotMatch(text, /\b(fetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts|RTCPeerConnection|WebTransport)\b/, `${file}: a network API`);

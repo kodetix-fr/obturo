@@ -87,7 +87,8 @@
 
   <!-- Opens the settings dialog. Outside the fieldset on purpose: it works with no capture open. Laid over the right
        end of the app bar by the grid. -->
-  <button type="button" id="settingsBtn" class="btn icon ghost" data-i18n-label="app.settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></button>
+  <button type="button" id="settingsBtn" class="btn icon ghost" data-i18n-label="app.settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span class="dot" id="settingsDot" aria-hidden="true" hidden></span></button>
+  <span id="settingsNew" class="vh" data-i18n="about.new" hidden></span>
   <!-- history and import: same place, left of the settings button (.apptools). The import button picks files; an image can also be
        pasted (Ctrl+V) or dropped on the page. import.js is loaded on first use. Outside the fieldset: it works with no capture open. -->
   <div class="apptools">
@@ -442,8 +443,19 @@
           <p class="note" data-i18n="settings.full.fixed.note"></p>
         </section>
 
-        <section data-section="about">
+        <section data-section="about" id="aboutSection">
           <h3 data-i18n="settings.about"></h3>
+          <p id="aboutVersion" class="note"></p>
+          <div id="aboutNews" hidden>
+            <h4 data-i18n="about.newsTitle"></h4>
+            <p class="note" data-i18n="about.news"></p>
+          </div>
+          <p class="note" data-i18n="about.note"></p>
+          <div class="about-links">
+            <a id="reviewLink" class="btn" target="_blank" rel="noopener noreferrer" data-i18n="about.review"></a>
+            <a id="issuesLink" class="btn" target="_blank" rel="noopener noreferrer" data-i18n="about.problem"></a>
+          </div>
+          <p class="note"><span data-i18n="about.publisher"></span> <a id="obliteroLink" target="_blank" rel="noopener noreferrer"></a> <span data-i18n="about.oblitero"></span></p>
           <p class="note" data-i18n="settings.support.note"></p>
           <a id="supportLink" class="btn" href="https://kodetix.fr/soutenir" target="_blank" rel="noopener noreferrer" data-i18n="settings.support"></a>
         </section>

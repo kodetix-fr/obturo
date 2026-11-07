@@ -10,6 +10,7 @@ import { t } from './i18n.js';
 import { LANGUAGES } from './languages.js';
 import { byId, setI18n } from './dom-i18n.js';
 import * as historySettings from './history-settings.js';
+import { openAbout } from './about-ui.js';
 
 const dialog = byId('settings', HTMLDialogElement);
 const form = byId('settingsForm', HTMLFormElement);
@@ -131,5 +132,6 @@ export async function openSettings(apply, isReadOnly = () => false) {
   fill(current);
   historySettings.refresh(current);
   if (!dialog.open) dialog.showModal();
-  dialog.scrollTop = 0; // always from the first section
+  dialog.scrollTop = 0; // always from the first section, unless there are news to read (the About section, below)
+  await openAbout();
 }

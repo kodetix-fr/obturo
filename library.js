@@ -648,6 +648,7 @@ function afterStartup() {
       console.error('Obturo: retention', e);
     }
     loadHistory().catch(() => {});
+    import('./about-ui.js').then((m) => m.showNewsDot()).catch(() => {}); // the dot of the settings button, if there are news
   });
 }
 
