@@ -21,6 +21,10 @@ export const dom = {
   underline: byId('underline', HTMLButtonElement),
   bgSwatches: byId('bgSwatches'), // text background: "none", then the palette
   bgColor: byId('bgColor', HTMLInputElement),
+  endProps: byId('endProps'), // the ends of an arrow
+  endsPick: byId('endsPick'), // radio group
+  emojiProps: byId('emojiProps'), // the emoji of the next one placed
+  emojiPick: byId('emojiPick'), // radio group, filled by panel.js
   markerProps: byId('markerProps'), // numbered marker: edit its text, the side of the text
   legendEdit: byId('legendEdit', HTMLButtonElement),
   sidePick: byId('sidePick'), // radio group
@@ -44,6 +48,7 @@ export const dom = {
   downloadFmt: byId('downloadFmt'), // the format a click on Download produces (export)
   downloadMenu: byId('downloadMenu', HTMLButtonElement), // the caret that opens the format menu (export)
   beautify: byId('beautify', HTMLButtonElement), // opens the beautify panel; marked when the displayed version has a look
+  stamp: byId('stamp', HTMLButtonElement), // adds the address of the page and the date of the capture as a text
   // Versions, crop, scale, zoom
   versions: byId('versions'),
   newVersion: byId('newVersion', HTMLButtonElement),
