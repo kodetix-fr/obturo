@@ -42,6 +42,7 @@ const MIN_AREA_PX = 3; // a free area narrower than this (in image px) is a line
 const WHEEL_ZOOM_RATE = 0.0015; // Ctrl + wheel: the zoom is exp(-delta * rate)
 const CROP_SHADE = 'rgba(0,0,0,.55)'; // what is outside the crop
 const SCALE_RANGE = { min: 0.01, max: 10 }; // output scale as typed: 1 % to 1000 %
+const MIN_FONT = 6; // a text or an emoji shrunk with the mouse stops here
 
 /**
  * @param {object} options
@@ -201,12 +202,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // canvas.toObject() normalizes the objects of a multiple selection (absolute coordinates); the crop box is excluded.
   // objectCaching is not serialized by default: without it the flat read back from the JSON would get its cache back,
   // and its blurry edges.
-  const objects = () => canvas.toObject(['objectCaching']).objects;
+  const objects = () => canvas.toObject(['objectCaching', 'stamp']).objects;
 
   // After a resize: the scale is baked into the size (for text: the font size) so nothing is stretched.
   function bake(o) {
     if (o instanceof ActiveSelection) return;
-    if (o instanceof IText) o.set({ fontSize: Math.round(o.fontSize * o.scaleY), scaleX: 1, scaleY: 1 });
+    if (o instanceof IText) o.set({ fontSize: Math.max(MIN_FONT, Math.round(o.fontSize * o.scaleY)), scaleX: 1, scaleY: 1 });
     else if (o instanceof Marker) o.bakeScale(); // a disc stays a disc: the diameter follows the scale (the mean of both, if shift made them differ), the legend follows
     else if (o instanceof Rect) { // the shape is kept: its corner radii follow the new size
       const shape = shapeOf(o);
@@ -259,13 +260,23 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   }
 
   // The address of the page and the date of the capture, as a text at the bottom left of the image (or of the crop): a text like any other.
-  function addStamp() {
+  // One per version: a second press selects it. With Hide sensitive text on, the query of the address (tokens, e-mails) stays out of it.
+  async function addStamp() {
+    if (!ready()) return;
+    const { redactSensitive } = await getSettings().catch(() => ({ redactSensitive: true }));
     if (!ready()) return;
     setTool('select');
+    const known = canvas.getObjects().find((o) => o.stamp);
+    if (known) {
+      canvas.setActiveObject(known);
+      reveal(known);
+      canvas.requestRenderAll();
+      return;
+    }
     ensureVersion();
     const area = cur().crop ?? { x: 0, y: 0, w: W, h: H };
     const when = new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(shot.createdAt);
-    const text = new IText(stampText(shot.url, when), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#111111', backgroundColor: '#ffffff' });
+    const text = new IText(stampText(shot.url, when, { query: !redactSensitive }), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#111111', backgroundColor: '#ffffff', stamp: true });
     const fontSize = stampFontSize(area.w, text.width / 100);
     const margin = Math.round(fontSize * 0.6);
     text.set({ fontSize });

@@ -3,7 +3,7 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
-import { dbDump, decodePng, download, drag, mapper, poll, px, ready, resetLibrary, spec, tool, waitOut } from './support/editor.mjs';
+import { dbDump, decodePng, download, drag, mapper, poll, px, ready, resetLibrary, sleep, spec, tool, waitOut } from './support/editor.mjs';
 
 describe('editor: stamp, arrow ends, pen, emoji', () => {
   let h, page, m, id;
@@ -123,6 +123,12 @@ describe('editor: stamp, arrow ends, pen, emoji', () => {
     await poll(async () => (await objectsOf()).length === before, { what: 'a stamp is deleted like any text' });
     await page.keyboard.press('Control+z');
     await poll(async () => (await last()).type === 'IText', { what: 'and undone like any text' });
+    const count = (await objectsOf()).length;
+    await page.click('#stamp');
+    await page.click('#stamp');
+    await sleep(400);
+    assert.equal((await objectsOf()).length, count, 'a second press selects the stamp, it does not add another');
+    assert.match((await last()).text, /^example\.test\/Tools/, 'still the one stamp');
   });
 
   it('after a reload every kind comes back as what it was: the ends of the line, the emoji, the stroke, the stamp', async () => {
@@ -150,7 +156,7 @@ describe('editor: the stamp on a very tall capture', () => {
   before(async () => {
     h = await launchExtension();
     page = await h.context.newPage();
-    await resetLibrary(page, h, [spec('Tall', 800, 6000, false)]);
+    await resetLibrary(page, h, [{ ...spec('Tall', 800, 6000, false), url: 'https://example.test/t?token=abc' }]);
     await ready(page);
     await waitOut(page, 800, 6000);
   });
@@ -166,5 +172,58 @@ describe('editor: the stamp on a very tall capture', () => {
     assert.equal(await darkPixels(), 0, 'nothing dark on the stage before the stamp');
     await page.click('#stamp');
     await poll(async () => (await darkPixels()) > 200, { what: 'the text of the stamp on the stage' });
+    const shot = (await dbDump(page))[0];
+    const stamp = shot.versions[shot.active].objects.find((o) => o.stamp);
+    assert.match(stamp.text, /^example\.test\/t\?token=abc {2}\| /, 'with Hide sensitive text off the address keeps its query');
+  });
+});
+
+describe('editor: the stamp with Hide sensitive text on', () => {
+  let h, page;
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [{ ...spec('Query', 1600, 900, false), url: 'https://example.test/t?token=abc&email=jane@example.test' }], undefined, { language: 'en', theme: 'auto', redactSensitive: true });
+    await ready(page);
+    await waitOut(page, 1600, 900);
+  });
+  after(() => h?.close());
+
+  it('keeps the query of the address out of the image', async () => {
+    await page.click('#stamp');
+    const stamp = await poll(async () => {
+      const shot = (await dbDump(page))[0];
+      return shot.versions[shot.active]?.objects.find((o) => o.stamp);
+    }, { what: 'a stamp saved' });
+    assert.match(stamp.text, /^example\.test\/t {2}\| /, `the path only: ${stamp.text}`);
+    assert.ok(!/token|jane|\?/.test(stamp.text), 'no token, no e-mail');
+  });
+});
+
+describe('editor: the new controls in a narrow window', () => {
+  let h, page;
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('Narrow', 1600, 900, false)]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+  });
+  after(() => h?.close());
+
+  it('the emoji row stays inside the window and the image buttons stay together', async () => {
+    for (const [w, hh] of [[480, 900], [820, 900], [1100, 900]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      await poll(async () => (await page.evaluate(() => innerWidth)) === w, { what: 'the window size' });
+      await tool(page, 'emoji');
+      const r = await page.evaluate(() => {
+        const box = (id) => document.getElementById(id).getBoundingClientRect();
+        const last = document.querySelector('#emojiPick label:last-child').getBoundingClientRect();
+        return { overflow: document.documentElement.scrollWidth - innerWidth, last: last.right, inner: innerWidth, tops: ['beautify', 'stamp', 'rotate'].map((id) => Math.round(box(id).top)) };
+      });
+      assert.ok(r.overflow <= 0, `the page does not scroll sideways at ${w}: ${r.overflow}`);
+      assert.ok(r.last <= r.inner, `the last emoji is inside the window at ${w}: ${r.last}`);
+      assert.equal(new Set(r.tops).size, 1, `Beautify, Stamp and Rotate share a row at ${w}: ${r.tops}`);
+    }
   });
 });
