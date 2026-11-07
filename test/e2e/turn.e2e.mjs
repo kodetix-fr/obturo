@@ -154,3 +154,45 @@ describe('editor: turn', () => {
     assert.ok(out.red >= 3, 'the arrow is drawn in its turned place');
   });
 });
+
+describe('editor: turn keeps what the person was doing', () => {
+  let h, page, m;
+  const W = 1600, H = 900;
+  const near = (a, b, what) => assert.ok(Math.abs(a - b) <= 3, `${what}: ${a} is not ${b}`);
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('Keep', 1600, 900, true)]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+    m = await mapper(page, 1600, 900);
+  });
+  after(() => h?.close());
+
+  it('keeps the zoom, the selected object and a crop box that is not applied yet', async () => {
+    const zoom = () => page.locator('#zoomLabel').innerText();
+    await tool(page, 'flat');
+    await drag(page, m, 100, 100, 400, 300);
+    await tool(page, 'select');
+    await page.mouse.click(...m.pt(250, 200));
+    assert.equal(await page.locator('#del').isEnabled(), true, 'an object is selected');
+    await page.click('#actual');
+    const z = await zoom();
+    await page.click('#rotate');
+    await waitOut(page, H, W);
+    assert.equal(await zoom(), z, 'the zoom is kept');
+    assert.equal(await page.locator('#del').isEnabled(), true, 'the selection is kept');
+    await page.click('#fit');
+    m = await mapper(page, H, W);
+    await page.click('#crop');
+    await drag(page, m, H, W, 600, 1000);
+    await page.click('#rotate');
+    await waitOut(page, W, H);
+    assert.equal(await page.locator('#cropGroup').isVisible(), true, 'the crop box is still there to apply');
+    await page.click('#cropOk');
+    const v = await poll(async () => { const s = (await dbDump(page))[0]; const x = s.versions[s.active]; return x.crop && x.turn === 2 ? x : null; }, { what: 'the crop saved' });
+    near(v.crop.x, 600, 'the crop box turned with the image (x)');
+    near(v.crop.w, 1000, 'the crop box turned with the image (width)');
+    assert.ok(Math.abs(v.crop.h - 600) <= 3 && v.crop.y <= 3, `and (height, top): ${JSON.stringify(v.crop)}`);
+  });
+});

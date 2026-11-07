@@ -422,9 +422,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     o.setCoords();
   }
 
-  // A quarter turn clockwise of the whole capture: the image, the crop and what is drawn on it, which keeps its place on it.
+  // A quarter turn clockwise of the whole capture: the image, the crop and what is drawn on it, which keeps its place on it. What the person
+  // was doing stays: the zoom (the middle of the view turns with the image), the selected object, a crop box that is not applied yet.
   async function rotate() {
     if (!ready()) return;
+    const picked = selected();
+    const box = cropBox && { x: cropBox.left, y: cropBox.top, w: cropBox.width * cropBox.scaleX, h: cropBox.height * cropBox.scaleY };
     endPendingEdit();
     ensureVersion();
     const v = cur(), base = raw, quarter = (cleanTurn(v.turn) + 1) % 4;
@@ -434,14 +437,18 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       return;
     }
     const h = H;
+    const middle = fitMode ? null : turnPoint((canvas.width / 2 - view.tx) / view.z, (canvas.height / 2 - view.ty) / view.z, h);
     for (const o of canvas.getObjects()) { bake(o); turnObject(o, h); }
     v.crop = turnRect(v.crop, h);
     v.turn = quarter;
     installFrame(next, quarter);
-    refit();
+    if (middle) setView(clampView({ z: view.z, tx: canvas.width / 2 - middle.x * view.z, ty: canvas.height / 2 - middle.y * view.z }, canvas.width, canvas.height, W, H, viewBox()));
+    else refit();
     syncOutput();
     syncPanel();
     commit();
+    if (box) enterCrop(turnRect(box, h));
+    else if (picked && canvas.getObjects().includes(picked)) canvas.setActiveObject(picked);
   }
 
   function deleteSelection() {
@@ -713,11 +720,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   // ---------- crop ----------
 
-  function enterCrop() {
+  function enterCrop(rect) {
     if (!shot || cropBox) return;
     setTool('select');
     canvas.discardActiveObject();
-    const r = cur()?.crop ?? { x: 0, y: 0, w: W, h: H };
+    const r = rect ?? cur()?.crop ?? { x: 0, y: 0, w: W, h: H };
     cropBox = new Rect({ left: r.x, top: r.y, width: r.w, height: r.h, fill: 'rgba(0,0,0,0)', strokeWidth: 0, lockRotation: true });
     cropBox.isCrop = cropBox.excludeFromExport = true;
     adopt(cropBox);
