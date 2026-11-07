@@ -139,6 +139,8 @@ export default {
   'be.tip': 'Adicionar um fundo, cantos arredondados e uma sombra ao redor da captura',
   'stamp.btn': 'Carimbo',
   'stamp.tip': 'Adicionar o endereço da página e a data da captura como um texto na imagem, que se move, edita ou apaga como qualquer texto',
+  'rotate.btn': 'Girar',
+  'rotate.tip': 'Girar toda a captura um quarto de volta para a direita, com o que está desenhado nela',
   'be.title': 'Embelezar',
   'be.on': 'Embelezar esta versão',
   'be.bg': 'Fundo',

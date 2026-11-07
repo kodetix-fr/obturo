@@ -49,6 +49,7 @@ export const dom = {
   downloadMenu: byId('downloadMenu', HTMLButtonElement), // the caret that opens the format menu (export)
   beautify: byId('beautify', HTMLButtonElement), // opens the beautify panel; marked when the displayed version has a look
   stamp: byId('stamp', HTMLButtonElement), // adds the address of the page and the date of the capture as a text
+  rotate: byId('rotate', HTMLButtonElement), // a quarter turn clockwise of the capture, with what is drawn on it
   // Versions, crop, scale, zoom
   versions: byId('versions'),
   newVersion: byId('newVersion', HTMLButtonElement),

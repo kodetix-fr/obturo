@@ -342,6 +342,7 @@ export function bindControls(actions) {
   dom.downloadMenu.addEventListener('click', () => ready() && actions.downloadMenu());
   dom.beautify.addEventListener('click', () => ready() && actions.beautifyMenu());
   dom.stamp.addEventListener('click', () => ready() && actions.addStamp());
+  dom.rotate.addEventListener('click', () => ready() && actions.rotate());
 
   // Style: the preview follows the typing ('input'); history and saving follow the validation ('change').
   const live = (el, fn) => el.addEventListener('input', () => actions.restyle(fn));

@@ -11,6 +11,7 @@
 // capture is synchronous (Fabric draws on the main thread), so the Cancel button answers between captures.
 import { StaticCanvas, util } from './vendor/fabric.min.mjs';
 import { source } from './shapes.js';
+import { turnedBitmap } from './turn.js';
 import { editorSync, renderCanvas } from './output.js';
 import { getOriginal, getShots } from './db.js';
 import { encodeImage } from './encode.js';
@@ -49,25 +50,27 @@ const yieldToMain = () => new Promise((done) => {
  * @returns {Promise<HTMLCanvasElement>}
  */
 export async function renderVersion(bitmap, version) {
+  const frame = await turnedBitmap(bitmap, version.turn);
   const canvas = new StaticCanvas(undefined, { width: 1, height: 1, renderOnAddRemove: false, enableRetinaScaling: false });
   try {
     canvas.on('before:render', ({ ctx }) => {
       const v = canvas.viewportTransform;
       ctx.save();
       ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
-      ctx.drawImage(bitmap, 0, 0);
+      ctx.drawImage(frame, 0, 0);
       ctx.restore();
     });
     canvas.add(...await util.enlivenObjects(version.objects));
     const previous = source.img;
-    source.img = bitmap;
+    source.img = frame;
     try {
-      return renderCanvas(canvas, version, bitmap.width, bitmap.height);
+      return renderCanvas(canvas, version, frame.width, frame.height);
     } finally {
       source.img = previous;
     }
   } finally {
     await canvas.dispose();
+    if (frame !== bitmap) frame.close();
   }
 }
 

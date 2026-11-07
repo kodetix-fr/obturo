@@ -17,6 +17,7 @@ import { clamp } from './pure.js';
  * @property {Rect | null} crop Crop, null = the whole image.
  * @property {number} scale Output scale, 1 = original size.
  * @property {object[]} objects Annotations, serialized by Fabric (JSON, never pixels).
+ * @property {number} [turn] Quarter turns clockwise of the original (0 to 3), absent = 0: the crop and the objects are in the turned image.
  * @property {import('./beautify-pure.js').Beautify | null} [beautify] Background, padding, corners, shadow and frame around the capture; absent or null = none.
  */
 

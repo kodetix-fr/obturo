@@ -140,6 +140,8 @@ export default {
   'be.tip': 'Ajouter un fond, des coins arrondis et une ombre autour de la capture',
   'stamp.btn': 'Tampon',
   'stamp.tip': "Ajouter l'adresse de la page et la date de la capture sous forme de texte sur l'image, à déplacer, modifier ou supprimer comme n'importe quel texte",
+  'rotate.btn': 'Pivoter',
+  'rotate.tip': "Faire pivoter toute la capture d'un quart de tour vers la droite, avec ce qui est dessiné dessus",
   'be.title': 'Habillage',
   'be.on': 'Habiller cette version',
   'be.bg': 'Fond',

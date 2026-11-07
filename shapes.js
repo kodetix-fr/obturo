@@ -387,7 +387,7 @@ export class PixelRegion extends Rect {
     const c = this.getCenterPoint();
     const x = c.x - sw / 2, y = c.y - sh / 2;
     const key = `${x}|${y}|${sw}|${sh}|${this.block}`;
-    if (this._key !== key) {
+    if (this._key !== key || this._img !== img) {
       // HTMLCanvasElement and not OffscreenCanvas: measured ~40 ms per frame with several objects, against 0.3 ms.
       const tile = (this._tile ??= document.createElement('canvas'));
       tile.width = Math.max(1, Math.round(sw / this.block));
@@ -396,6 +396,7 @@ export class PixelRegion extends Rect {
       g.imageSmoothingQuality = 'high'; // averages the pixels of a block instead of sampling a single one
       g.drawImage(img, x, y, sw, sh, 0, 0, tile.width, tile.height);
       this._key = key;
+      this._img = img;
     }
     ctx.imageSmoothingEnabled = false; // enlargement in sharp blocks
     clipped(ctx, this, () => ctx.drawImage(this._tile, -this.width / 2, -this.height / 2, this.width, this.height));

@@ -139,6 +139,8 @@ export default {
   'be.tip': 'Einen Hintergrund, abgerundete Ecken und einen Schatten um die Aufnahme legen',
   'stamp.btn': 'Stempel',
   'stamp.tip': 'Die Adresse der Seite und das Datum der Aufnahme als Text ins Bild setzen, zum Verschieben, Bearbeiten oder Löschen wie jeder Text',
+  'rotate.btn': 'Drehen',
+  'rotate.tip': 'Die ganze Aufnahme um eine Vierteldrehung im Uhrzeigersinn drehen, samt allem, was darauf gezeichnet ist',
   'be.title': 'Verschönern',
   'be.on': 'Diese Version verschönern',
   'be.bg': 'Hintergrund',

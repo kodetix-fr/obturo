@@ -139,6 +139,8 @@ export default {
   'be.tip': 'Añadir un fondo, esquinas redondeadas y una sombra alrededor de la captura',
   'stamp.btn': 'Sello',
   'stamp.tip': 'Añadir la dirección de la página y la fecha de la captura como un texto en la imagen, que se mueve, edita o borra como cualquier texto',
+  'rotate.btn': 'Girar',
+  'rotate.tip': 'Girar toda la captura un cuarto de vuelta a la derecha, con lo que hay dibujado encima',
   'be.title': 'Embellecer',
   'be.on': 'Embellecer esta versión',
   'be.bg': 'Fondo',

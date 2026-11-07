@@ -15,6 +15,8 @@ import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, closeGaps, fitSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
 import { stampFontSize, stampText } from './stamp-pure.js';
+import { turnedBitmap } from './turn.js';
+import { cleanTurn, turnPoint, turnPts, turnRect } from './turn-pure.js';
 import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
@@ -54,9 +56,9 @@ const SCALE_RANGE = { min: 0.01, max: 10 }; // output scale as typed: 1 % to 100
  *   the dictionaries, so that the banner follows the language.
  */
 export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onError }) {
-  let holder, backdrop, canvas, bitmap, original, shot, W = 0, H = 0;
+  let holder, backdrop, canvas, bitmap, raw, original, shot, W = 0, H = 0;
   let tool = 'select', view = { z: 1, tx: 0, ty: 0 }, fitMode = true;
-  let ticket = 0, loadSeq = 0, cropBox = null, drawing = null;
+  let ticket = 0, loadSeq = 0, cropBox = null, drawing = null, frameTurn = 0;
   let pressed = false; // the mouse button is down on the canvas: a gesture is in progress
   /** @type {{ close: (keep?: boolean) => void, place: () => void } | null} */
   let markerEdit = null; // the field in which the number or the legend of a marker is typed, on top of it (marker-edit.js)
@@ -349,6 +351,77 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     canvas.requestRenderAll();
   }
 
+  // ---------- turn ----------
+
+  function labelCanvas() {
+    setAria(canvas.upperCanvasEl, 'editor.canvas', { title: shot.title || t('editor.untitled'), w: W, h: H });
+  }
+
+  // The image of the displayed version is the original turned as many quarter turns as the version says; the size of the document follows it.
+  function installFrame(next, quarter) {
+    if (bitmap !== raw) bitmap.close();
+    bitmap = next;
+    frameTurn = quarter;
+    source.img = next;
+    W = next.width;
+    H = next.height;
+    labelCanvas();
+  }
+
+  async function setFrame(turn) {
+    const quarter = cleanTurn(turn), base = raw;
+    if (!base || quarter === frameTurn) return;
+    const next = await turnedBitmap(base, quarter);
+    if (raw !== base || quarter !== cleanTurn(cur()?.turn)) { // the shot was closed, or another version shown, while it was drawn
+      if (next !== base) next.close();
+      return;
+    }
+    installFrame(next, quarter);
+  }
+
+  // An object after a quarter turn clockwise of an image `h` px high. The hiding regions, the highlighter and the spotlight stay upright
+  // (they read the image under them): their box turns. A marker stays upright too, its disc goes where the turn takes it. Anything else
+  // turns with the image.
+  function turnObject(o, h) {
+    const to = turnPoint(o.getCenterPoint().x, o.getCenterPoint().y, h);
+    if (o instanceof Marker) {
+      const { disc } = o.parts();
+      const c = turnPoint(disc.cx, disc.cy, h);
+      o.set({ top: c.y - o.height / 2 });
+      o.fit(c.x);
+      if (o.sideAuto && o.label) o.setSide(autoSide(c.x, o.height, o.width - o.height, h));
+    } else if (o.lockRotation) {
+      o.set({ width: o.height, height: o.width, rx: o.ry, ry: o.rx, pts: turnPts(o.pts ?? []) });
+      o.set({ left: to.x - o.width / 2, top: to.y - o.height / 2 });
+    } else {
+      o.set({ angle: ((o.angle || 0) + 90) % 360 });
+      o.setPositionByOrigin(to, 'center', 'center');
+    }
+    o.setCoords();
+  }
+
+  // A quarter turn clockwise of the whole capture: the image, the crop and what is drawn on it, which keeps its place on it.
+  async function rotate() {
+    if (!ready()) return;
+    endPendingEdit();
+    ensureVersion();
+    const v = cur(), base = raw, quarter = (cleanTurn(v.turn) + 1) % 4;
+    const next = await turnedBitmap(base, quarter);
+    if (raw !== base || cur() !== v) {
+      if (next !== base) next.close();
+      return;
+    }
+    const h = H;
+    for (const o of canvas.getObjects()) { bake(o); turnObject(o, h); }
+    v.crop = turnRect(v.crop, h);
+    v.turn = quarter;
+    installFrame(next, quarter);
+    refit();
+    syncOutput();
+    syncPanel();
+    commit();
+  }
+
   function deleteSelection() {
     const objs = canvas?.getActiveObjects().filter((o) => !o.isCrop) ?? [];
     if (!objs.length) return;
@@ -489,7 +562,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   const snapshot = () => {
     const v = cur();
-    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null]);
+    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null, cleanTurn(v.turn)]);
   };
   const syncHistory = () => panel.showHistory(history);
 
@@ -537,6 +610,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     apply(pickVersion(shot, i));
     panel.showVersions(shot);
+    await setFrame(cur()?.turn);
     await loadObjects(cur()?.objects ?? []);
     resetHistory();
     syncOutput();
@@ -582,8 +656,9 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     const snap = cur() && history.step(delta);
     if (!snap) return;
-    const [objs, crop, scale, beautify] = JSON.parse(snap);
-    Object.assign(cur(), { objects: objs, crop, scale, beautify });
+    const [objs, crop, scale, beautify, turn = 0] = JSON.parse(snap);
+    Object.assign(cur(), { objects: objs, crop, scale, beautify, turn });
+    await setFrame(turn);
     await loadObjects(objs);
     syncOutput();
     syncHistory();
@@ -812,7 +887,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     });
     // Accessibility: a single announced element (the one that receives the mouse), not its twin.
     canvas.upperCanvasEl.setAttribute('role', 'img');
-    setAria(canvas.upperCanvasEl, 'editor.canvas', { title: shot.title || t('editor.untitled'), w: W, h: H }); // re-translated by applyDom
+    labelCanvas(); // re-translated by applyDom
     canvas.lowerCanvasEl.setAttribute('aria-hidden', 'true');
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.on('mouse:down:before', () => { // the stroke that starts takes the color and the width of the style bar
@@ -865,7 +940,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       if (mine !== ticket) return;
       const bmp = await createImageBitmap(blob);
       if (mine !== ticket) { bmp.close(); return; }
-      shot = s; original = blob; bitmap = bmp; W = bmp.width; H = bmp.height;
+      shot = s; original = blob; raw = bitmap = bmp; frameTurn = 0; W = bmp.width; H = bmp.height;
       source.img = bmp;
       mount();
       panel.enable(W, H);
@@ -892,8 +967,9 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       try { await c.dispose(); } catch (e) { console.error('Obturo: dispose', e); }
       holder.remove();
       holder = backdrop = null;
-      bitmap.close();
-      bitmap = null;
+      if (bitmap !== raw) bitmap.close();
+      raw.close();
+      raw = bitmap = null;
       source.img = null;
       shot = original = null;
       history.reset();
@@ -906,7 +982,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   panel.bindControls({
     ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp,
+    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp, rotate,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 
