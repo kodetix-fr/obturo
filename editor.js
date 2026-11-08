@@ -9,11 +9,14 @@
 // Layout: this file is the controller (canvas, drawing tools, versions, crop, saving). The controls of
 // library.html are in panel.js, the history in history.js, the rendering of images (export, thumbnail)
 // in output.js, the Fabric objects specific to Obturo in shapes.js.
-import { Canvas, IText, Rect, ActiveSelection, util } from './vendor/fabric.min.mjs';
-import { Arrow, BlurRegion, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
+import { Canvas, IText, Rect, ActiveSelection, PencilBrush, util } from './vendor/fabric.min.mjs';
+import { Arrow, BlurRegion, Emoji, Highlight, Lasso, Marker, PixelRegion, Spot, applyShape, hasShape, source } from './shapes.js';
 import { freeGeometry, pathLength, shapeOf, simplify } from './shape-pure.js';
 import { autoSide, closeGaps, fitSide, nextMarkerNumber } from './marker-pure.js';
 import { editMarker } from './marker-edit.js';
+import { stampFontSize, stampText } from './stamp-pure.js';
+import { turnedBitmap } from './turn.js';
+import { cleanTurn, turnPoint, turnPts, turnRect } from './turn-pure.js';
 import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
@@ -24,7 +27,7 @@ import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
 import { getSettings } from './settings.js';
 import { clamp } from './pure.js';
 import { versionsKey } from './thumb-pure.js';
-import { t } from './i18n.js';
+import { getLanguage, t } from './i18n.js';
 import { setAria } from './dom-i18n.js';
 import * as panel from './panel.js';
 
@@ -39,6 +42,7 @@ const MIN_AREA_PX = 3; // a free area narrower than this (in image px) is a line
 const WHEEL_ZOOM_RATE = 0.0015; // Ctrl + wheel: the zoom is exp(-delta * rate)
 const CROP_SHADE = 'rgba(0,0,0,.55)'; // what is outside the crop
 const SCALE_RANGE = { min: 0.01, max: 10 }; // output scale as typed: 1 % to 1000 %
+const MIN_FONT = 6; // a text or an emoji shrunk with the mouse stops here
 
 /**
  * @param {object} options
@@ -53,9 +57,9 @@ const SCALE_RANGE = { min: 0.01, max: 10 }; // output scale as typed: 1 % to 100
  *   the dictionaries, so that the banner follows the language.
  */
 export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onError }) {
-  let holder, backdrop, canvas, bitmap, original, shot, W = 0, H = 0;
+  let holder, backdrop, canvas, bitmap, raw, original, shot, W = 0, H = 0;
   let tool = 'select', view = { z: 1, tx: 0, ty: 0 }, fitMode = true;
-  let ticket = 0, loadSeq = 0, cropBox = null, drawing = null;
+  let ticket = 0, loadSeq = 0, cropBox = null, drawing = null, frameTurn = 0;
   let pressed = false; // the mouse button is down on the canvas: a gesture is in progress
   /** @type {{ close: (keep?: boolean) => void, place: () => void } | null} */
   let markerEdit = null; // the field in which the number or the legend of a marker is typed, on top of it (marker-edit.js)
@@ -198,12 +202,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // canvas.toObject() normalizes the objects of a multiple selection (absolute coordinates); the crop box is excluded.
   // objectCaching is not serialized by default: without it the flat read back from the JSON would get its cache back,
   // and its blurry edges.
-  const objects = () => canvas.toObject(['objectCaching']).objects;
+  const objects = () => canvas.toObject(['objectCaching', 'stamp']).objects;
 
   // After a resize: the scale is baked into the size (for text: the font size) so nothing is stretched.
   function bake(o) {
     if (o instanceof ActiveSelection) return;
-    if (o instanceof IText) o.set({ fontSize: Math.round(o.fontSize * o.scaleY), scaleX: 1, scaleY: 1 });
+    if (o instanceof IText) o.set({ fontSize: Math.max(MIN_FONT, Math.round(o.fontSize * o.scaleY)), scaleX: 1, scaleY: 1 });
     else if (o instanceof Marker) o.bakeScale(); // a disc stays a disc: the diameter follows the scale (the mean of both, if shift made them differ), the legend follows
     else if (o instanceof Rect) { // the shape is kept: its corner radii follow the new size
       const shape = shapeOf(o);
@@ -225,7 +229,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (t === 'spot') return new Spot(base);
     if (t === 'pixel') return new PixelRegion({ ...base, block: panel.pixelBlock() });
     if (t === 'blur') return new BlurRegion({ ...base, block: panel.blurBlock(), live: true }); // live: a cheap preview until the mouse is released
-    return new Arrow({ ...base, stroke: panel.color(), strokeWidth: panel.strokeWidth(W) });
+    return new Arrow({ ...base, stroke: panel.color(), strokeWidth: panel.strokeWidth(W), ends: panel.arrowEnds() });
   }
 
   // The box and the points of a free shape follow the path drawn so far (a pen stroke has the width of the pen all around it).
@@ -243,6 +247,67 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     text.enterEditing();
     text.selectAll();
     canvas.requestRenderAll();
+  }
+
+  // A click places the emoji of the style bar, centered on the point; the tool stays armed for the next one.
+  function addEmoji(p) {
+    const emoji = new Emoji(panel.emoji(), { fontSize: panel.emojiSize(W), fill: panel.color() });
+    emoji.set({ left: p.x - emoji.width / 2, top: p.y - emoji.height / 2 });
+    adopt(emoji);
+    canvas.add(emoji);
+    canvas.requestRenderAll();
+    commit();
+  }
+
+  // The address of the page and the date of the capture, as a text at the bottom left of the image (or of the crop): a text like any other.
+  // One per version: a second press selects it. With Hide sensitive text on, the query of the address (tokens, e-mails) stays out of it.
+  async function addStamp() {
+    if (!ready()) return;
+    const { redactSensitive } = await getSettings().catch(() => ({ redactSensitive: true }));
+    if (!ready()) return;
+    setTool('select');
+    const known = canvas.getObjects().find((o) => o.stamp);
+    if (known) {
+      canvas.setActiveObject(known);
+      reveal(known);
+      canvas.requestRenderAll();
+      return;
+    }
+    ensureVersion();
+    const area = cur().crop ?? { x: 0, y: 0, w: W, h: H };
+    const when = new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(shot.createdAt);
+    const text = new IText(stampText(shot.url, when, { query: !redactSensitive }), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#000000', backgroundColor: '#ffffff', stamp: true });
+    const fontSize = stampFontSize(area.w, text.width / 100);
+    const margin = Math.round(fontSize * 0.6);
+    text.set({ fontSize });
+    text.set({ left: area.x + margin, top: area.y + area.h - text.height - margin });
+    adopt(text);
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    reveal(text);
+    canvas.requestRenderAll();
+    commit();
+  }
+
+  // Pans the view so that an object placed out of sight shows (the stamp, at the bottom of a very tall capture, or off to the side of a zoomed one).
+  function reveal(o) {
+    const left = view.tx + o.left * view.z, right = left + o.width * (o.scaleX || 1) * view.z;
+    const top = view.ty + o.top * view.z, bottom = top + o.height * (o.scaleY || 1) * view.z;
+    const dx = right > canvas.width ? canvas.width - 16 - right : left < 0 ? 16 - left : 0;
+    const dy = bottom > canvas.height ? canvas.height - 16 - bottom : top < 0 ? 16 - top : 0;
+    if (!dx && !dy) return;
+    fitMode = false;
+    setView(panBy(view, dx, dy, canvas.width, canvas.height, W, H, viewBox()));
+  }
+
+  // A pen stroke is over (Fabric drew it): it becomes an object of the version, with the width kept as it is when it is resized.
+  function onPath({ path }) {
+    if (!canvas) return;
+    path.set({ strokeUniform: true, objectCaching: false });
+    adopt(path);
+    ensureVersion();
+    canvas.requestRenderAll();
+    commit();
   }
 
   // Objects that leave the canvas: a blurred region gives its small canvases back now, not at the next garbage collection.
@@ -309,6 +374,85 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     canvas.requestRenderAll();
   }
 
+  // ---------- turn ----------
+
+  function labelCanvas() {
+    setAria(canvas.upperCanvasEl, 'editor.canvas', { title: shot.title || t('editor.untitled'), w: W, h: H });
+  }
+
+  // The image of the displayed version is the original turned as many quarter turns as the version says; the size of the document follows it.
+  function installFrame(next, quarter) {
+    if (bitmap !== raw) bitmap.close();
+    bitmap = next;
+    frameTurn = quarter;
+    source.img = next;
+    W = next.width;
+    H = next.height;
+    labelCanvas();
+  }
+
+  async function setFrame(turn) {
+    const quarter = cleanTurn(turn), base = raw;
+    if (!base || quarter === frameTurn) return;
+    const next = await turnedBitmap(base, quarter);
+    if (raw !== base || quarter !== cleanTurn(cur()?.turn)) { // the shot was closed, or another version shown, while it was drawn
+      if (next !== base) next.close();
+      return;
+    }
+    installFrame(next, quarter);
+  }
+
+  // An object after a quarter turn clockwise of an image `h` px high. A rectangle that is not tilted (an outline, a solid fill, a free area,
+  // a hiding region, the highlighter, the spotlight) stays upright: its box turns. A marker stays upright too, its disc goes where the turn
+  // takes it. Anything else turns with the image.
+  function turnObject(o, h) {
+    const to = turnPoint(o.getCenterPoint().x, o.getCenterPoint().y, h);
+    if (o instanceof Marker) {
+      const { disc } = o.parts();
+      const c = turnPoint(disc.cx, disc.cy, h);
+      o.set({ top: c.y - o.height / 2 });
+      o.fit(c.x);
+      if (o.sideAuto && o.label) o.setSide(autoSide(c.x, o.height, o.width - o.height, h));
+    } else if (o instanceof Rect && !o.angle) {
+      o.set({ width: o.height, height: o.width, rx: o.ry, ry: o.rx });
+      if (o.pts) o.set({ pts: turnPts(o.pts) });
+      o.setPositionByOrigin(to, 'center', 'center');
+    } else {
+      o.set({ angle: ((o.angle || 0) + 90) % 360 });
+      o.setPositionByOrigin(to, 'center', 'center');
+    }
+    o.setCoords();
+  }
+
+  // A quarter turn clockwise of the whole capture: the image, the crop and what is drawn on it, which keeps its place on it. What the person
+  // was doing stays: the zoom (the middle of the view turns with the image), the selected object, a crop box that is not applied yet.
+  async function rotate() {
+    if (!ready()) return;
+    const picked = selected();
+    const box = cropBox && { x: cropBox.left, y: cropBox.top, w: cropBox.width * cropBox.scaleX, h: cropBox.height * cropBox.scaleY };
+    endPendingEdit();
+    ensureVersion();
+    const v = cur(), base = raw, quarter = (cleanTurn(v.turn) + 1) % 4;
+    const next = await turnedBitmap(base, quarter);
+    if (raw !== base || cur() !== v) {
+      if (next !== base) next.close();
+      return;
+    }
+    const h = H;
+    const middle = fitMode ? null : turnPoint((canvas.width / 2 - view.tx) / view.z, (canvas.height / 2 - view.ty) / view.z, h);
+    for (const o of canvas.getObjects()) { bake(o); turnObject(o, h); }
+    v.crop = turnRect(v.crop, h);
+    v.turn = quarter;
+    installFrame(next, quarter);
+    if (middle) setView(clampView({ z: view.z, tx: canvas.width / 2 - middle.x * view.z, ty: canvas.height / 2 - middle.y * view.z }, canvas.width, canvas.height, W, H, viewBox()));
+    else refit();
+    syncOutput();
+    syncPanel();
+    commit();
+    if (box) enterCrop(turnRect(box, h));
+    else if (picked && canvas.getObjects().includes(picked)) canvas.setActiveObject(picked);
+  }
+
   function deleteSelection() {
     const objs = canvas?.getActiveObjects().filter((o) => !o.isCrop) ?? [];
     if (!objs.length) return;
@@ -329,10 +473,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   const pt = (o) => canvas.getScenePoint(o.e);
 
   function onDown(o) {
-    if (!ready() || tool === 'select' || cropBox) return;
+    if (!ready() || tool === 'select' || tool === 'pen' || cropBox) return; // the pen is Fabric's own drawing mode
     const p = pt(o);
     if (tool === 'text') { drawing = { start: p, text: true }; return; }
     if (tool === 'marker') { drawing = { start: p, marker: true }; return; }
+    if (tool === 'emoji') { drawing = { start: p, emoji: true }; return; }
     const obj = make(tool, p); // the version is only created at the end of the gesture, if the object really exists
     canvas.add(obj);
     drawing = { obj, start: p, path: panel.shape(tool) === 'free' && hasShape(obj) ? [[p.x, p.y]] : null };
@@ -370,10 +515,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     pressed = false;
     release();
     if (!drawing || !canvas) return;
-    const { obj, start: s, text, marker, path } = drawing;
+    const { obj, start: s, text, marker, emoji, path } = drawing;
     drawing = null;
     if (text) { ensureVersion(); addText(s); return; }
     if (marker) { ensureVersion(); addMarker(s); return; }
+    if (emoji) { ensureVersion(); addEmoji(s); return; }
     let tooSmall;
     if (path) { // a free shape: simplified, and it needs some length (and, for an area, some width and height)
       const kept = simplify(path, Math.max(0.5, FREE_TOLERANCE_PX / view.z));
@@ -398,11 +544,15 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   const syncPanel = () => panel.showSelection(selected(), tool);
 
+  // The pen is the drawing mode of Fabric, which takes the mouse itself; a crop in progress keeps it.
+  const syncDrawingMode = () => { if (canvas) canvas.isDrawingMode = tool === 'pen' && !cropBox; };
+
   function setTool(t) {
     closeMarkerEdit(true);
     tool = t;
-    panel.showTool(t);
+    panel.showTool(cropBox ? null : t);
     if (canvas) {
+      syncDrawingMode();
       const sel = t === 'select';
       canvas.skipTargetFind = !sel;
       canvas.selection = sel;
@@ -443,7 +593,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   const snapshot = () => {
     const v = cur();
-    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null]);
+    return JSON.stringify([v.objects, v.crop, v.scale, v.beautify ?? null, cleanTurn(v.turn)]);
   };
   const syncHistory = () => panel.showHistory(history);
 
@@ -491,6 +641,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     apply(pickVersion(shot, i));
     panel.showVersions(shot);
+    await setFrame(cur()?.turn);
     await loadObjects(cur()?.objects ?? []);
     resetHistory();
     syncOutput();
@@ -536,8 +687,9 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     endPendingEdit();
     const snap = cur() && history.step(delta);
     if (!snap) return;
-    const [objs, crop, scale, beautify] = JSON.parse(snap);
-    Object.assign(cur(), { objects: objs, crop, scale, beautify });
+    const [objs, crop, scale, beautify, turn = 0] = JSON.parse(snap);
+    Object.assign(cur(), { objects: objs, crop, scale, beautify, turn });
+    await setFrame(turn);
     await loadObjects(objs);
     syncOutput();
     syncHistory();
@@ -570,11 +722,11 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   // ---------- crop ----------
 
-  function enterCrop() {
+  function enterCrop(rect) {
     if (!shot || cropBox) return;
     setTool('select');
     canvas.discardActiveObject();
-    const r = cur()?.crop ?? { x: 0, y: 0, w: W, h: H };
+    const r = rect ?? cur()?.crop ?? { x: 0, y: 0, w: W, h: H };
     cropBox = new Rect({ left: r.x, top: r.y, width: r.w, height: r.h, fill: 'rgba(0,0,0,0)', strokeWidth: 0, lockRotation: true });
     cropBox.isCrop = cropBox.excludeFromExport = true;
     adopt(cropBox);
@@ -595,6 +747,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     cropBox = null;
     for (const o of canvas.getObjects()) o.set({ selectable: true, evented: true });
     panel.showCropButtons(false);
+    panel.showTool(tool);
+    syncDrawingMode();
     if (ok) {
       ensureVersion();
       cur().crop = clampCrop(r, W, H);
@@ -765,8 +919,15 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     });
     // Accessibility: a single announced element (the one that receives the mouse), not its twin.
     canvas.upperCanvasEl.setAttribute('role', 'img');
-    setAria(canvas.upperCanvasEl, 'editor.canvas', { title: shot.title || t('editor.untitled'), w: W, h: H }); // re-translated by applyDom
+    labelCanvas(); // re-translated by applyDom
     canvas.lowerCanvasEl.setAttribute('aria-hidden', 'true');
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
+    canvas.on('mouse:down:before', () => { // the stroke that starts takes the color and the width of the style bar
+      if (tool !== 'pen' || !canvas.freeDrawingBrush) return;
+      canvas.freeDrawingBrush.color = panel.color();
+      canvas.freeDrawingBrush.width = panel.strokeWidth(W);
+    });
+    canvas.on('path:created', onPath);
     canvas.on('before:render', drawBase);
     canvas.on('after:render', drawCrop);
     canvas.on('mouse:down', () => { pressed = true; });
@@ -811,7 +972,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       if (mine !== ticket) return;
       const bmp = await createImageBitmap(blob);
       if (mine !== ticket) { bmp.close(); return; }
-      shot = s; original = blob; bitmap = bmp; W = bmp.width; H = bmp.height;
+      shot = s; original = blob; raw = bitmap = bmp; frameTurn = 0; W = bmp.width; H = bmp.height;
       source.img = bmp;
       mount();
       panel.enable(W, H);
@@ -838,8 +999,9 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       try { await c.dispose(); } catch (e) { console.error('Obturo: dispose', e); }
       holder.remove();
       holder = backdrop = null;
-      bitmap.close();
-      bitmap = null;
+      if (bitmap !== raw) bitmap.close();
+      raw.close();
+      raw = bitmap = null;
       source.img = null;
       shot = original = null;
       history.reset();
@@ -852,7 +1014,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   panel.bindControls({
     ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu,
+    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp, rotate,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 

@@ -161,10 +161,31 @@ settings also open from *Settings* in the icon's right-click menu.
 
 Non-destructive: the original of a capture is never changed.
 
-- Tools, in groups by what they are for: select; arrow, outline, **numbered
-  markers** and styled text (font, size, bold, italic, underline, background) to
-  annotate; **highlighter** and **spotlight** to put in evidence; **solid fill**,
-  **pixelate** and **blur** to hide data; and crop on its own.
+- Tools, in groups by what they are for: select; arrow, outline, **pen**,
+  **numbered markers**, styled text (font, size, bold, italic, underline,
+  background) and **emoji** to annotate; **highlighter** and **spotlight** to put
+  in evidence; **solid fill**, **pixelate** and **blur** to hide data; and crop on
+  its own.
+- **Arrow, line, double arrow**: the arrow tool takes its *Ends* in the style bar,
+  a head at the end (the default), none (a plain line) or a head at both ends. The
+  choice is kept for the next ones, and a selected arrow can be given another.
+- **Pen**: draw freehand with the color and the stroke of the style bar. A stroke
+  is an object like any other (selected, moved, recolored, resized, deleted), and
+  keeps its width when it is resized.
+- **Emoji**: twenty emoji to put on the image with one click (a thumbs up, a
+  check, a cross, a warning, a bug...), picked in the style bar; the tool stays
+  armed, a selected emoji can be changed for another or resized. They are drawn by
+  the color emoji font of the system, so they look as they do there.
+- **Stamp** (the *Stamp* button, under the editor): the address of the page
+  (without its scheme and its fragment) and the date of the capture, as a text at
+  the bottom left of the image, or of the crop. It is a text like any other: move
+  it, edit it, delete it. Check the address before you share the image, since it
+  can hold a query. An imported image has no address: its stamp is the date alone.
+- **Rotate** (the *Rotate* button, under the editor): a quarter turn clockwise of the
+  whole capture, with its crop and what is drawn on it. Each version has its own
+  turn, undone with the rest, and the original is never rewritten. Rectangles
+  (outlines, solid fills, hiding regions, highlighter, spotlight) and numbered
+  markers stay upright: their box turns with the image.
 - **One color control everywhere**: the line of an outline or an arrow, a text and
   its background, a marker, the highlighter and the solid fill all use the same
   swatches (black, white, gray, blue, red, yellow, green, orange, pink) and a free
@@ -476,7 +497,8 @@ databases, the retention, the version model and the budgets.
 - `export-ui.js`, `export-batch.js`, `export-pure.js`, `export.css`,
   `encode.js`, `pdf.js`, `zip.js`: the download menu, the grouped export, and the
   encoders (images, PDF and ZIP written without a library). Loaded on first use.
-- `pure.js`, `fullpage-pure.js`, `import-pure.js`, `thumb-pure.js`,
+- `pure.js`, `fullpage-pure.js`, `import-pure.js`, `thumb-pure.js`, `stamp-pure.js`,
+  `emoji-pure.js`, `turn-pure.js`,
   `versions.js`, `view.js`, `history.js` (the undo and redo stack),
   `saver.js`: the logic, without `chrome.*`, IndexedDB or the DOM, tested with
   `node --test`.

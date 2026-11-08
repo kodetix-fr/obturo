@@ -6,6 +6,13 @@
 export const SHAPES = /** @type {const} */ (['rect', 'round', 'ellipse', 'free']);
 export const DEFAULT_SHAPE = 'rect';
 
+/** The ends an arrow can have: a head at the end, none (a plain line), a head at both ends. */
+export const ENDS = /** @type {const} */ (['end', 'none', 'both']);
+export const DEFAULT_ENDS = 'end';
+
+/** @param {unknown} value @returns {'end' | 'none' | 'both'} the ends, or the default for anything else (an arrow saved before the choice existed has none: a head at the end) */
+export const cleanEnds = (value) => ENDS.find((e) => e === value) ?? DEFAULT_ENDS;
+
 /** Radius of the corners of a rounded rectangle, as a part of its short side. */
 export const ROUND_RATIO = 0.25;
 

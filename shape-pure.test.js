@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SHAPE, ROUND_RATIO, SHAPES, cleanShape, freeGeometry, pathLength, shapeOf, shapeRadii, simplify } from './shape-pure.js';
+import { cleanEnds, DEFAULT_SHAPE, ROUND_RATIO, SHAPES, cleanShape, freeGeometry, pathLength, shapeOf, shapeRadii, simplify } from './shape-pure.js';
 
 test('shapes: rectangle first (the default), then rounded, ellipse and free', () => {
   assert.deepEqual([...SHAPES], ['rect', 'round', 'ellipse', 'free']);
@@ -78,4 +78,11 @@ test('freeGeometry: the bounds are the box, the points are fractions of it, a pa
     assert.ok(Math.abs(box.left + box.pts[i * 2] * box.width - path[i][0]) < 0.05, 'x');
     assert.ok(Math.abs(box.top + box.pts[i * 2 + 1] * box.height - path[i][1]) < 0.05, 'y');
   }
+});
+
+test('cleanEnds: an arrow, a line or a double arrow; anything else is an arrow', () => {
+  assert.equal(cleanEnds('end'), 'end');
+  assert.equal(cleanEnds('none'), 'none');
+  assert.equal(cleanEnds('both'), 'both');
+  for (const odd of [undefined, null, '', 'start', 3]) assert.equal(cleanEnds(odd), 'end');
 });

@@ -113,6 +113,10 @@ input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 .seg > label { position: relative; display: inline-flex; cursor: pointer; }
 .seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .seg > label > span { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 26px; padding: 0 11px; border-radius: 7px; color: var(--muted); font-weight: 550; white-space: nowrap; } /* a choice is one line: the row wraps (below), not the choice */
+.seg.emojis > label > span { min-width: 26px; padding: 0; font-size: 16px; }
+@media (max-width: 699px) { .seg.emojis { flex-wrap: wrap; max-width: 290px; } } /* two rows of ten: the row of twenty would leave the window */
+.imgbtns { display: inline-flex; gap: 6px; flex: none; } /* the image buttons wrap together, never one alone */
+@media (max-width: 559px) { .imgbtns { display: contents; } } /* a window that narrow cannot spare a row for them as a block */
 .seg input:hover + span { color: var(--fg); }
 .seg input:checked + span { background: var(--surface); color: var(--fg); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(14, 21, 34, .12); }
 .seg input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 1px; }
@@ -152,6 +156,7 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 }
 .tool .ic { width: 22px; height: 22px; }
 .tool:hover:not(:disabled) { background: var(--surface-2); color: var(--fg); }
+.tool:focus-visible { outline-offset: -2px; } /* inside the button: the scrolling box of the rail would cut a ring drawn outside it */
 .tool[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); }
 .rail-sep { height: 1px; margin: 6px 8px; background: var(--line); }
 
@@ -276,14 +281,26 @@ dialog::backdrop { background: rgba(9, 14, 23, .55); }
   .appbar { padding-right: 52px; }
 }
 
-/* Short windows: the tools lose their labels, then their height, so that the whole rail fits; Crop never scrolls away. */
+/* Short windows: the tools get closer, then lose their labels, then their height, so that the whole rail fits; Crop never scrolls away. */
+@media (max-height: 989px) {
+  .tool { min-height: 45px; padding-block: 3px; gap: 3px; }
+  .rail-sep { margin-block: 4px; }
+}
 @media (max-height: 899px) {
   .tool .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .tool { min-height: 42px; }
+  .tool { min-height: 38px; }
+  .rail-sep { margin-block: 5px; }
 }
-@media (max-height: 749px) {
+@media (max-height: 799px) {
   .tool { min-height: 36px; padding-block: 4px; }
   .rail-sep { margin-block: 4px; }
+}
+@media (max-height: 759px) {
+  .tool { min-height: 34px; padding-block: 3px; }
+}
+@media (max-height: 729px) {
+  .tool { min-height: 31px; }
+  .rail-sep { margin-block: 3px; }
 }
 
 /* ======================================================================================================================

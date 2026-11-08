@@ -423,6 +423,13 @@ describe('editor: non-regressions', () => {
       const img = await decodePng(page, readFileSync(await file.path()));
       assert.deepEqual(px(img, 250, 200), [0, 0, 0, 255], 'the file is the edited picture');
       assert.deepEqual([img.width, img.height], [1200, 700]);
+      await tool(page, 'flat');
+      await drag(page, m, 600, 400, 900, 550);
+      await poll(() => second.locator('#viewerImg').evaluate((img) => {
+        const c = new OffscreenCanvas(img.naturalWidth, img.naturalHeight).getContext('2d');
+        c.drawImage(img, 0, 0);
+        return c.getImageData(750, 470, 1, 1).data[0] === 0;
+      }), { what: 'the read-only tab follows an edit made in the editing tab' });
       await second.locator('#strip button.open').nth(1).click();
       await poll(async () => (await second.locator('#viewerImg').evaluate((i) => i.naturalWidth)) === 1000, { what: 'the other capture' });
       assert.notEqual(await second.locator('#ui').getAttribute('disabled'), null, 'nothing to edit in this tab');

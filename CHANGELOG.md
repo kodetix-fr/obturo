@@ -8,6 +8,13 @@ Notable changes to Obturo. The format follows
 
 ### Added
 
+- **A stamp**: the *Stamp* button adds the address of the page and the date of the capture as a text at the bottom left
+  of the image (or of the crop). It is a text like any other, to move, edit or delete.
+- **A pen** to draw freehand, with the color and the stroke of the style bar.
+- **Emoji**: twenty of them, placed with one click and picked in the style bar.
+- **A line and a double arrow**: the arrow tool takes its *Ends* in the style bar (a head at the end, none, or both).
+- **Rotate**: the *Rotate* button turns the whole capture a quarter turn clockwise, with its crop and what is drawn on it.
+  Each version has its own turn, and the original is never changed.
 - **About** in the settings, last section: the version, what is new in this release and links that open in a new
   tab when clicked: the reviews of Obturo on the Chrome Web Store, its issues on GitHub (*A problem? Tell us*) and
   Oblitero, another free extension of the same publisher. Obturo sends nothing and loads nothing before a click.
