@@ -448,6 +448,9 @@ dialog.small { width: min(460px, calc(100vw - 32px)); }
 .dlg-body .note a { color: var(--accent-ink); }
 .dlg-body h4 { margin: 0 0 2px; font-size: 13px; font-weight: 600; }
 .about-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.about-links .btn { text-decoration: none; }
+.ext { width: 12px; height: 12px; flex: none; }
+.note .ext { margin-left: 2px; vertical-align: -1px; }
 .storage { display: grid; gap: 6px; margin-bottom: 12px; }
 .storage-text, .storage-pending { margin: 0; font-variant-numeric: tabular-nums; }
 .storage-pending { color: var(--muted); font-size: 12px; }

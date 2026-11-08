@@ -29,6 +29,10 @@ Notable changes to Obturo. The format follows
 
 ### Changed
 
+- **About says it once**: one paragraph instead of two (the old *Support Kodetix* note is folded into it, so *free* and
+  *nothing leaves your computer* are said once), and the three links on one row of buttons with a small mark for the new
+  tab: *Write a review*, *Report a problem*, *Support Kodetix*. Oblitero stays an inline link. The German publisher label
+  reads *Vom selben Entwickler*.
 - **The strip of captures folds** under a head that keeps the count (*History · 12*): folded by default in a window
   shorter than 900 px, open above, and the choice is kept in the browser. The picture gets the room (at 813 px of height
   the stage goes from about 64 to 79 percent of the window).

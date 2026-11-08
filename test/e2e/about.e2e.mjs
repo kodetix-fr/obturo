@@ -142,7 +142,7 @@ describe('about: the news dot, the About section, the request for a review', () 
     await library.setViewportSize({ width: 1500, height: 900 });
   });
 
-  it('the About section holds the honest sentence and three links that open in a new tab: the store reviews, the issues, Oblitero; nothing about a private tool', async () => {
+  it('the About section holds one honest paragraph and its links that open in a new tab: the store reviews, the issues, the support page, Oblitero; nothing about a private tool', async () => {
     await put(START);
     await openLibrary();
     await library.click('#settingsBtn');
@@ -157,7 +157,9 @@ describe('about: the news dot, the About section, the request for a review', () 
     assert.equal(section.review.href, LINKS.reviews);
     assert.equal(section.issues.href, LINKS.issues);
     assert.equal(section.oblitero.href, LINKS.oblitero);
-    for (const l of [section.review, section.issues, section.oblitero]) {
+    assert.equal(section.review.text, 'Write a review');
+    assert.equal(section.issues.text, 'Report a problem');
+    for (const l of [section.review, section.issues, section.oblitero, section.support]) {
       assert.equal(l.target, '_blank');
       assert.match(l.rel, /noopener/);
       assert.ok(l.text.length > 3, 'the link says what it is');
@@ -166,7 +168,7 @@ describe('about: the news dot, the About section, the request for a review', () 
     assert.equal(section.issues.text, enUi['about.problem']);
     assert.equal(section.support.href, 'https://kodetix.fr/soutenir', 'the support link is still there');
     assert.equal(section.last, 'aboutSection', 'the About section is the last one');
-    assert.match(section.text, /free, open source \(MIT\) and nothing leaves your computer/);
+    assert.match(section.text, /free, open source \(MIT\) and will stay so; nothing leaves your computer/);
     assert.match(section.text, /A review helps other people find it/);
     assert.doesNotMatch(section.text, /Decurto|train|feed/i, 'it promises no use of the reviews');
     assert.equal(await library.evaluate(() => document.getElementById('aboutNews').hidden), false, 'the news of this release are there to read');
