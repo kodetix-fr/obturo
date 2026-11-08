@@ -119,7 +119,9 @@ The library is the page you edit and browse in: the editor, and under it a strip
 of the 12 latest captures (newest on the left) that starts with an **All
 history** button. A **History** button at the top right, next to the settings
 button (the sliders icon, which opens the settings), opens the same sheet. The
-settings also open from *Settings* in the icon's right-click menu.
+settings also open from *Settings* in the icon's right-click menu. The strip folds
+under its head (*History · 12*): it starts folded in a window shorter than 900 px,
+open above, and your choice is kept.
 
 - **Import**: any image can be edited in Obturo, not only a capture. Pick files
   with the import button (next to *History*), paste an image with **Ctrl+V**

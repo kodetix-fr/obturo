@@ -188,6 +188,7 @@ describe('beautify: the editor shows the look around the capture', () => {
   });
 
   it('the panel is a column next to the stage: the capture and its look are fitted in what is left and stay visible, and closing gives the width back', async () => {
+    await page.setViewportSize({ width: 1500, height: 1100 }); // tall enough for the width, not the height, to limit the fit with the panel open
     await resetLibrary(page, h, [spec('Alpha', 1280, 720)], undefined, CLEAN);
     await open(1280, 720);
     const wide = await page.evaluate(() => document.getElementById('stage').clientWidth);
@@ -212,7 +213,8 @@ describe('beautify: the editor shows the look around the capture', () => {
     await closePanel();
     const after = await placed();
     assert.equal(after.stageW, wide, 'the stage has its width back');
-    assert.ok(after.w > p.w, 'and the capture is fitted larger');
+    assert.ok(after.w > p.w + 20, `and the capture is fitted larger: ${p.w} in a stage ${p.stageW} x ${p.stageH}, then ${after.w} in ${after.stageW} x ${after.stageH}`);
+    await page.setViewportSize({ width: 1500, height: 900 });
   });
 
   it('a slider moves the look on the stage while it is dragged, and the version keeps it when it is let go', async () => {

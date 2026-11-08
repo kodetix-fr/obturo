@@ -319,6 +319,7 @@ function setPinMark(li, pinned) {
 // "All history" with the number of shots, in the language in use.
 function showHistoryCount() {
   $('historyAllCount').textContent = totalCount ? formatNumber(totalCount) : '';
+  $('stripCount').textContent = totalCount ? `\u00b7 ${formatNumber(totalCount)}` : '';
   $('historyAll').setAttribute('aria-label', t('hist.all.aria', { n: formatNumber(totalCount) }));
 }
 
@@ -583,6 +584,26 @@ async function showHistory() {
 }
 $('historyBtn').addEventListener('click', showHistory);
 $('historyAll').addEventListener('click', showHistory);
+
+// The strip folds under its head. Without a choice of the person the window height decides (css); the choice is kept in this browser.
+const STRIP_KEY = 'obturo-strip';
+function initStrip() {
+  const nav = /** @type {HTMLElement} */ (document.querySelector('.filmstrip')), body = $('stripBody'), toggle = $('stripToggle');
+  const isOpen = () => getComputedStyle(body).display !== 'none';
+  const show = () => toggle.setAttribute('aria-expanded', String(isOpen()));
+  try {
+    const saved = localStorage.getItem(STRIP_KEY);
+    if (saved === 'open' || saved === 'closed') nav.dataset.strip = saved;
+  } catch { /* no storage: the height decides */ }
+  toggle.addEventListener('click', () => {
+    nav.dataset.strip = isOpen() ? 'closed' : 'open';
+    try { localStorage.setItem(STRIP_KEY, nav.dataset.strip); } catch { /* the choice lasts for this page only */ }
+    show();
+  });
+  matchMedia('(max-height: 899px)').addEventListener('change', show);
+  show();
+}
+initStrip();
 
 // export: the "Export..." button of the selection bar (#bulkExport, in #bulkExtra) exports the selected captures as one file;
 // export-ui.js is imported on the first click only.

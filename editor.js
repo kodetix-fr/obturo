@@ -472,7 +472,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   // ---------- mouse ----------
 
-  const pt = (o) => canvas.getScenePoint(o.e);
+  // A point of the document at the precision the saved version keeps (two decimals), so that what is drawn is what is reloaded.
+  const pt = (o) => { const p = canvas.getScenePoint(o.e); return { x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100 }; };
 
   function onDown(o) {
     if (!ready() || tool === 'select' || tool === 'pen' || cropBox) return; // the pen is Fabric's own drawing mode

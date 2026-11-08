@@ -163,6 +163,7 @@ export default {
 
   // bandeau de captures
   'strip.label': 'Captures',
+  'strip.toggle.tip': 'Afficher ou masquer les dernières captures',
   'strip.open': 'Ouvrir la capture du {when}',
   'strip.delete': 'Supprimer la capture',
   'lib.noTrace.tip': 'Le mode sans trace est actif\u00a0: les captures sont copiées et enregistrées nulle part. Clique pour le désactiver.',

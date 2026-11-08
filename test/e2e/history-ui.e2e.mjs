@@ -35,6 +35,7 @@ describe('history view', () => {
   // An empty database, the retention off, the given shots, and the library opened on them.
   async function fresh(rows, { lang = 'en', real = 3, policy = OFF, open = true } = {}) {
     await L.goto(h.url('manifest.json'));
+    await L.evaluate(() => localStorage.setItem('obturo-strip', 'open')); // this window is shorter than 900 px: the strip starts folded without it
     await wipe(P);
     await setPolicy(P, policy);
     await seedSettings(P, { language: lang, theme: 'light' });

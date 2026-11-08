@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': 'キャプチャ',
+  'strip.toggle.tip': '最新のキャプチャを表示または非表示にします',
   'strip.open': '{when} のキャプチャを開く',
   'strip.delete': 'キャプチャを削除',
   'lib.noTrace.tip': '「保存しない」がオンです。キャプチャはコピーされ、どこにも保存されません。クリックするとオフにします。',

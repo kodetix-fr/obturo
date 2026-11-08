@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': 'Aufnahmen',
+  'strip.toggle.tip': 'Die letzten Aufnahmen ein- oder ausblenden',
   'strip.open': 'Aufnahme vom {when} öffnen',
   'strip.delete': 'Aufnahme löschen',
   'lib.noTrace.tip': '„Spurlos“ ist an: Aufnahmen werden kopiert und nirgends gespeichert. Klicke, um es auszuschalten.',
