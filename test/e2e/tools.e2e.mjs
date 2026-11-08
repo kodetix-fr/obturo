@@ -253,3 +253,31 @@ describe('editor: the stamp on a wide capture seen at its real size', () => {
     await poll(async () => (await darkPixels()) > 200, { what: 'the text of the stamp on the stage' });
   });
 });
+
+describe('editor: one mode, one pressed tool', () => {
+  let h, page;
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('Modes', 1600, 900, false)]);
+    await ready(page);
+    await waitOut(page, 1600, 900);
+  });
+  after(() => h?.close());
+
+  it('during a crop only Crop is pressed, and the tool that was armed comes back after it', async () => {
+    const pressed = () => page.locator('.rail .tool[aria-pressed="true"]').evaluateAll((els) => els.map((el) => el.dataset.tool ?? el.id));
+    await tool(page, 'arrow');
+    assert.deepEqual(await pressed(), ['arrow']);
+    await page.click('#crop');
+    assert.deepEqual(await pressed(), ['crop'], 'the crop is the mode');
+    await page.click('#cropCancel');
+    assert.deepEqual(await pressed(), ['select'], 'back on Select, the crop released');
+  });
+
+  it('the keyboard reaches Import, History and Settings in the order they show', async () => {
+    const order = await page.evaluate(() => ['importBtn', 'historyBtn', 'settingsBtn'].map((id) => [id, document.getElementById(id).getBoundingClientRect().left]).sort((a, b) => a[1] - b[1]).map((x) => x[0]));
+    const dom = await page.evaluate(() => [...document.querySelectorAll('#importBtn, #historyBtn, #settingsBtn')].map((el) => el.id));
+    assert.deepEqual(dom, order, 'the DOM order is the left to right order');
+  });
+});

@@ -233,6 +233,7 @@ export function showHistory(history) {
 export function showCropButtons(editing) {
   dom.crop.setAttribute('aria-pressed', String(editing));
   dom.cropGroup.hidden = !editing;
+  if (editing) showTool(null); // the crop is the mode: no other tool shows as pressed beside it
 }
 
 export function showZoom(z) {

@@ -550,7 +550,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   function setTool(t) {
     closeMarkerEdit(true);
     tool = t;
-    panel.showTool(t);
+    panel.showTool(cropBox ? null : t);
     if (canvas) {
       syncDrawingMode();
       const sel = t === 'select';
@@ -747,6 +747,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     cropBox = null;
     for (const o of canvas.getObjects()) o.set({ selectable: true, evented: true });
     panel.showCropButtons(false);
+    panel.showTool(tool);
     syncDrawingMode();
     if (ok) {
       ensureVersion();
