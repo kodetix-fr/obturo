@@ -62,8 +62,8 @@ export const dom = {
   cropOk: byId('cropOk', HTMLButtonElement),
   cropCancel: byId('cropCancel', HTMLButtonElement),
   cropClear: byId('cropClear', HTMLButtonElement),
-  scalePct: byId('scalePct', HTMLInputElement),
-  scaleW: byId('scaleW', HTMLInputElement),
+  props: byId('props'), // the style bar, floating over the top of the stage
+  outBtn: byId('outBtn', HTMLButtonElement), // the output size: opens the Download menu
   out: byId('out'),
   outNote: byId('outNote'),
   fit: byId('fit', HTMLButtonElement),

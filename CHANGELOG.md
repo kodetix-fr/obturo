@@ -29,6 +29,12 @@ Notable changes to Obturo. The format follows
 
 ### Changed
 
+- **The style bar floats over the top of the picture** instead of pushing it down: the picture no longer moves when you
+  change tool, in narrow windows where the bar changes its height. The view is worked out under the bar as it is at that
+  moment (Fit, zoom, move), and left alone when the bar changes.
+- **The output bar holds the output**: *Scale* and *Width* moved into the *Download* menu, the output size under the editor is
+  the button that opens it, *Fit* and *100%* show which one applies (the percentage is not said twice at 100%), *Remove crop*
+  shows only when there is a crop, and *Beautify*, *Stamp* and *Rotate* come first, at the left.
 - **The stamp never carries the query** of the address (a token, an e-mail), whether *Hide sensitive text* is on or off.
 - **Rotate is off on the Original** once the capture has versions, with a tip that says to pick a version: turning the
   Original made a bare version, with what was covered in the others showing. A capture with no version can still be turned.

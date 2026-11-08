@@ -43,3 +43,21 @@ export function zoomAt(v, factor, px, py, cw, ch, w, h, box) {
 
 /** @param {View} v @param {number} dx @param {number} dy @param {number} cw @param {number} ch @param {number} w @param {number} h @param {Box} [box] @returns {View} */
 export const panBy = (v, dx, dy, cw, ch, w, h, box) => clampView({ z: v.z, tx: v.tx + dx, ty: v.ty + dy }, cw, ch, w, h, box);
+
+const lift = (v, d) => ({ z: v.z, tx: v.tx, ty: v.ty + d });
+
+/**
+ * The same functions for a canvas whose first `top` px are covered by something that floats over it: the document is placed, kept and
+ * zoomed in the part that shows, and `py` of a zoom is a canvas point.
+ * @param {number} top
+ */
+export const below = (top) => ({
+  /** @param {number} cw @param {number} ch @param {number} w @param {number} h @param {Box} [box] */
+  fit: (cw, ch, w, h, box) => lift(fitView(cw, ch - top, w, h, box), top),
+  /** @param {View} v @param {number} cw @param {number} ch @param {number} w @param {number} h @param {Box} [box] */
+  clamp: (v, cw, ch, w, h, box) => lift(clampView(lift(v, -top), cw, ch - top, w, h, box), top),
+  /** @param {View} v @param {number} factor @param {number} px @param {number} py @param {number} cw @param {number} ch @param {number} w @param {number} h @param {Box} [box] */
+  zoom: (v, factor, px, py, cw, ch, w, h, box) => lift(zoomAt(lift(v, -top), factor, px, py - top, cw, ch - top, w, h, box), top),
+  /** @param {View} v @param {number} dx @param {number} dy @param {number} cw @param {number} ch @param {number} w @param {number} h @param {Box} [box] */
+  pan: (v, dx, dy, cw, ch, w, h, box) => lift(panBy(lift(v, -top), dx, dy, cw, ch - top, w, h, box), top),
+});

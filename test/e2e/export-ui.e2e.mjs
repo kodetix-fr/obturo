@@ -8,7 +8,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
-  dbDump, decodePng, diffInfo, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, seedSettings, sha256, shotWhere, sleep,
+  dbDump, decodePng, diffInfo, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, setOutput, seedSettings, sha256, shotWhere, sleep,
   spec, titled, tool, waitOut,
 } from './support/editor.mjs';
 import {
@@ -277,7 +277,11 @@ describe('export: the Download button and its menu', () => {
     assert.equal(await text('#downloadFmt'), 'PNG', 'the button of the editor follows the Settings, not the menu');
     await page.keyboard.press('ArrowDown');
     await poll(async () => (await text('#dlPop .dl-foot .btn')) === 'Download WebP', { what: 'WebP chosen by the arrow' });
-    await page.keyboard.press('Tab'); // the quality slider of a lossy format comes next
+    await page.keyboard.press('Tab'); // the size fields come next, then the quality slider of a lossy format
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'scalePct');
+    await page.keyboard.press('Tab');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'scaleW');
+    await page.keyboard.press('Tab');
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'dlQuality');
     await page.keyboard.press('Escape');
     await page.waitForSelector('#dlPop', { state: 'hidden' });
@@ -591,8 +595,7 @@ describe('export: the grouped export', () => {
     m = await mapper(page, 900, 600);
     await tool(page, 'rect');
     await drag(page, m, 150, 150, 450, 350);
-    await page.fill('#scalePct', '60');
-    await page.press('#scalePct', 'Enter');
+    await setOutput(page, '#scalePct', 60, 'Enter');
     await waitOut(page, 540, 360);
     await shotWhere(page, ids[3], (s) => s.versions[0]?.objects.length === 1 && s.versions[0].scale === 0.6, 'Delta saved');
     // The crop of Charlie is written straight into its version (the crop tool is tested elsewhere).

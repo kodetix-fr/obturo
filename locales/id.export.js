@@ -12,6 +12,7 @@ export default {
 
   // its menu
   'dl.format': 'Format',
+  'dl.size': 'Ukuran',
   'dl.hint.png': 'Tanpa kehilangan kualitas, teks tajam',
   'dl.hint.jpeg': 'File kecil, untuk foto',
   'dl.hint.webp': 'File kecil, teks tetap tajam',

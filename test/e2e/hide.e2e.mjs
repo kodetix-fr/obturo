@@ -7,7 +7,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
-  dbDump, decodePng, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, shotWhere, sleep, spec, titled, tool, waitOut,
+  dbDump, decodePng, download, drag, mapper, originalHash, poll, px, ready, resetLibrary, setOutput, shotWhere, sleep, spec, titled, tool, waitOut,
 } from './support/editor.mjs';
 import { MIME, batchDone, closeBatch, decodeImage, downloadAfter, openBatch, readPdf, readZip, setDefaultFormat } from './support/export.mjs';
 import { thumbPlan } from '../../thumb-pure.js';
@@ -108,8 +108,7 @@ describe('hiding: solid fill and soft blur', () => {
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }, { selector, value });
   const fillScale = async (percent) => {
-    await page.fill('#scalePct', String(percent));
-    await page.press('#scalePct', 'Tab');
+    await setOutput(page, '#scalePct', percent);
   };
   const visible = (selector) => page.locator(selector).isVisible();
 

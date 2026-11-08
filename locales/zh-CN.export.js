@@ -12,6 +12,7 @@ export default {
 
   // its menu
   'dl.format': '格式',
+  'dl.size': '尺寸',
   'dl.hint.png': '无损，文字清晰',
   'dl.hint.jpeg': '文件小，适合照片',
   'dl.hint.webp': '文件小，文字保持清晰',

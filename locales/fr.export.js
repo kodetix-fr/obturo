@@ -12,6 +12,7 @@ export default {
 
   // son menu
   'dl.format': 'Format',
+  'dl.size': 'Taille',
   'dl.hint.png': 'Sans perte, texte net',
   'dl.hint.jpeg': 'Fichiers légers, pour les photos',
   'dl.hint.webp': 'Fichiers légers, texte net',

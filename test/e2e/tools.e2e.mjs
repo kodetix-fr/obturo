@@ -3,7 +3,7 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
-import { dbDump, decodePng, download, drag, mapper, poll, px, ready, resetLibrary, sleep, spec, tool, waitOut } from './support/editor.mjs';
+import { dbDump, decodePng, download, drag, mapper, poll, px, ready, resetLibrary, sleep, spec, stageUnderBar, tool, waitOut } from './support/editor.mjs';
 
 describe('editor: stamp, arrow ends, pen, emoji', () => {
   let h, page, m, id;
@@ -164,7 +164,7 @@ describe('editor: the stamp on a very tall capture', () => {
 
   it('the stamp is brought into view, not left thousands of pixels below it', async () => {
     const darkPixels = async () => {
-      const img = await decodePng(page, await page.locator('#stage').screenshot());
+      const img = await decodePng(page, await stageUnderBar(page));
       let n = 0;
       for (let i = 0; i < img.data.length; i += 4) if (img.data[i] < 120 && img.data[i + 1] < 120 && img.data[i + 2] < 120) n++;
       return n;
@@ -241,7 +241,7 @@ describe('editor: the stamp on a wide capture seen at its real size', () => {
 
   it('the stamp is brought into view when the view shows another part of the image', async () => {
     const darkPixels = async () => {
-      const img = await decodePng(page, await page.locator('#stage').screenshot());
+      const img = await decodePng(page, await stageUnderBar(page));
       let n = 0;
       for (let i = 0; i < img.data.length; i += 4) if (img.data[i] < 120 && img.data[i + 1] < 120 && img.data[i + 2] < 120) n++;
       return n;
@@ -288,5 +288,100 @@ describe('editor: one mode, one pressed tool', () => {
     });
     assert.ok(stops.ids.every((n, i) => n >= 0 && (i === 0 || n > stops.ids[i - 1])), `the stops follow the bar: ${stops.ids}`);
     assert.ok(stops.tool > stops.ids.at(-1), 'the first tool comes after Settings');
+  });
+});
+
+describe('editor: the style bar floats, the output bar holds the output', () => {
+  let h, page, m;
+  const W = 1600, H = 900;
+  const pageErrors = () => h.errors.filter((e) => e.startsWith('[pageerror]'));
+  const visible = (selector) => page.locator(selector).isVisible();
+  const size = async (w, hh) => {
+    await page.setViewportSize({ width: w, height: hh });
+    await poll(async () => (await page.evaluate(() => innerWidth)) === w && (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
+    await sleep(120);
+  };
+
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('Bars', W, H, false)]);
+    await ready(page);
+    await waitOut(page, W, H);
+    m = await mapper(page, W, H);
+  });
+  after(() => h?.close());
+
+  it('the stage keeps its place and its size whatever the tool, at 820 and 480 px wide', async () => {
+    for (const [w, hh] of [[820, 900], [480, 900]]) {
+      await size(w, hh);
+      const stages = new Set();
+      for (const name of ['select', 'arrow', 'rect', 'pen', 'marker', 'text', 'emoji', 'highlight', 'spot', 'flat', 'pixel', 'blur']) {
+        await tool(page, name);
+        const box = await page.locator('#stage').boundingBox();
+        stages.add(`${Math.round(box.y)}:${Math.round(box.height)}`);
+      }
+      assert.equal(stages.size, 1, `one stage top and height at ${w} px, got ${[...stages]}`);
+    }
+    await size(1500, 900);
+    await tool(page, 'select');
+    m = await mapper(page, W, H);
+  });
+
+  it('the style bar lies over the stage and the picture is worked out under it', async () => {
+    const r = await page.evaluate(() => {
+      const bar = document.getElementById('props').getBoundingClientRect();
+      const stage = document.getElementById('stage').getBoundingClientRect();
+      return { barTop: bar.top, stageTop: stage.top, barBottom: bar.bottom, over: document.elementFromPoint(bar.x + 40, bar.bottom - 4)?.closest('#props') !== null };
+    });
+    assert.equal(r.barTop, r.stageTop, 'the bar starts where the stage starts');
+    assert.ok(r.over, 'a click at the bottom of the bar reaches the bar, not the picture');
+  });
+
+  it('the output size is a button that opens the Download menu, where the scale and the width are', async () => {
+    assert.equal(await visible('#scalePct'), false, 'no field in the bar');
+    assert.equal(await page.locator('.status input').count(), 0, 'the bar has no field');
+    await page.click('#outBtn');
+    await page.waitForSelector('#dlPop:not([hidden])');
+    assert.equal(await page.inputValue('#scalePct'), '100');
+    assert.equal(await page.inputValue('#scaleW'), String(W));
+    await page.fill('#scaleW', '800');
+    await page.press('#scaleW', 'Tab');
+    await waitOut(page, 800, 450);
+    assert.equal(await page.inputValue('#scalePct'), '50', 'the scale follows the width');
+    await page.fill('#scalePct', '100');
+    await page.press('#scalePct', 'Enter');
+    await waitOut(page, W, H);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getAttribute('#downloadMenu', 'aria-expanded'), 'false');
+  });
+
+  it('Remove crop is only there when there is a crop', async () => {
+    assert.equal(await visible('#cropClear'), false, 'no crop, no button');
+    await page.click('#crop');
+    await drag(page, m, 200, 200, 1000, 700);
+    await page.click('#cropOk');
+    await page.waitForSelector('#cropClear', { state: 'visible' });
+    await page.click('#cropClear');
+    await page.waitForSelector('#cropClear', { state: 'hidden' });
+    await waitOut(page, W, H);
+  });
+
+  it('the image buttons come first, the output and the zoom after, and the zoom shows what applies', async () => {
+    const lefts = await page.evaluate(() => ['beautify', 'stamp', 'rotate', 'outBtn', 'fit'].map((id) => document.getElementById(id).getBoundingClientRect().left));
+    assert.deepEqual([...lefts].sort((a, b) => a - b), lefts, `left to right: ${lefts}`);
+    const state = async () => ({ fit: await page.getAttribute('#fit', 'aria-pressed'), actual: await page.getAttribute('#actual', 'aria-pressed'), label: await visible('#zoomLabel') });
+    assert.deepEqual(await state(), { fit: 'true', actual: 'false', label: true }, 'fitted: Fit applies, the percentage is shown');
+    await page.click('#actual');
+    assert.deepEqual(await state(), { fit: 'false', actual: 'true', label: false }, 'actual size: 100 % applies and is not said twice');
+    await page.keyboard.down('Control');
+    await page.mouse.move(...m.pt(800, 450));
+    await page.mouse.wheel(0, -300);
+    await page.keyboard.up('Control');
+    await poll(async () => (await state()).label, { what: 'a zoom of its own shows its percentage' });
+    assert.deepEqual(await state(), { fit: 'false', actual: 'false', label: true });
+    await page.click('#fit');
+    assert.equal((await state()).fit, 'true');
+    assert.deepEqual(pageErrors(), [], 'no error on the page');
   });
 });

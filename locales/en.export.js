@@ -12,6 +12,7 @@ export default {
 
   // its menu
   'dl.format': 'Format',
+  'dl.size': 'Size',
   'dl.hint.png': 'Lossless, sharp text',
   'dl.hint.jpeg': 'Small files, for photographs',
   'dl.hint.webp': 'Small files, text stays sharp',
