@@ -11,10 +11,7 @@ export default {
   'popup.delayOff': 'Sin retardo',
   'popup.delayValue': '{n} s',
   'popup.ask.label': 'Petición de reseña',
-  'popup.ask.text': 'Obturo es gratuito y lo guarda todo en tu ordenador. Una reseña ayuda a que otras personas lo encuentren.',
-  'popup.ask.review': 'Dejar una reseña',
-  'popup.ask.later': 'Más tarde',
+  'popup.ask.row': '¿Te gusta Obturo? Deja una reseña',
   'popup.ask.never': 'No, gracias',
-  'popup.ask.problem': '¿Un problema? Cuéntanoslo',
   'popup.news': 'Nuevo',
 };

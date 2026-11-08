@@ -59,8 +59,8 @@ describe('about: the news dot, the About section, the request for a review', () 
   const askBox = (popup) => popup.evaluate(() => {
     const box = document.getElementById('ask');
     return box && {
-      text: box.querySelector('.ask-text')?.textContent, buttons: [...box.querySelectorAll('button')].map((b) => b.textContent),
-      label: box.getAttribute('aria-label'), inMenu: !!box.closest('#menu'),
+      text: box.querySelector('.ask-review span')?.textContent, buttons: [...box.querySelectorAll('button')].map((b) => b.getAttribute('aria-label') ?? b.textContent),
+      label: box.getAttribute('aria-label'), inMenu: !!box.closest('#menu'), linksHidden: /** @type {HTMLElement} */ (document.getElementById('links')).hidden,
     };
   });
 
@@ -189,13 +189,13 @@ describe('about: the news dot, the About section, the request for a review', () 
     await popup.close();
   });
 
-  it('at the count the popup asks, with the same words for everyone and the two links; the request is out of the list of actions', async () => {
+  it('at the count the popup asks, with the same words for everyone, in one row that takes the place of the two links; the request is out of the list of actions', async () => {
     await put({ ...START, captures: REVIEW_STEP });
     const popup = await openPopup();
     const box = await askBox(popup);
     assert.deepEqual(box, {
-      text: enPopup['popup.ask.text'], label: enPopup['popup.ask.label'], inMenu: false,
-      buttons: [enPopup['popup.ask.review'], enPopup['popup.ask.later'], enPopup['popup.ask.never'], enPopup['popup.ask.problem']],
+      text: enPopup['popup.ask.row'], label: enPopup['popup.ask.label'], inMenu: false, linksHidden: true,
+      buttons: [enPopup['popup.ask.row'], enPopup['popup.ask.never']],
     });
     assert.equal(await popup.locator('[role=menuitem]').count(), 11, 'the actions are the same');
     assert.doesNotMatch(box.text, /\bstars?\b|reward|discount|prize/i, 'no star count asked, nothing offered');
@@ -225,7 +225,7 @@ describe('about: the news dot, the About section, the request for a review', () 
   it('"Give a review" opens the reviews page and the request never returns', async () => {
     await put({ ...START, captures: REVIEW_STEP });
     const popup = await openPopup();
-    await popup.click('#ask .ask-btn.primary');
+    await popup.click('#ask .ask-review');
     await until(() => popup.evaluate(() => window.__created.length), 'a tab is opened');
     assert.deepEqual(await popup.evaluate(() => window.__created), [LINKS.reviews]);
     assert.equal((await notice()).next, null);
@@ -236,44 +236,41 @@ describe('about: the news dot, the About section, the request for a review', () 
     await after.close();
   });
 
-  it('"No thanks" takes the request away for good; "Later" takes it away for now, it comes back at the next count', async () => {
+  it('the cross takes the request away for good and gives the two links back; closing the popup is "later"', async () => {
     await put({ ...START, captures: REVIEW_STEP });
     const no = await openPopup();
-    await no.click('#ask .ask-btn:nth-of-type(3)');
+    await no.click('#ask .ask-never');
     await no.waitForSelector('#ask', { state: 'detached' });
+    assert.equal(await no.evaluate(() => /** @type {HTMLElement} */ (document.getElementById('links')).hidden), false, 'the two links are back');
     assert.equal((await notice()).next, null);
+    assert.equal((await no.evaluate(() => window.__created)).length, 0, 'no page opened');
     await no.close();
 
     await put({ ...START, captures: REVIEW_STEP });
     const later = await openPopup();
-    await later.click('#ask .ask-btn:nth-of-type(2)');
-    await later.waitForSelector('#ask', { state: 'detached' });
-    assert.equal((await later.evaluate(() => window.__created)).length, 0, 'no page opened');
-    assert.deepEqual(await notice(), { ...START, captures: REVIEW_STEP, asked: 1, next: 2 * REVIEW_STEP });
+    assert.notEqual(await askBox(later), null);
     await later.close();
+    assert.deepEqual(await notice(), { ...START, captures: REVIEW_STEP, asked: 1, next: 2 * REVIEW_STEP }, 'closed without an answer: it comes back at the next count');
   });
 
-  it('"A problem? Tell us" opens the issues page and keeps the request as it was', async () => {
-    await put({ ...START, captures: REVIEW_STEP });
-    const popup = await openPopup();
-    await popup.click('#ask .link');
-    await until(() => popup.evaluate(() => window.__created.length), 'a tab is opened');
-    assert.deepEqual(await popup.evaluate(() => window.__created), [LINKS.issues]);
-    assert.equal((await notice()).next, 2 * REVIEW_STEP, 'the link is not an answer');
-    await popup.close();
-  });
-
-  it('the popup request reads well in every language: no key shown, nothing sticks out of the 320 px', async () => {
+  it('the popup request reads well in every language: no key shown, one row, no cut word, the popup under the 600 px Chrome allows', async () => {
     for (const code of Object.keys(LANGUAGES)) {
       await bench.evaluate((c) => { localStorage.setItem('obturo.appearance', JSON.stringify({ language: c, theme: 'auto' })); }, code);
       await put({ ...START, captures: REVIEW_STEP });
       const popup = await openPopup();
       const box = await popup.evaluate(() => {
         const el = /** @type {HTMLElement} */ (document.getElementById('ask'));
-        return { text: el.textContent, sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth, cut: [...el.querySelectorAll('button')].filter((b) => b.scrollWidth > b.clientWidth + 1).length };
+        const label = /** @type {HTMLElement} */ (el.querySelector('.ask-review span'));
+        const bottom = Math.max(...[...document.querySelectorAll('button, #ask')].map((e) => e.getBoundingClientRect().bottom));
+        return {
+          text: el.textContent, sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth, cut: label.scrollWidth > label.clientWidth + 1,
+          row: el.getBoundingClientRect().height, height: document.body.getBoundingClientRect().height, bottom,
+        };
       });
       assert.doesNotMatch(box.text, /popup\./, `${code}: no key shown`);
-      assert.deepEqual([box.sideways, box.cut], [false, 0], `${code}: nothing sticks out`);
+      assert.deepEqual([box.sideways, box.cut], [false, false], `${code}: nothing sticks out, no word cut`);
+      assert.ok(box.row < 45, `${code}: one row: ${box.row}`);
+      assert.ok(box.height < 600 && box.bottom < 600, `${code}: the popup with the request fits the 600 px of Chrome: ${box.height}, ${box.bottom}`);
       await popup.close();
     }
     await bench.evaluate(() => localStorage.removeItem('obturo.appearance'));

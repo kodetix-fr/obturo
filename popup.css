@@ -93,19 +93,12 @@ html.pending body { visibility: hidden; animation: reveal 0s 1s forwards; }
 /* The dot that says there are news, on the Settings row (popup-notice.js). */
 .item .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 
-/* The one request for a review (popup-notice.js): a plain block above the two links, the colors of the rows. */
-.ask { margin-top: 2px; padding: 8px 16px 4px; border-top: 1px solid var(--line); }
-.ask-text { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
-.ask-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
-.ask-btn {
-  height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--fg);
-  font: 12px/1 system-ui, "Segoe UI", sans-serif; cursor: pointer;
-}
-.ask-btn.primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-.ask-btn:hover, .ask-btn:focus-visible { background: var(--accent-soft); color: var(--fg); }
-.ask-btn.primary:hover, .ask-btn.primary:focus-visible { background: var(--accent); color: var(--on-accent); }
-.ask-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
-.ask .link { margin: 4px 0 0 -8px; }
+/* The one request for a review (popup-notice.js): one row in the place of the two links while it shows, so the popup keeps its height. */
+.foot[hidden] { display: none; }
+.ask { flex-wrap: nowrap; }
+.ask .ask-review { flex: 1; min-width: 0; justify-content: flex-start; }
+.ask .ask-review span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask .ask-never { flex: none; width: 28px; justify-content: center; padding: 0; }
 
 @media (prefers-reduced-motion: no-preference) {
   .item { transition: background-color .08s linear; }

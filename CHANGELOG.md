@@ -14,10 +14,11 @@ Notable changes to Obturo. The format follows
 - **A dot for the news**: after an update to a new minor release (not a patch, not a first install) the settings
   button of the library and the *Settings* row of the popup carry a small dot, until the About section has been on
   screen; the dialog then opens on it. Nothing opens by itself and the icon of the toolbar gets no badge.
-- **One request for a review** in the popup (never over a page): after 15 captures kept in the history, with the
-  same words and links for everyone and nothing offered. *Give a review* and *No thanks* end it, *Later* brings it
-  back once after 15 more captures, and an unanswered request counts as *Later*. The count is a local number: the
-  no-trace mode adds none, and nothing is sent.
+- **One request for a review** in the popup (never over a page): after 15 captures kept in the history, one row that
+  takes the place of the two links under the menu, so the popup keeps its height, with the same words for everyone
+  and nothing offered. A click on the row opens the reviews and ends the request, the cross ends it, and closing the
+  popup without answering counts as *later*: it comes back once after 15 more captures. The count is a local
+  number: the no-trace mode adds none, and nothing is sent.
 
 ### Changed
 

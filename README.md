@@ -293,10 +293,11 @@ without losing anything.
   dot shows on the settings button of the library and on the *Settings* row of the popup, until the About
   section has been on screen. The dialog then opens on that section. Nothing opens by itself, and the icon
   of the toolbar gets no badge.
-- **One request for a review**: a short block in the popup, never over a page, after 15 captures kept in the
-  history (the count is a local number, and the no-trace mode adds none). The same words and links for
-  everyone, no reward, no stars asked: *Give a review* (never again), *Later* (it comes back once, after 15
-  more captures) and *No thanks* (never again). An unanswered request counts as *Later*.
+- **One request for a review**: one row in the popup, in the place of the two links under the menu, never over a
+  page, after 15 captures kept in the history (the count is a local number, and the no-trace mode adds none). The
+  same words for everyone, no reward, no stars asked: a click on the row opens the reviews (never again), the
+  cross ends it (never again), and closing the popup without answering counts as *later*: it comes back once,
+  after 15 more captures.
 
 ### Fast
 

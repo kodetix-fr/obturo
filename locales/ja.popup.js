@@ -11,10 +11,7 @@ export default {
   'popup.delayOff': 'なし',
   'popup.delayValue': '{n} 秒',
   'popup.ask.label': 'レビューのお願い',
-  'popup.ask.text': 'Obturo は無料で、すべてをコンピューター上に置きます。レビューは、ほかの人が見つけやすくなる助けになります。',
-  'popup.ask.review': 'レビューを書く',
-  'popup.ask.later': 'あとで',
-  'popup.ask.never': '今はしない',
-  'popup.ask.problem': '問題がありますか？お知らせください',
+  'popup.ask.row': 'Obturo はいかがですか？レビューを書く',
+  'popup.ask.never': '不要です',
   'popup.news': '新機能',
 };
