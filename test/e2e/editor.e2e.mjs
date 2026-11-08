@@ -224,7 +224,7 @@ describe('editor: full walkthrough', () => {
   it('the tool rail fits a short window, and Crop stays under the pointer when the tools must scroll', async () => {
     const label = () => page.locator('#zoomLabel').innerText();
     const before = await label();
-    for (const [w, hh, fits] of [[1440, 813, true], [1100, 768, true], [1440, 700, true], [820, 650, false], [480, 650, false]]) {
+    for (const [w, hh, fits] of [[1440, 981, true], [1440, 940, true], [1440, 900, true], [1440, 899, true], [1440, 813, true], [1100, 768, true], [1440, 700, true], [820, 650, false], [480, 650, false]]) {
       await page.setViewportSize({ width: w, height: hh });
       await poll(async () => (await page.evaluate(() => innerHeight)) === hh, { what: 'the window size' });
       const r = await page.evaluate(() => {
@@ -255,6 +255,11 @@ describe('editor: full walkthrough', () => {
       assert.ok(r.stage >= hh * share, `the stage is ${r.stage} px of ${hh} at ${w} x ${hh}`);
       assert.equal(r.hit, 'newVersion', `the plus button is not covered at ${w} x ${hh}`);
     }
+    const wide = await page.addStyleTag({ content: '* { font-family: Verdana, "DejaVu Sans", sans-serif !important }' }); // wider letters than the system's: the bars wrap more
+    await page.setViewportSize({ width: 480, height: 900 });
+    await poll(async () => (await page.evaluate(() => innerHeight)) === 900, { what: 'the window size' });
+    assert.ok((await page.evaluate(() => document.getElementById('stage').clientHeight)) >= 900 * 0.54, 'the stage keeps its share with wider letters too');
+    await wide.evaluate((el) => el.remove());
     await tool(page, 'select');
     await page.setViewportSize({ width: 1500, height: 900 });
     await poll(async () => (await label()) === before, { what: 'initial zoom restored' });

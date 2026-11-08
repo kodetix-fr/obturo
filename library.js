@@ -86,7 +86,11 @@ const signatureOf = (list) => list.map((s) => `${s.id}:${s.thumb ? 1 : 0}:${s.pi
 
 const getEditor = () => editorPromise ??= import('./editor.js').then(({ createEditor }) => createEditor({
   stage: $('stage'),
-  onSave: (id, patch) => updateShot(id, patch),
+  onSave: async (id, patch) => {
+    const saved = await updateShot(id, patch);
+    if (saved) bus.postMessage({ type: 'shot-saved', id }); // a read-only tab showing this shot draws it again
+    return saved;
+  },
   onThumb: async (id, thumb, key) => {
     if (!(await storeThumb(id, thumb, key))) return; // the shot is gone or has moved on: this thumbnail is not its own
     const s = shots.find((x) => x.id === id);
@@ -467,7 +471,18 @@ bus.onmessage = ({ data }) => {
     openShot(data.id);
   }
   else if (data?.type === 'open-settings') openSettings(); // the icon menu, on a tab that is already open
+  else if (data?.type === 'shot-saved' && readOnly && current?.id === data.id) redrawViewed(data.id);
 };
+
+let redrawTimer;
+/** The read-only tab shows what the editing tab just saved: the capture it shows is read again, once the saves of a gesture are over. @param {number} id */
+function redrawViewed(id) {
+  clearTimeout(redrawTimer);
+  redrawTimer = setTimeout(async () => {
+    const s = await getShot(id).catch(() => null);
+    if (s && current?.id === id) view(s);
+  }, 300);
+}
 
 // Address: library.html#shot=<id> opens that shot, library.html#settings opens the settings.
 const shotOfHash = () => { const m = /^#shot=(\d+)$/.exec(location.hash); return m ? Number(m[1]) : null; };

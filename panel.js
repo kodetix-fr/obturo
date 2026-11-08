@@ -2,8 +2,9 @@
 // events it receives from them. This module reads and writes the DOM; it keeps no editor state and hands over to the
 // actions the editor gives it (bindControls). It knows the annotation objects, to reflect and apply their style.
 import { IText } from './vendor/fabric.min.mjs';
-import { BlurRegion, Highlight, Marker, PixelRegion, Spot, applyShape, hasShape, isOutlined, isSolid } from './shapes.js';
-import { cleanShape, shapeOf } from './shape-pure.js';
+import { Arrow, BlurRegion, Emoji, Highlight, Marker, PixelRegion, Spot, applyShape, hasShape, isOutlined, isSolid } from './shapes.js';
+import { cleanEnds, cleanShape, shapeOf } from './shape-pure.js';
+import { EMOJIS, cleanEmoji } from './emoji-pure.js';
 import { DEFAULT_FILL, PALETTE, solidColor } from './mask-pure.js';
 import { cleanSide, markerDiameter } from './marker-pure.js';
 import { highlightColor } from './highlight-pure.js';
@@ -54,6 +55,16 @@ export const strokeWidth = (docWidth) => Math.round(Math.max(STROKE_MIN, docWidt
 
 /** Diameter of the next numbered marker for an image of width `docWidth`: the stroke setting (thin / medium / thick) is its size. */
 export const markerSize = (docWidth) => markerDiameter(docWidth, thickness());
+
+// The ends of the next arrow, and the emoji of the next one placed: chosen in the style bar, kept for the next captures.
+let endsChoice = cleanEnds(recall().ends);
+let emojiChoice = cleanEmoji(recall().emoji);
+/** The ends of the next arrow: a head at the end, none (a line) or a head at both ends. */
+export const arrowEnds = () => endsChoice;
+/** The emoji of the next one placed. */
+export const emoji = () => emojiChoice;
+/** Font size of the next emoji for an image of width `docWidth`. */
+export const emojiSize = (docWidth) => markerDiameter(docWidth, 1.2);
 
 // The shape of the next area, per tool: the rectangle for the outline, the solid fill, the highlighter, the spotlight, the pixelation, the blur.
 const SHAPE_TOOLS = ['rect', 'flat', 'highlight', 'spot', 'pixel', 'blur'];
@@ -106,6 +117,8 @@ function showColor(box, custom, hex) {
   for (const radio of /** @type {NodeListOf<HTMLInputElement>} */ (box.querySelectorAll('input'))) radio.checked = radio.value === hex;
 }
 const showLine = (hex) => showColor(dom.lineSwatches, dom.color, hex);
+const showEnds = (ends) => { for (const r of /** @type {NodeListOf<HTMLInputElement>} */ (dom.endsPick.querySelectorAll('input'))) r.checked = r.value === ends; };
+const showEmoji = (glyph) => { for (const r of /** @type {NodeListOf<HTMLInputElement>} */ (dom.emojiPick.querySelectorAll('input'))) r.checked = r.value === glyph; };
 const showSide = (side) => { for (const r of /** @type {NodeListOf<HTMLInputElement>} */ (dom.sidePick.querySelectorAll('input'))) r.checked = r.value === side; };
 const showBackground = (hex) => showColor(dom.bgSwatches, dom.bgColor, hex);
 const showHighlight = (hex) => showColor(dom.hlSwatches, dom.hlColor, hex);
@@ -117,13 +130,17 @@ function showFill(hex) {
 
 /** The settings shown follow the selected object (or the active tool when nothing is selected). */
 export function showSelection(o, tool) {
-  const isText = o instanceof IText, isPixel = o instanceof PixelRegion, isBlur = o instanceof BlurRegion, isFlat = isSolid(o), isMarker = o instanceof Marker;
+  const isEmoji = o instanceof Emoji, isText = o instanceof IText && !isEmoji, isPixel = o instanceof PixelRegion, isBlur = o instanceof BlurRegion, isFlat = isSolid(o), isMarker = o instanceof Marker;
   const isHighlight = o instanceof Highlight, isSpot = o instanceof Spot;
-  const kind = o ? (isText ? 'text' : isPixel ? 'pixel' : isBlur ? 'blur' : isFlat ? 'flat' : isMarker ? 'marker' : isHighlight ? 'highlight' : isSpot ? 'spot' : 'line') : tool;
+  const kind = o ? (isEmoji ? 'emoji' : isText ? 'text' : isPixel ? 'pixel' : isBlur ? 'blur' : isFlat ? 'flat' : isMarker ? 'marker' : isHighlight ? 'highlight' : isSpot ? 'spot' : 'line') : tool;
   setI18n(dom.thickLabel, kind === 'marker' ? 'prop.size' : 'prop.stroke'); // the same three choices: the width of a line, the size of a marker
-  dom.lineProps.hidden = ['pixel', 'blur', 'flat', 'highlight', 'spot'].includes(kind);
+  dom.lineProps.hidden = ['pixel', 'blur', 'flat', 'highlight', 'spot', 'emoji'].includes(kind);
   dom.strokeField.hidden = kind === 'text'; // a text has no stroke
   dom.markerProps.hidden = !isMarker; // the legend is the one of a marker that is selected
+  dom.emojiProps.hidden = kind !== 'emoji';
+  dom.endProps.hidden = !(o ? o instanceof Arrow : tool === 'arrow');
+  if (kind === 'emoji') showEmoji(o ? o.text : emojiChoice);
+  if (!dom.endProps.hidden) showEnds(o ? cleanEnds(o.ends) : endsChoice);
   dom.highlightProps.hidden = kind !== 'highlight';
   dom.spotProps.hidden = kind !== 'spot';
   dom.textProps.hidden = kind !== 'text';
@@ -216,6 +233,7 @@ export function showHistory(history) {
 export function showCropButtons(editing) {
   dom.crop.setAttribute('aria-pressed', String(editing));
   dom.cropGroup.hidden = !editing;
+  if (editing) showTool(null); // the crop is the mode: no other tool shows as pressed beside it
 }
 
 export function showZoom(z) {
@@ -324,6 +342,8 @@ export function bindControls(actions) {
   dom.download.addEventListener('click', () => ready() && actions.downloadImage());
   dom.downloadMenu.addEventListener('click', () => ready() && actions.downloadMenu());
   dom.beautify.addEventListener('click', () => ready() && actions.beautifyMenu());
+  dom.stamp.addEventListener('click', () => ready() && actions.addStamp());
+  dom.rotate.addEventListener('click', () => ready() && actions.rotate());
 
   // Style: the preview follows the typing ('input'); history and saving follow the validation ('change').
   const live = (el, fn) => el.addEventListener('input', () => actions.restyle(fn));
@@ -407,6 +427,39 @@ export function bindControls(actions) {
     if (tool) { shapeChoice[tool] = s; remember({ shapes: shapeChoice }); }
     if (sel && hasShape(sel)) {
       actions.restyle((o) => applyShape(o, s));
+      actions.commit();
+    }
+  });
+
+  // The ends of an arrow: for the next one, and for the selected one.
+  showEnds(endsChoice);
+  dom.endsPick.addEventListener('change', (e) => {
+    endsChoice = cleanEnds(/** @type {HTMLInputElement} */ (e.target).value);
+    remember({ ends: endsChoice });
+    if (actions.selection() instanceof Arrow) {
+      actions.restyle((o) => o.set('ends', endsChoice));
+      actions.commit();
+    }
+  });
+
+  // The emoji: one radio per emoji of the list; the choice is for the next one placed, and for the selected emoji.
+  for (const glyph of EMOJIS) {
+    const label = document.createElement('label');
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'emoji';
+    radio.value = glyph;
+    const face = document.createElement('span');
+    face.textContent = glyph;
+    label.append(radio, face);
+    dom.emojiPick.append(label);
+  }
+  showEmoji(emojiChoice);
+  dom.emojiPick.addEventListener('change', (e) => {
+    emojiChoice = cleanEmoji(/** @type {HTMLInputElement} */ (e.target).value);
+    remember({ emoji: emojiChoice });
+    if (actions.selection() instanceof Emoji) {
+      actions.restyle((o) => o.set('text', emojiChoice));
       actions.commit();
     }
   });
