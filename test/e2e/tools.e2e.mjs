@@ -435,8 +435,7 @@ describe('library: the strip folds under its head', () => {
     const s = await state();
     assert.deepEqual([s.expanded, s.body], ['false', false], 'folded at 813 px');
     await page.setViewportSize({ width: 1440, height: 940 });
-    await poll(async () => (await state()).body, { what: 'open again in a taller window' });
-    assert.equal((await state()).expanded, 'true');
+    await poll(async () => { const s2 = await state(); return s2.body && s2.expanded === 'true'; }, { what: 'open again in a taller window' });
     assert.deepEqual(pageErrors(), [], 'no error on the page');
   });
 });
