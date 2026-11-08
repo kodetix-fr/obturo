@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Jeda',
   'popup.delayOff': 'Nonaktif',
   'popup.delayValue': '{n}\u00A0dtk',
+  'popup.ask.label': 'Permintaan ulasan',
+  'popup.ask.row': 'Suka Obturo? Tulis ulasan',
+  'popup.ask.never': 'Tidak, terima kasih',
+  'popup.news': 'Baru',
 };

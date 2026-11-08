@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Retardo',
   'popup.delayOff': 'Sin retardo',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': 'Petición de reseña',
+  'popup.ask.row': '¿Te gusta Obturo? Deja una reseña',
+  'popup.ask.never': 'No, gracias',
+  'popup.news': 'Nuevo',
 };

@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Délai',
   'popup.delayOff': 'Aucun',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': "Demande d'avis",
+  'popup.ask.row': 'Obturo te plaît ? Donne ton avis',
+  'popup.ask.never': 'Non merci',
+  'popup.news': 'Nouveau',
 };

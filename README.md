@@ -304,6 +304,22 @@ without losing anything.
 - **Theme**: system, light or dark.
 - To add a language, see [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-language).
 
+### About, news and reviews
+
+- **About** (*Settings*, last section): the version, what is new in this release, and links that open in a
+  new tab when you click them: the reviews of Obturo on the Chrome Web Store, its issues on GitHub (*A
+  problem? Tell us*) and Oblitero, another free extension of the same publisher. Obturo sends nothing and
+  loads nothing before a click.
+- **A dot for the news**: after an update to a new minor release (not a patch, not a first install), a small
+  dot shows on the settings button of the library and on the *Settings* row of the popup, until the About
+  section has been on screen. The dialog then opens on that section. Nothing opens by itself, and the icon
+  of the toolbar gets no badge.
+- **One request for a review**: one row in the popup, in the place of the two links under the menu, never over a
+  page, after 15 captures kept in the history (the count is a local number, and the no-trace mode adds none). The
+  same words for everyone, no reward, no stars asked: a click on the row opens the reviews (never again), the
+  cross ends it (never again), and closing the popup without answering counts as *later*: it comes back once,
+  after 15 more captures.
+
 ### Fast
 
 The strip of captures is painted before the editor starts loading, and the
@@ -395,7 +411,7 @@ browser profile:
 | IndexedDB `obturo` (version 3), store `shots` | one small row per capture: page address and title, host, size, date, versions, active version, pinned flag, thumbnail (WebP). An imported image has no address and its file name as title |
 | same database, store `originals` | the original PNG of each capture or imported image, written once and never rewritten |
 | same database, store `catalog` | one light entry per capture (date, size, flags, host, text to search), in buckets: search, filters, totals and the retention read it instead of the captures |
-| IndexedDB `obturo-settings` | the settings, and the list of captures the open library holds (so that the cleanup spares them) |
+| IndexedDB `obturo-settings` | the settings, the list of captures the open library holds (so that the cleanup spares them), and two bare facts about Obturo itself: the last version whose news were read, and how many captures were kept (they decide the dot of the news and the one request for a review) |
 | `localStorage` | a copy of the language and the theme, so that the first paint of the library is in the right language and theme; IndexedDB stays the truth |
 
 A database left by an earlier development build (version 2) is upgraded in
@@ -466,6 +482,9 @@ databases, the retention, the version model and the budgets.
 - `settings.js`, `i18n.js`, `locales/`, `dom-i18n.js`, `theme-boot.js`: the
   settings database, the translation, the texts of each language, the
   translation of the page, and the theme applied before the first paint.
+- `about-pure.js`, `about.js`, `about-ui.js`, `popup-notice.js`: the About section of the settings, the dot
+  for the news and the one request for a review: the rules (pure, tested), their state in the settings
+  database, the settings side and the popup side (loaded after the first paint).
 - `library.html`, `library.css`, `library.js`: the library page, the strip of
   captures and the editing lock. `viewer.js` shows a capture in a read-only tab.
 - `history-view.js`, `history-model.js`, `history-dialogs.js`,

@@ -6,6 +6,7 @@ import { t, plural, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
 import { DEFAULT_SETTINGS, getSettings, setSettings } from './settings.js';
 import { removeNotice, showNotice } from './notice.js';
+import { countCapture, noteInstalled } from './about.js';
 
 // The texts of the worker in every language (a worker cannot import() a language on demand): the menu, the tooltip, the notices.
 for (const [lang, texts] of Object.entries(SW_TEXTS)) addTexts(lang, texts);
@@ -32,6 +33,8 @@ const badge = (text, color, ms = RESULT_BADGE_MS) => {
   if (ms) badgeTimer = setTimeout(() => chrome.action.setBadgeText({ text: '' }), ms);
 };
 const fail = (e) => { console.error('Obturo:', e); badge('ERR', RED); };
+// A capture kept in the history is one more for the count behind the request for a review (about-pure.js); a lost count costs nothing.
+const countKept = () => countCapture().catch((e) => console.error('Obturo:', e));
 
 // ponytail: one capture at a time (area, visible part, full page); a capture triggered during another one is dropped with a grey badge; queue them if people ask for it.
 let busy = false;
@@ -158,6 +161,7 @@ async function save(tab, blob, w, h, b64, covered) {
     const kept = await succeeds(addShot({ original: blob, url: tab.url, title: tab.title, w, h, covered }));
     if (!kept) { badge('ERR', RED); return kept; }
     badge('OK', GREEN);
+    countKept();
     openChooser(/** @type {number} */ (kept), tab, settings.afterCapture === 'save').catch(fail);
     return kept;
   }
@@ -171,7 +175,8 @@ async function save(tab, blob, w, h, b64, covered) {
   if (await copied) { badge('OK', GREEN); if (!editing) said.lines.push(t('sw.copied')); }
   else { badge('!', ORANGE); said.lines.push(t('sw.copyFailed')); said.error = true; }
   const saved = await stored;
-  if (!saved) badge('ERR', RED);
+  if (saved) countKept();
+  else badge('ERR', RED);
   return saved;
 }
 
@@ -732,6 +737,7 @@ rebuildMenu();
 // stay until the next capture. A worker that starts has no capture running, so whatever the badge says is stale.
 chrome.action.setBadgeText({ text: '' });
 chrome.runtime.onInstalled.addListener(rebuildMenu);
+chrome.runtime.onInstalled.addListener((details) => noteInstalled(details).catch((e) => console.error('Obturo:', e)));
 chrome.runtime.onStartup.addListener(rebuildMenu);
 const settingsChannel = new BroadcastChannel('obturo');
 settingsChannel.onmessage = (e) => { if (e.data?.type === 'settings-changed') rebuildMenu(); };

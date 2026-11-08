@@ -15,6 +15,22 @@ Notable changes to Obturo. The format follows
 - **A line and a double arrow**: the arrow tool takes its *Ends* in the style bar (a head at the end, none, or both).
 - **Rotate**: the *Rotate* button turns the whole capture a quarter turn clockwise, with its crop and what is drawn on it.
   Each version has its own turn, and the original is never changed.
+- **About** in the settings, last section: the version, what is new in this release and links that open in a new
+  tab when clicked: the reviews of Obturo on the Chrome Web Store, its issues on GitHub (*A problem? Tell us*) and
+  Oblitero, another free extension of the same publisher. Obturo sends nothing and loads nothing before a click.
+- **A dot for the news**: after an update to a new minor release (not a patch, not a first install) the settings
+  button of the library and the *Settings* row of the popup carry a small dot, until the About section has been on
+  screen; the dialog then opens on it. Nothing opens by itself and the icon of the toolbar gets no badge.
+- **One request for a review** in the popup (never over a page): after 15 captures kept in the history, one row that
+  takes the place of the two links under the menu, so the popup keeps its height, with the same words for everyone
+  and nothing offered. A click on the row opens the reviews and ends the request, the cross ends it, and closing the
+  popup without answering counts as *later*: it comes back once after 15 more captures. The count is a local
+  number: the no-trace mode adds none, and nothing is sent.
+
+### Changed
+
+- The privacy policy lists the links of the settings and the popup, and the two numbers kept in the settings
+  database (the last version whose news were read, the count of captures kept).
 
 ## [0.2.1] - 2026-11-06
 

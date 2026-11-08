@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Задержка',
   'popup.delayOff': 'Нет',
   'popup.delayValue': '{n} с',
+  'popup.ask.label': 'Просьба об отзыве',
+  'popup.ask.row': 'Нравится Obturo? Оставьте отзыв',
+  'popup.ask.never': 'Нет, спасибо',
+  'popup.news': 'Новое',
 };

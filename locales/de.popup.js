@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Verzögerung',
   'popup.delayOff': 'Aus',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': 'Bitte um eine Bewertung',
+  'popup.ask.row': 'Gefällt dir Obturo? Bewerte es',
+  'popup.ask.never': 'Nein danke',
+  'popup.news': 'Neu',
 };

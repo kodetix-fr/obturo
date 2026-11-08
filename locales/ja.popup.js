@@ -10,4 +10,8 @@ export default {
   'popup.delay': '待ち時間',
   'popup.delayOff': 'なし',
   'popup.delayValue': '{n} 秒',
+  'popup.ask.label': 'レビューのお願い',
+  'popup.ask.row': 'Obturo はいかがですか？レビューを書く',
+  'popup.ask.never': '不要です',
+  'popup.news': '新機能',
 };

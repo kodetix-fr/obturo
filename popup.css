@@ -90,6 +90,16 @@ html.pending body { visibility: hidden; animation: reveal 0s 1s forwards; }
 .link:hover .ic, .link:focus-visible .ic { color: var(--icon); }
 .link:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 
+/* The dot that says there are news, on the Settings row (popup-notice.js). */
+.item .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+/* The one request for a review (popup-notice.js): one row in the place of the two links while it shows, so the popup keeps its height. */
+.foot[hidden] { display: none; }
+.ask { flex-wrap: nowrap; }
+.ask .ask-review { flex: 1; min-width: 0; justify-content: flex-start; }
+.ask .ask-review span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask .ask-never { flex: none; width: 28px; justify-content: center; padding: 0; }
+
 @media (prefers-reduced-motion: no-preference) {
   .item { transition: background-color .08s linear; }
   .link { transition: background-color .08s linear; }

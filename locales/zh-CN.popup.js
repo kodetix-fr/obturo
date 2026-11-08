@@ -10,4 +10,8 @@ export default {
   'popup.delay': '延迟',
   'popup.delayOff': '无',
   'popup.delayValue': '{n} 秒',
+  'popup.ask.label': '评价请求',
+  'popup.ask.row': '喜欢 Obturo？写个评价',
+  'popup.ask.never': '不用了',
+  'popup.news': '新',
 };

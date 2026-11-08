@@ -10,4 +10,8 @@ export default {
   'popup.delay': 'Atraso',
   'popup.delayOff': 'Desativado',
   'popup.delayValue': '{n} s',
+  'popup.ask.label': 'Pedido de avaliação',
+  'popup.ask.row': 'Gostou do Obturo? Avalie',
+  'popup.ask.never': 'Não, obrigado',
+  'popup.news': 'Novo',
 };
