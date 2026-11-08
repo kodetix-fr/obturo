@@ -92,22 +92,13 @@
     <symbol id="i-pinoff" viewBox="0 0 24 24"><path d="M9 4.5h6M10.2 4.5l-.4 5.2L7 12.4V14h10v-1.6l-2.8-2.7-.4-5.2M12 14v6M4 4l16 16"/></symbol>
   </svg>
 
-  <!-- history and import: same place, left of the settings button (.apptools). The import button picks files; an image can also be
-       pasted (Ctrl+V) or dropped on the page. import.js is loaded on first use. Outside the fieldset: it works with no capture open. -->
-  <div class="apptools">
-    <button type="button" id="importBtn" class="btn icon ghost" data-i18n-aria="import.btn" data-i18n-title="import.tip"><svg class="ic" aria-hidden="true"><use href="#i-import"/></svg></button>
-    <button type="button" id="historyBtn" class="btn ghost" data-i18n-title="hist.open.tip"><svg class="ic" aria-hidden="true"><use href="#i-history"/></svg><span class="lbl" data-i18n="hist.open"></span></button>
-  </div>
-  <!-- Opens the settings dialog. Outside the fieldset on purpose: it works with no capture open. Laid over the right
-       end of the app bar by the grid. -->
-  <button type="button" id="settingsBtn" class="btn icon ghost" data-i18n-label="app.settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span class="dot" id="settingsDot" aria-hidden="true" hidden></span></button>
-  <span id="settingsNew" class="vh" data-i18n="about.new" hidden></span>
   <input type="file" id="importInput" accept="image/*" multiple hidden>
   <div id="dropHint" role="presentation" hidden><p data-i18n="import.drop"></p></div>
 
-  <!-- The whole editor chrome is disabled until a capture is open (display: contents: the children are grid items). -->
-  <fieldset id="ui" disabled>
-    <header class="appbar">
+  <!-- The app bar has its own fieldset for what needs an open capture (the others, import, history and settings, work without one) and the
+       rest of the editor chrome has another: both are disabled until a capture is open (display: contents: the children are grid items). -->
+  <header class="appbar">
+    <fieldset id="appEdit" disabled>
       <div class="brand"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><h1>Obturo</h1><button type="button" id="noTraceBadge" class="notrace" hidden data-i18n="popup.noTrace" data-i18n-title="lib.noTrace.tip"></button></div>
 
       <div class="versions" role="group" data-i18n-aria="ver.group">
@@ -115,8 +106,6 @@
         <button type="button" id="newVersion" class="btn icon ghost" data-i18n-aria="ver.new" data-i18n-title="ver.new.tip"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
         <button type="button" id="delVersion" class="btn icon ghost" data-i18n-aria="ver.delete" data-i18n-title="ver.delete.tip"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
       </div>
-
-      <span class="sep"></span>
 
       <div class="actions" role="group" data-i18n-aria="app.actions">
         <!-- history: pins the open capture (never removed automatically) -->
@@ -135,7 +124,20 @@
           <span id="dlStatus" class="vh" role="status"></span>
         </div>
       </div>
-    </header>
+    </fieldset>
+    <!-- history and import: same place, left of the settings button (.apptools). The import button picks files; an image can also be
+         pasted (Ctrl+V) or dropped on the page. import.js is loaded on first use. Outside the fieldsets: it works with no capture open. -->
+    <div class="apptools">
+      <button type="button" id="importBtn" class="btn icon ghost" data-i18n-aria="import.btn" data-i18n-title="import.tip"><svg class="ic" aria-hidden="true"><use href="#i-import"/></svg></button>
+      <button type="button" id="historyBtn" class="btn ghost" data-i18n-title="hist.open.tip"><svg class="ic" aria-hidden="true"><use href="#i-history"/></svg><span class="lbl" data-i18n="hist.open"></span></button>
+    </div>
+    <!-- Opens the settings dialog. Outside the fieldsets on purpose: it works with no capture open. Laid over the right
+         end of the app bar. -->
+    <button type="button" id="settingsBtn" class="btn icon ghost" data-i18n-label="app.settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span class="dot" id="settingsDot" aria-hidden="true" hidden></span></button>
+    <span id="settingsNew" class="vh" data-i18n="about.new" hidden></span>
+  </header>
+
+  <fieldset id="ui" disabled>
 
     <aside class="rail">
       <!-- The tools, in groups by what they are for: choose, annotate (point at something, say something), put in evidence, hide. Crop is apart. -->

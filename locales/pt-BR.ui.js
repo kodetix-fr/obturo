@@ -141,6 +141,7 @@ export default {
   'stamp.tip': 'Adicionar o endereço da página e a data da captura como um texto na imagem, que se move, edita ou apaga como qualquer texto',
   'rotate.btn': 'Girar',
   'rotate.tip': 'Girar toda a captura um quarto de volta para a direita, com o que está desenhado nela',
+  'rotate.original.tip': 'O original fica como foi capturado: escolha uma versão para girá-la',
   'be.title': 'Embelezar',
   'be.on': 'Embelezar esta versão',
   'be.bg': 'Fundo',

@@ -123,11 +123,11 @@ input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 
 /* ---------- app bar ---------- */
 .appbar {
-  grid-area: appbar; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 52px; padding: 8px 56px 8px 14px;
+  grid-area: appbar; position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 52px; padding: 8px 56px 8px 14px;
   background: var(--surface); border-bottom: 1px solid var(--line);
 }
-#settingsBtn { position: relative; grid-area: appbar; justify-self: end; align-self: center; margin-right: 12px; z-index: 2; }
-.dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+#settingsBtn { position: absolute; top: 50%; right: 12px; translate: 0 -50%; z-index: 2; }
+.dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--ring); box-shadow: 0 0 0 2px var(--bg); }
 .dot[hidden] { display: none; }
 .brand { display: flex; align-items: center; gap: 9px; margin-right: 8px; }
 .notrace { padding: 2px 10px; border: 1px solid var(--notrace); border-radius: 999px; background: transparent; color: var(--notrace); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -135,11 +135,12 @@ input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 .logo { width: 28px; height: 28px; }
 h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 .versions, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.versions { flex: 1 1 0; flex-wrap: nowrap; min-width: 0; }
 .sep { flex: 1; }
 .vsep { width: 1px; height: 20px; margin: 0 6px; background: var(--line-strong); }
-.pills { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-right: 2px; }
+.pills { display: inline-flex; gap: 4px; min-width: 0; margin: -4px -2px -4px -4px; padding: 4px; overflow-x: auto; scrollbar-width: thin; }
 .pills button {
-  height: 28px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface);
+  flex: none; height: 28px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface);
   color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer;
 }
 .pills button:hover { color: var(--fg); background: var(--surface-2); }
@@ -308,7 +309,7 @@ dialog::backdrop { background: rgba(9, 14, 23, .55); }
    (confirmation, purge) and the history block of the settings. Colors come from the tokens (:root, danger and pin ones).
    ====================================================================================================================== */
 .appbar { padding-right: 210px; }
-.apptools { grid-area: appbar; justify-self: end; align-self: center; margin-right: 54px; z-index: 2; display: flex; gap: 6px; }
+.apptools { position: absolute; top: 50%; right: 54px; translate: 0 -50%; z-index: 2; display: flex; gap: 6px; }
 /* import: the whole page takes a dropped image; the box says so while an image is over it (library.js) */
 #dropHint { position: fixed; inset: 10px; z-index: 60; display: grid; place-items: center; border: 3px dashed var(--accent); border-radius: var(--r-l); background: var(--shade); pointer-events: none; }
 #dropHint p { margin: 0; padding: 14px 24px; border-radius: var(--r-m); background: var(--surface); color: var(--fg); font-size: 18px; font-weight: 600; box-shadow: var(--pop); }
@@ -451,7 +452,7 @@ dialog.small { width: min(460px, calc(100vw - 32px)); }
 }
 @media (max-width: 1099px) {
   .appbar { padding-right: 144px; }
-  .apptools { margin-right: 50px; }
+  .apptools { right: 50px; }
   #historyBtn { width: 34px; padding: 0; }
   dialog.sheet { width: calc(100vw - 16px); height: calc(100vh - 16px); height: calc(100dvh - 16px); }
   .hv-head { gap: 10px; padding-left: 14px; }
@@ -468,9 +469,8 @@ dialog.small { width: min(460px, calc(100vw - 32px)); }
 @media (max-width: 560px) {
   .appbar { padding-right: 14px; }
   .brand { min-height: 34px; }
-  .appbar .sep { display: none; }
   .versions { flex-basis: 100%; }
-  .apptools, #settingsBtn { align-self: start; margin-top: 8px; }
+  .apptools, #settingsBtn { top: 8px; translate: none; }
   .props, .status { gap: 4px 12px; padding: 5px 10px; }
   .props .group { display: contents; }
   .props .group[hidden] { display: none; }

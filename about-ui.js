@@ -1,6 +1,7 @@
 // The "About" part of the settings (version, news of this release, links) and the dot on the settings button that says there is news to
 // read. Loaded after the first paint by library.js and by the settings dialog; the state is about.js.
 import { byId, setI18n } from './dom-i18n.js';
+import { t } from './i18n.js';
 import { LINKS, NEWS_FOR, minorOf } from './about-pure.js';
 import { markNewsSeen, newsPending } from './about.js';
 
@@ -10,6 +11,7 @@ const version = () => chrome.runtime.getManifest().version;
 function showDot(on) {
   byId('settingsDot').hidden = !on;
   const button = byId('settingsBtn');
+  button.title = on ? `${t('app.settings')}, ${t('about.new')}` : t('app.settings');
   if (on) button.setAttribute('aria-describedby', 'settingsNew');
   else button.removeAttribute('aria-describedby');
 }

@@ -240,6 +240,23 @@ describe('editor: full walkthrough', () => {
     m = await mapper(page, 1600, 900);
   });
 
+  it('at 820 px wide the app bar stays on one row with a version, and every tool still shows', async () => {
+    const label = () => page.locator('#zoomLabel').innerText();
+    const before = await label();
+    await page.setViewportSize({ width: 820, height: 900 });
+    await poll(async () => (await page.evaluate(() => innerHeight)) === 900, { what: 'the window size' });
+    const r = await page.evaluate(() => {
+      const tools = document.getElementById('tools');
+      return { pills: document.querySelectorAll('#versions button').length, bar: document.querySelector('.appbar').getBoundingClientRect().height, tools: [tools.clientHeight, tools.scrollHeight] };
+    });
+    assert.ok(r.pills >= 2, 'the original and a version');
+    assert.ok(r.bar <= 56, `one row of the app bar: ${r.bar} px`);
+    assert.ok(r.tools[1] <= r.tools[0], `all the tools show: ${r.tools}`);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
+    m = await mapper(page, 1600, 900);
+  });
+
   it('at 480 px wide the chrome leaves room to the image, and nothing hides the version buttons', async () => {
     const label = () => page.locator('#zoomLabel').innerText();
     const before = await label();

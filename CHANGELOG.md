@@ -29,6 +29,15 @@ Notable changes to Obturo. The format follows
 
 ### Changed
 
+- **The stamp never carries the query** of the address (a token, an e-mail), whether *Hide sensitive text* is on or off.
+- **Rotate is off on the Original** once the capture has versions, with a tip that says to pick a version: turning the
+  Original made a bare version, with what was covered in the others showing. A capture with no version can still be turned.
+- **A4 PDF**: an image a little taller than a page, such as a screen turned a quarter, stays on one page instead of being
+  cut in two; a long page is cut as before.
+- **The keyboard follows the app bar**: Import, History and Settings come after Download, then the tools.
+- **The version buttons scroll in one row** instead of making the app bar wrap, which at 820 px wide pushed Blur under Crop
+  after the first edit.
+- The dot of the news is drawn in the ring color, and the tip of the settings button says *Settings, New* while it shows.
 - The privacy policy lists the links of the settings and the popup, and the two numbers kept in the settings
   database (the last version whose news were read, the count of captures kept).
 

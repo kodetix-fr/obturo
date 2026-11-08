@@ -260,10 +260,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   }
 
   // The address of the page and the date of the capture, as a text at the bottom left of the image (or of the crop): a text like any other.
-  // One per version: a second press selects it. With Hide sensitive text on, the query of the address (tokens, e-mails) stays out of it.
-  async function addStamp() {
-    if (!ready()) return;
-    const { redactSensitive } = await getSettings().catch(() => ({ redactSensitive: true }));
+  // One per version: a second press selects it.
+  function addStamp() {
     if (!ready()) return;
     setTool('select');
     const known = canvas.getObjects().find((o) => o.stamp);
@@ -276,7 +274,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     ensureVersion();
     const area = cur().crop ?? { x: 0, y: 0, w: W, h: H };
     const when = new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(shot.createdAt);
-    const text = new IText(stampText(shot.url, when, { query: !redactSensitive }), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#000000', backgroundColor: '#ffffff', stamp: true });
+    const text = new IText(stampText(shot.url, when), { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 100, fill: '#000000', backgroundColor: '#ffffff', stamp: true });
     const fontSize = stampFontSize(area.w, text.width / 100);
     const margin = Math.round(fontSize * 0.6);
     text.set({ fontSize });
@@ -427,7 +425,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // A quarter turn clockwise of the whole capture: the image, the crop and what is drawn on it, which keeps its place on it. What the person
   // was doing stays: the zoom (the middle of the view turns with the image), the selected object, a crop box that is not applied yet.
   async function rotate() {
-    if (!ready()) return;
+    if (!ready() || (shot.active < 0 && shot.versions.length)) return;
     const picked = selected();
     const box = cropBox && { x: cropBox.left, y: cropBox.top, w: cropBox.width * cropBox.scaleX, h: cropBox.height * cropBox.scaleY };
     endPendingEdit();

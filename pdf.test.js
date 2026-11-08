@@ -62,7 +62,7 @@ const rgb = (w, h, f) => {
 // --- planPages ---
 
 test('planPages fit: one page at 96 dpi (px x 0.75 = pt)', () => {
-  assert.deepEqual(planPages([{ width: 1920, height: 1080 }], 'fit'), [{ image: 0, w: 1440, h: 810, drawW: 1440, drawH: 810, y: 0 }]);
+  assert.deepEqual(planPages([{ width: 1920, height: 1080 }], 'fit'), [{ image: 0, w: 1440, h: 810, drawW: 1440, drawH: 810, x: 0, y: 0 }]);
 });
 
 test('planPages fit: a page of exactly 14,400 pt stays whole, one more pixel cuts it in two equal pages', () => {
@@ -106,6 +106,19 @@ test('planPages a4: width of an A4 page, slices of an A4 height, the last one pa
   // a hair over a whole number of pages gives one more page; the epsilon keeps rounding noise from doing the same
   assert.equal(planPages([{ width: 595, height: 842 * 2 }], 'a4').length, 2);
   assert.equal(planPages([{ width: 595, height: 842 * 2 + 1 }], 'a4').length, 3);
+});
+
+test('planPages a4: a screen a little taller than a page stays on one page, a long one is still cut', () => {
+  // 813 x 1440 (a 1440 x 813 screen turned): 1.77 times taller than wide, one page at 475 pt wide, centered
+  const [turned] = planPages([{ width: 813, height: 1440 }], 'a4');
+  assert.deepEqual([turned.drawH, Math.round(turned.drawW), turned.y, Math.round(turned.x)], [A4.h, 475, 0, 60]);
+  assert.equal(planPages([{ width: 813, height: 1440 }, { width: 813, height: 1440 }], 'a4').length, 2, 'one page each');
+  // a page of 1920 x 16384 would be 99 pt wide on one page: it is cut at the page width, as before
+  const tall = planPages([{ width: 1920, height: 16384 }], 'a4');
+  assert.ok(tall.length > 1 && tall.every((p) => p.drawW === A4.w && p.x === 0));
+  // the limit: 1.887 times taller than wide keeps three quarters of the width scale
+  assert.equal(planPages([{ width: 1000, height: 1880 }], 'a4').length, 1);
+  assert.equal(planPages([{ width: 1000, height: 1900 }], 'a4').length, 2);
 });
 
 test('planPages: several images keep their order and index', () => {

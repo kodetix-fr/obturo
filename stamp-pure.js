@@ -4,19 +4,18 @@ export const MAX_ADDRESS = 100; // characters of the address kept in a stamp
 const SEPARATOR = '  |  ';
 
 /**
- * The address as it is stamped: no scheme and no fragment, escapes read back (a path in another script stays readable), the query only
- * when `query` is true. Past MAX_ADDRESS characters the host stays and the head of the path goes, because the end of an address is what
- * tells two pages apart. A text that is not a web address is cut at the end as it is.
- * @param {string} url @param {{ query?: boolean }} [options]
+ * The address as it is stamped: no scheme, no query and no fragment (a query carries tokens and e-mails, and the stamp leaves with the
+ * image), escapes read back (a path in another script stays readable). Past MAX_ADDRESS characters the host stays and the head of the path
+ * goes, because the end of an address is what tells two pages apart. A text that is not a web address is cut at the end as it is.
+ * @param {string} url
  */
-export function displayAddress(url, { query = true } = {}) {
+export function displayAddress(url) {
   let host = '', rest = String(url ?? '').trim();
   try {
     const u = new URL(rest);
     if (u.protocol === 'http:' || u.protocol === 'https:') {
-      const search = query ? u.search : '';
       host = u.host;
-      rest = u.pathname === '/' && !search ? '' : u.pathname + search;
+      rest = u.pathname === '/' ? '' : u.pathname;
       try { rest = decodeURIComponent(rest); } catch { /* a broken escape stays as it is */ }
     }
   } catch { /* not an address: kept as it is */ }
@@ -26,8 +25,8 @@ export function displayAddress(url, { query = true } = {}) {
   return `${host}...${rest.slice(rest.length - (MAX_ADDRESS - host.length - 3))}`;
 }
 
-/** The text of the stamp of a capture: its address, then `when` (the date, already written for the language); either one may be missing. @param {string} url @param {string} when @param {{ query?: boolean }} [options] */
-export const stampText = (url, when, options) => [displayAddress(url, options), when].filter(Boolean).join(SEPARATOR);
+/** The text of the stamp of a capture: its address, then `when` (the date, already written for the language); either one may be missing. @param {string} url @param {string} when */
+export const stampText = (url, when) => [displayAddress(url), when].filter(Boolean).join(SEPARATOR);
 
 /**
  * Font size of a stamp for an area `width` px wide: a small line, 1 / 80 of the width, brought down when the text would not fit in it.

@@ -19,6 +19,7 @@ export const MAX_PAGE_PT = 14400; // 200 inches: the largest page that the PDF r
 const MIN_PAGE_PT = 3; // and the smallest
 // ponytail: A4 only, no margin, a small image is enlarged to the full width; add Letter and a margin if people ask.
 export const A4 = { w: 595, h: 842 }; // points
+const ONE_PAGE_SCALE = 0.75; // a taller image stays on one page when fitting the page height keeps at least this share of the width scale
 
 // ponytail: 100 million pixels per image (the output cap of the editor, about 300 MB of RGB going through the encoder
 // by strips), one image at a time; raise it, or tile the image into several XObjects, if a reader of 16384+ px captures
@@ -40,11 +41,13 @@ const num = (v) => String(Number(v.toFixed(3))); // 595, 7500, 12.5: no exponent
  * - `fit`: the page has the size of the image at 96 dpi (px x 0.75 = pt). Past 14,400 pt it is cut into equal pages,
  *   each at most 14,400 pt tall; an image wider than that is scaled to the limit.
  * - `a4`: the image is scaled to the width of an A4 page (595 pt), whatever its size, and cut into slices of an A4
- *   height (842 pt). The last page is blank under the end of the image.
+ *   height (842 pt). The last page is blank under the end of the image. An image a little taller than a page (a screen
+ *   turned a quarter) is not cut: it is scaled to the page height and centered, as long as that keeps three quarters
+ *   of the width scale.
  * @param {Array<{ width: number, height: number }>} sizes Pixel sizes.
  * @param {'fit' | 'a4'} layout
- * @returns {Array<{ image: number, w: number, h: number, drawW: number, drawH: number, y: number }>}
- *   `w` x `h`: MediaBox; `drawW` x `drawH`: size of the image on the page; `y`: where its bottom edge sits on this page.
+ * @returns {Array<{ image: number, w: number, h: number, drawW: number, drawH: number, x: number, y: number }>}
+ *   `w` x `h`: MediaBox; `drawW` x `drawH`: size of the image on the page; `x`, `y`: where its left and bottom edges sit on this page.
  */
 export function planPages(sizes, layout) {
   const pages = [];
@@ -56,6 +59,11 @@ export function planPages(sizes, layout) {
       drawW = A4.w;
       drawH = (height * A4.w) / width;
       count = Math.max(1, Math.ceil(drawH / A4.h - 1e-9));
+      if (count > 1 && A4.h / height >= ONE_PAGE_SCALE * (A4.w / width)) {
+        drawW = (width * A4.h) / height;
+        drawH = A4.h;
+        count = 1;
+      }
     } else {
       drawW = width * PT_PER_PX;
       drawH = height * PT_PER_PX;
@@ -68,7 +76,7 @@ export function planPages(sizes, layout) {
     }
     for (let k = 0; k < count; k++) {
       // The top of the image sits k pages above the top of this one: its bottom edge is at (k + 1) * h - drawH.
-      pages.push({ image, w, h, drawW, drawH, y: (k + 1) * h - drawH });
+      pages.push({ image, w, h, drawW, drawH, x: (w - drawW) / 2, y: (k + 1) * h - drawH });
     }
   });
   return pages;
@@ -153,7 +161,7 @@ export function assemblePdf(images, pages) {
     if (!images[p.image]) throw new Error(`page ${i} points to a missing image`);
     object(page, `/Type /Page /Parent 2 0 R /MediaBox [0 0 ${num(p.w)} ${num(p.h)}]`
       + ` /Resources << /XObject << /Im0 ${first + p.image} 0 R >> >> /Contents ${page + 1} 0 R`);
-    object(page + 1, '', [encoder.encode(`q ${num(p.drawW)} 0 0 ${num(p.drawH)} 0 ${num(p.y)} cm /Im0 Do Q`)]);
+    object(page + 1, '', [encoder.encode(`q ${num(p.drawW)} 0 0 ${num(p.drawH)} ${num(p.x)} ${num(p.y)} cm /Im0 Do Q`)]);
   });
 
   const count = offsets.length; // objects 0 to the last one

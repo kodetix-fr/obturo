@@ -141,6 +141,7 @@ export default {
   'stamp.tip': 'Tambahkan alamat halaman dan tanggal tangkapan sebagai teks pada gambar, yang dapat dipindah, diedit, atau dihapus seperti teks lain',
   'rotate.btn': 'Putar',
   'rotate.tip': 'Putar seluruh tangkapan seperempat putaran searah jarum jam, beserta gambar di atasnya',
+  'rotate.original.tip': 'Asli tetap seperti saat ditangkap: pilih satu versi untuk memutarnya',
   'be.title': 'Percantik',
   'be.on': 'Percantik versi ini',
   'be.bg': 'Latar',

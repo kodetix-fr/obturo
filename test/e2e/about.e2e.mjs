@@ -92,6 +92,7 @@ describe('about: the news dot, the About section, the request for a review', () 
     await openLibrary();
     await library.waitForSelector('#settingsDot:not([hidden])');
     assert.equal(await library.getAttribute('#settingsBtn', 'aria-describedby'), 'settingsNew', 'the dot is described to a screen reader');
+    assert.equal(await library.getAttribute('#settingsBtn', 'title'), 'Settings, New', 'the tip says there is news');
     assert.equal(await library.evaluate(() => document.getElementById('settingsNew').textContent), 'New');
     const popup = await openPopup();
     assert.deepEqual(await settingsRow(popup), { aria: 'Settings, New', dot: true });
@@ -131,6 +132,7 @@ describe('about: the news dot, the About section, the request for a review', () 
     assert.equal(about.news, enUi['about.news']);
     await until(async () => (await notice()).seen === VERSION, 'the news are marked as seen');
     assert.equal(await library.getAttribute('#settingsBtn', 'aria-describedby'), null);
+    assert.equal(await library.getAttribute('#settingsBtn', 'title'), 'Settings', 'the tip is the plain one again');
     const popup = await openPopup();
     assert.deepEqual(await settingsRow(popup), { aria: 'Settings', dot: false }, 'the popup follows');
     await popup.close();
