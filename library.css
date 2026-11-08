@@ -116,6 +116,7 @@ input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
 .seg.emojis > label > span { min-width: 26px; padding: 0; font-size: 16px; }
 @media (max-width: 699px) { .seg.emojis { flex-wrap: wrap; max-width: 290px; } } /* two rows of ten: the row of twenty would leave the window */
 .imgbtns { display: inline-flex; gap: 6px; flex: none; } /* the image buttons wrap together, never one alone */
+@media (max-width: 559px) { .imgbtns { display: contents; } } /* a window that narrow cannot spare a row for them as a block */
 .seg input:hover + span { color: var(--fg); }
 .seg input:checked + span { background: var(--surface); color: var(--fg); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(14, 21, 34, .12); }
 .seg input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 1px; }
