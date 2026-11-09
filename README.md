@@ -315,10 +315,11 @@ without losing anything.
 
 ### About, news and reviews
 
-- **About** (*Settings*, last section): the version, what is new in this release, and links that open in a
-  new tab when you click them: the reviews of Obturo on the Chrome Web Store, its issues on GitHub (*A
-  problem? Tell us*) and Oblitero, another free extension of the same publisher. Obturo sends nothing and
-  loads nothing before a click.
+- **About** (*Settings*, last section): the version, what is new in this release, one paragraph (free, open
+  source, nothing leaves your computer, what a review or a gift to Kodetix helps with) and links that open in
+  a new tab when you click them: *Write a review* (the Chrome Web Store), *Report a problem* (the issues on
+  GitHub), *Support Kodetix*, and Oblitero, another free extension of the same publisher. Obturo sends
+  nothing and loads nothing before a click.
 - **A dot for the news**: after an update to a new minor release (not a patch, not a first install), a small
   dot shows on the settings button of the library and on the *Settings* row of the popup, until the About
   section has been on screen. The dialog then opens on that section. Nothing opens by itself, and the icon
