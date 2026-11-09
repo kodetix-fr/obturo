@@ -1,6 +1,6 @@
 # Obturo - Privacy policy
 
-Last updated: 2026-11-04
+Last updated: 2026-11-09
 
 This policy is in English, then in French (below). Both say the same thing.
 
@@ -81,7 +81,7 @@ Questions about this policy: support@kodetix.fr.
 
 # Obturo - Politique de confidentialité
 
-Dernière mise à jour : 2026-11-04
+Dernière mise à jour : 2026-11-09
 
 ## Résumé
 
