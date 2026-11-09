@@ -207,7 +207,7 @@ The dashboard takes five screenshots at most. Any other image has another place:
 7. Test instructions tab (text below).
 8. "Submit for review". Choose deferred publication to decide the moment once the review is over.
 
-Test instructions to enter: "No account or sign-in is needed. Open any web page, press Alt+Shift+Z (or click the Obturo icon) and drag a rectangle: a page opens next to the tab with the capture and three buttons (Edit and annotate, Copy to the clipboard, Download as). Click Edit and annotate to draw on it. Press Alt+Shift+L (or right-click the icon and choose Open the library) to see the history. The icon's right-click menu also has the capture of an element and of the full page, and the Settings (language, theme, what happens after a capture, how long captures are kept, download options, About). Chrome pages (chrome://...) and the Chrome Web Store cannot be captured by any extension. The extension sends nothing to any server."
+Test instructions to enter (the field takes 500 characters at most; this text has 412): "No account needed. Open any web page, press Alt+Shift+Z (or click the Obturo icon) and drag a rectangle: a page opens with the capture and three buttons (Edit and annotate, Copy to the clipboard, Download as). Alt+Shift+L opens the history. Right-click the icon for the element and full-page captures and the Settings. Chrome pages (chrome://) and the Web Store cannot be captured. Nothing is sent to any server."
 
 ## 11. "Performance" checklist before submission
 
