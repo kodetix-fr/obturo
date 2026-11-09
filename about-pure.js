@@ -2,8 +2,8 @@
 // request for a review (asked at most twice, never again after an answer). A bare number and a version: nothing about a capture.
 // No DOM, no storage, testable with `node --test`.
 
-/** The minor release that the text 'about.news' of the dictionaries talks about (the line of the manifest version, "0.2" for 0.2.1). */
-export const NEWS_FOR = '0.2';
+/** The minor release that the text 'about.news' of the dictionaries talks about (the line of the manifest version, "0.3" for 0.3.0). */
+export const NEWS_FOR = '0.3';
 
 export const REVIEW_STEP = 15; // captures before the first request, and between two
 export const MAX_ASKS = 2; // the request is shown twice at most
