@@ -141,6 +141,7 @@ export default {
   'stamp.tip': 'Add the page address and the capture date as a text on the image, to move, edit or delete like any text',
   'rotate.btn': 'Rotate',
   'rotate.tip': 'Turn the whole capture a quarter turn clockwise, with what is drawn on it',
+  'rotate.original.tip': 'The original stays as captured: pick a version to turn it',
   'be.title': 'Beautify',
   'be.on': 'Beautify this version',
   'be.bg': 'Background',

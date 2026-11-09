@@ -141,6 +141,7 @@ export default {
   'stamp.tip': '将页面地址和截图日期作为文字添加到图像上，可像普通文字一样移动、编辑或删除',
   'rotate.btn': '旋转',
   'rotate.tip': '将整张截图连同上面绘制的内容顺时针旋转 90 度',
+  'rotate.original.tip': '原图保持截取时的样子：请选择一个版本再旋转',
   'be.title': '美化',
   'be.on': '美化此版本',
   'be.bg': '背景',

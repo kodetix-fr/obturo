@@ -122,8 +122,12 @@ describe('editor: turn', () => {
     await page.locator('#versions button', { hasText: 'Original' }).click();
     await waitOut(page, W, H);
     await poll(async () => (await shot()).active === -1, { what: 'the original is shown' });
+    assert.ok(await page.locator('#rotate').isDisabled(), 'Rotate is off on the original once there are versions');
+    assert.match(await page.locator('#rotate').getAttribute('title'), /original stays as captured/, 'and its tip says why');
     await page.locator('#versions button', { hasText: 'V2' }).click();
     await poll(async () => (await shot()).active === 1, { what: 'V2 is shown again' });
+    assert.ok(await page.locator('#rotate').isEnabled(), 'Rotate is back on a version');
+    assert.equal((await shot()).versions.length, 2, 'looking at the original made no version');
     await waitOut(page, Math.floor(crop.w), Math.floor(crop.h));
     await page.reload();
     await ready(page);

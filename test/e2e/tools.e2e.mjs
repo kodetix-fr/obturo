@@ -174,11 +174,11 @@ describe('editor: the stamp on a very tall capture', () => {
     await poll(async () => (await darkPixels()) > 200, { what: 'the text of the stamp on the stage' });
     const shot = (await dbDump(page))[0];
     const stamp = shot.versions[shot.active].objects.find((o) => o.stamp);
-    assert.match(stamp.text, /^example\.test\/t\?token=abc {2}\| /, 'with Hide sensitive text off the address keeps its query');
+    assert.match(stamp.text, /^example\.test\/t {2}\| /, 'with Hide sensitive text off the address still leaves its query out');
   });
 });
 
-describe('editor: the stamp with Hide sensitive text on', () => {
+describe('editor: the stamp with an address that carries secrets', () => {
   let h, page;
   before(async () => {
     h = await launchExtension();
@@ -189,7 +189,7 @@ describe('editor: the stamp with Hide sensitive text on', () => {
   });
   after(() => h?.close());
 
-  it('keeps the query of the address out of the image', async () => {
+  it('keeps the query of the address out of the image, with the setting on or off', async () => {
     await page.click('#stamp');
     const stamp = await poll(async () => {
       const shot = (await dbDump(page))[0];
@@ -275,9 +275,18 @@ describe('editor: one mode, one pressed tool', () => {
     assert.deepEqual(await pressed(), ['select'], 'back on Select, the crop released');
   });
 
-  it('the keyboard reaches Import, History and Settings in the order they show', async () => {
+  it('the keyboard walks the app bar left to right, then the tools', async () => {
     const order = await page.evaluate(() => ['importBtn', 'historyBtn', 'settingsBtn'].map((id) => [id, document.getElementById(id).getBoundingClientRect().left]).sort((a, b) => Number(a[1]) - Number(b[1])).map((x) => x[0]));
     const dom = await page.evaluate(() => [...document.querySelectorAll('#importBtn, #historyBtn, #settingsBtn')].map((el) => el.id));
     assert.deepEqual(dom, order, 'the DOM order is the left to right order');
+    const stops = await page.evaluate(() => {
+      const ids = ['versions', 'newVersion', 'pin', 'copy', 'download', 'downloadMenu', 'importBtn', 'historyBtn', 'settingsBtn'];
+      const all = [...document.querySelectorAll('button')].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+      const at = (el) => all.indexOf(el);
+      const pill = document.querySelector('#versions button') ?? document.getElementById('newVersion');
+      return { ids: ids.map((id) => at(id === 'versions' ? pill : document.getElementById(id))), tool: at(document.querySelector('.rail .tool[aria-pressed="true"]')) };
+    });
+    assert.ok(stops.ids.every((n, i) => n >= 0 && (i === 0 || n > stops.ids[i - 1])), `the stops follow the bar: ${stops.ids}`);
+    assert.ok(stops.tool > stops.ids.at(-1), 'the first tool comes after Settings');
   });
 });

@@ -141,6 +141,7 @@ export default {
   'stamp.tip': 'Die Adresse der Seite und das Datum der Aufnahme als Text ins Bild setzen, zum Verschieben, Bearbeiten oder Löschen wie jeder Text',
   'rotate.btn': 'Drehen',
   'rotate.tip': 'Die ganze Aufnahme um eine Vierteldrehung im Uhrzeigersinn drehen, samt allem, was darauf gezeichnet ist',
+  'rotate.original.tip': 'Das Original bleibt wie aufgenommen: Wähle eine Version zum Drehen',
   'be.title': 'Verschönern',
   'be.on': 'Diese Version verschönern',
   'be.bg': 'Hintergrund',

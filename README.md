@@ -177,15 +177,17 @@ Non-destructive: the original of a capture is never changed.
   armed, a selected emoji can be changed for another or resized. They are drawn by
   the color emoji font of the system, so they look as they do there.
 - **Stamp** (the *Stamp* button, under the editor): the address of the page
-  (without its scheme and its fragment) and the date of the capture, as a text at
-  the bottom left of the image, or of the crop. It is a text like any other: move
-  it, edit it, delete it. Check the address before you share the image, since it
-  can hold a query. An imported image has no address: its stamp is the date alone.
+  (host and path, without its scheme, its query and its fragment) and the date of
+  the capture, as a text at the bottom left of the image, or of the crop. It is a
+  text like any other: move it, edit it, delete it. The query never goes in, since
+  it can hold a token or an e-mail. An imported image has no address: its stamp is
+  the date alone.
 - **Rotate** (the *Rotate* button, under the editor): a quarter turn clockwise of the
   whole capture, with its crop and what is drawn on it. Each version has its own
   turn, undone with the rest, and the original is never rewritten. Rectangles
   (outlines, solid fills, hiding regions, highlighter, spotlight) and numbered
-  markers stay upright: their box turns with the image.
+  markers stay upright: their box turns with the image. Once a capture has versions, *Rotate* is off
+  while the Original is shown (turn a version instead), so that no bare image appears by one click.
 - **One color control everywhere**: the line of an outline or an arrow, a text and
   its background, a marker, the highlighter and the solid fill all use the same
   swatches (black, white, gray, blue, red, yellow, green, orange, pink) and a free
@@ -277,7 +279,9 @@ without losing anything.
 - An unedited capture downloaded as PNG is the original file, not re-encoded.
 - **PDF** pages are images. *Fit to image*: one page the size of the image
   (96 dpi). *A4*: the image scaled to the width of an A4 page and cut into A4
-  pages. Images are *lossless* or *light* (JPEG, with the quality setting).
+  pages; an image a little taller than a page, such as a screen turned a quarter,
+  stays on one page, scaled to the page height. Images are *lossless* or *light*
+  (JPEG, with the quality setting).
 - **Grouped export**: select captures in the History sheet, then *Export…* to
   get one file, a ZIP of images (PNG, JPEG or WebP) or a multipage PDF. Each
   capture goes out as it is displayed, that is its active version. An edited

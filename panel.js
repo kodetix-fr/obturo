@@ -95,13 +95,13 @@ export function enable(W, H) {
   dom.size.value = String(clamp(Math.round(W / 50), AUTO_SIZE.min, AUTO_SIZE.max));
   dom.block.value = String(clamp(Math.round(Math.min(W, H) / 45), AUTO_SIZE.min, AUTO_SIZE.max));
   dom.blur.value = String(clamp(blurChoice || Math.round(Math.min(W, H) / BLUR_DIVISOR), AUTO_SIZE.min, AUTO_SIZE.max));
-  dom.ui.disabled = false;
+  dom.ui.disabled = dom.appEdit.disabled = false;
   dom.stageMsg.hidden = true;
 }
 
 /** Closing of the shot. */
 export function disable() {
-  dom.ui.disabled = true;
+  dom.ui.disabled = dom.appEdit.disabled = true;
   dom.versions.replaceChildren();
   setI18n(dom.outNote);
 }
@@ -190,7 +190,12 @@ export function showVersions(shot) {
     return b;
   };
   dom.versions.replaceChildren(button(null, -1), ...shot.versions.map((v, i) => button(v.name, i)));
+  dom.versions.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   dom.delVersion.disabled = shot.active < 0;
+  const frozen = shot.active < 0 && shot.versions.length > 0;
+  dom.rotate.disabled = frozen;
+  dom.rotate.dataset.i18nTitle = frozen ? 'rotate.original.tip' : 'rotate.tip';
+  dom.rotate.title = t(dom.rotate.dataset.i18nTitle);
 }
 
 let lastOutput = null; // arguments of the last showOutput, to draw it again when the language changes

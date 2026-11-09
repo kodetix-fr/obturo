@@ -6,6 +6,7 @@ import { byId } from './dom-i18n.js';
 export const dom = {
   // Toolbar
   ui: byId('ui', HTMLFieldSetElement), // disabled until a shot is open
+  appEdit: byId('appEdit', HTMLFieldSetElement), // the part of the app bar that needs a shot: disabled with ui
   tools: [.../** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#tools [data-tool]'))],
   lineProps: byId('lineProps'), // color and stroke (rectangle, arrow, text)
   color: byId('color', HTMLInputElement), // the free line color
