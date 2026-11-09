@@ -6,9 +6,9 @@ import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
   dbDump, decodePng, diffInfo, download, drag, mapper, originalHash, outText, pngSize, poll, px, ready, resetLibrary, seed,
-  sha256, shotWhere, sleep, tool, waitOut,
+  setOutput, sha256, shotWhere, sleep, tool, waitOut,
 } from './support/editor.mjs';
-import { fitView } from '../../view.js';
+import { below } from '../../view.js';
 import { outputSize } from '../../versions.js';
 
 describe('editor: full walkthrough', () => {
@@ -152,8 +152,7 @@ describe('editor: full walkthrough', () => {
     await drag(page, m, 0, 0, 100, 50);
     await drag(page, m, 1600, 900, 1400, 800);
     await page.click('#cropOk');
-    await page.fill('#scalePct', '50');
-    await page.press('#scalePct', 'Tab');
+    await setOutput(page, '#scalePct', 50);
     s = await shotWhere(page, A.id, (x) => x.versions[1].scale === 0.5 && x.versions[1].crop, 'crop and scale saved');
     const crop = s.versions[1].crop;
     assert.ok(Math.abs(crop.x - 100) <= 4 && Math.abs(crop.y - 50) <= 4, `crop ${JSON.stringify(crop)}`);
@@ -209,12 +208,13 @@ describe('editor: full walkthrough', () => {
   });
 
   it('resizing the window: the canvas follows and the view stays fitted', async () => {
-    const label = () => page.locator('#zoomLabel').innerText();
+    const label = () => page.locator('#zoomLabel').textContent();
     const before = await label();
     await page.setViewportSize({ width: 1000, height: 650 });
     await poll(async () => (await label()) !== before, { what: 'zoom recomputed' });
     const [cw, ch] = await page.evaluate(() => [document.getElementById('stage').clientWidth, document.getElementById('stage').clientHeight]);
-    assert.equal(await label(), `${Math.round(fitView(cw, ch, 1600, 900).z * 100)}%`, 'zoom after resizing');
+    const top = await page.evaluate(() => document.getElementById('props').offsetHeight);
+    assert.equal(await label(), `${Math.round(below(top).fit(cw, ch, 1600, 900).z * 100)}%`, 'zoom after resizing');
     assert.equal(await page.evaluate(() => document.querySelector('.upper-canvas').getBoundingClientRect().width), cw, 'canvas width');
     await page.setViewportSize({ width: 1500, height: 900 });
     await poll(async () => (await label()) === before, { what: 'initial zoom restored' });
@@ -222,7 +222,7 @@ describe('editor: full walkthrough', () => {
   });
 
   it('the tool rail fits a short window, and Crop stays under the pointer when the tools must scroll', async () => {
-    const label = () => page.locator('#zoomLabel').innerText();
+    const label = () => page.locator('#zoomLabel').textContent();
     const before = await label();
     for (const [w, hh, fits] of [[1440, 981, true], [1440, 940, true], [1440, 900, true], [1440, 899, true], [1440, 813, true], [1100, 768, true], [1440, 700, true], [820, 650, false], [480, 650, false]]) {
       await page.setViewportSize({ width: w, height: hh });
@@ -241,7 +241,7 @@ describe('editor: full walkthrough', () => {
   });
 
   it('at 820 px wide the app bar stays on one row with a version, and every tool still shows', async () => {
-    const label = () => page.locator('#zoomLabel').innerText();
+    const label = () => page.locator('#zoomLabel').textContent();
     const before = await label();
     await page.setViewportSize({ width: 820, height: 900 });
     await poll(async () => (await page.evaluate(() => innerHeight)) === 900, { what: 'the window size' });
@@ -258,7 +258,7 @@ describe('editor: full walkthrough', () => {
   });
 
   it('at 480 px wide the chrome leaves room to the image, and nothing hides the version buttons', async () => {
-    const label = () => page.locator('#zoomLabel').innerText();
+    const label = () => page.locator('#zoomLabel').textContent();
     const before = await label();
     await tool(page, 'rect');
     for (const [w, hh, share] of [[480, 900, 0.54], [480, 650, 0.35]]) {

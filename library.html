@@ -162,7 +162,7 @@
       <button type="button" id="crop" class="tool" aria-pressed="false" data-i18n-title="tool.crop.tip"><svg class="ic" aria-hidden="true"><use href="#i-crop"/></svg><span class="lbl" data-i18n="tool.crop"></span></button>
     </aside>
 
-    <div class="props" role="group" data-i18n-aria="prop.group">
+    <div id="props" class="props" role="group" data-i18n-aria="prop.group">
       <!-- The style bar follows the tool (or the selected object): line color and stroke, text, solid fill, pixelation, blur.
            Every color is the same control: the swatches of the palette (radios built by panel.js from PALETTE) and a free color. -->
       <div class="group" id="lineProps">
@@ -271,23 +271,22 @@
     </div>
 
     <div class="status" role="group" data-i18n-aria="out.group">
-      <label class="field"><span class="fl" data-i18n="out.scale"></span><input type="number" id="scalePct" min="1" max="1000" step="1" value="100"><span class="unit">%</span></label>
-      <label class="field"><span class="fl" data-i18n="out.width"></span><input type="number" id="scaleW" min="1" max="20000" step="1" value="0"><span class="unit">px</span></label>
-      <span id="out" aria-live="polite"></span>
-      <span id="outNote" role="status"></span>
-      <button type="button" id="cropClear" class="btn sm ghost" data-i18n-title="crop.clear.tip"><span data-i18n="crop.clear"></span></button>
       <!-- The beautify panel: beautify-ui.js builds it next to the stage on first use. -->
       <div class="imgbtns">
         <button type="button" id="beautify" class="btn sm" aria-haspopup="dialog" aria-expanded="false" data-i18n-title="be.tip"><svg class="ic" aria-hidden="true"><use href="#i-frame"/></svg><span data-i18n="be.btn"></span></button>
         <button type="button" id="stamp" class="btn sm" data-i18n-title="stamp.tip"><svg class="ic" aria-hidden="true"><use href="#i-stamp"/></svg><span data-i18n="stamp.btn"></span></button>
         <button type="button" id="rotate" class="btn sm" data-i18n-title="rotate.tip"><svg class="ic" aria-hidden="true"><use href="#i-rotate"/></svg><span data-i18n="rotate.btn"></span></button>
       </div>
+      <!-- The output size: it opens the Download menu, where the scale and the width are set. -->
+      <button type="button" id="outBtn" class="btn sm ghost" aria-haspopup="dialog" data-i18n-title="dl.options"><span id="out" aria-live="polite"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+      <button type="button" id="cropClear" class="btn sm ghost" data-i18n-title="crop.clear.tip" hidden><span data-i18n="crop.clear"></span></button>
+      <span id="outNote" role="status"></span>
       <span class="sep"></span>
       <div class="zoom">
         <span id="zoomLabel"></span>
         <div class="zbtns">
-          <button type="button" id="fit" class="btn sm ghost" data-i18n-title="zoom.fit.tip"><svg class="ic" aria-hidden="true"><use href="#i-fit"/></svg><span data-i18n="zoom.fit"></span></button>
-          <button type="button" id="actual" class="btn sm ghost" data-i18n-title="zoom.actual.tip" data-i18n="zoom.actual"></button>
+          <button type="button" id="fit" class="btn sm ghost" aria-pressed="true" data-i18n-title="zoom.fit.tip"><svg class="ic" aria-hidden="true"><use href="#i-fit"/></svg><span data-i18n="zoom.fit"></span></button>
+          <button type="button" id="actual" class="btn sm ghost" aria-pressed="false" data-i18n-title="zoom.actual.tip" data-i18n="zoom.actual"></button>
         </div>
       </div>
     </div>

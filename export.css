@@ -14,6 +14,9 @@
 .dl-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .dl-line + .dl-line { margin-top: 8px; }
 .dl-pct { font-weight: 600; font-variant-numeric: tabular-nums; }
+.dl-fields { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 6px 8px; }
+.dl-fields .field { display: contents; }
+.dl-fields input[type="number"] { width: 84px; height: 28px; }
 
 /* The formats: a list of rows, one radio each (native arrows), the chosen one tinted and checked. */
 .dl-formats { display: grid; gap: 2px; }

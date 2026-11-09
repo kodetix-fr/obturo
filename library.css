@@ -54,8 +54,8 @@ html, body { height: 100%; margin: 0; }
 body {
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr) var(--pane, 0px);
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
-  grid-template-areas: "appbar appbar appbar" "rail props props" "rail banner banner" "rail stage pane" "rail status status" "strip strip strip";
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "appbar appbar appbar" "rail banner banner" "rail stage pane" "rail status status" "strip strip strip";
   font: 13px/1.4 system-ui, "Segoe UI", sans-serif;
   background: var(--bg); color: var(--fg);
 }
@@ -163,18 +163,22 @@ h1 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 
 /* ---------- style bar, status bar ---------- */
 .props, .status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 14px; background: var(--surface); }
-.props { grid-area: props; min-height: 46px; border-bottom: 1px solid var(--line); }
+/* The style bar floats over the top of the stage: its height changes with the tool and the width, the picture under it does not move. */
+.props { grid-area: stage; z-index: 3; align-self: start; min-height: 46px; border-bottom: 1px solid var(--line); }
 .status { grid-area: status; min-height: 38px; border-top: 1px solid var(--line); font-size: 12px; }
 .style-btns { display: inline-flex; gap: 3px; }
 .style-btns .btn { font-size: 14px; }
 .status .field input[type="number"] { height: 26px; width: 64px; }
-#out { color: var(--fg); font-variant-numeric: tabular-nums; }
+#out { font-variant-numeric: tabular-nums; }
 #outNote { padding: 1px 9px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-fg); }
 #outNote:empty { display: none; }
 #beautify[data-on] { background: var(--accent-soft); color: var(--accent-ink); }
 .zoom { display: inline-flex; align-items: center; gap: 8px; }
 .zbtns { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--surface-2); }
 .zbtns .btn { height: 24px; border-radius: 7px; }
+.zbtns .btn[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(14, 21, 34, .12); }
+#outBtn { font-size: 12px; }
+#outBtn .ic { width: 14px; height: 14px; color: var(--muted); }
 #zoomLabel { min-width: 40px; text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; }
 
 /* Solid fill: swatches are native radios (arrows move between them) laid over a colored chip. The patch in the tool icon

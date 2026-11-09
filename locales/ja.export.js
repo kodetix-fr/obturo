@@ -12,6 +12,7 @@ export default {
 
   // its menu
   'dl.format': '形式',
+  'dl.size': 'サイズ',
   'dl.hint.png': '可逆圧縮、文字が鮮明',
   'dl.hint.jpeg': '小さいファイル、写真向け',
   'dl.hint.webp': '小さいファイル、文字も鮮明',

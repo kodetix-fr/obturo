@@ -20,7 +20,7 @@ import { cleanTurn, turnPoint, turnPts, turnRect } from './turn-pure.js';
 import { createVersion, deleteVersion, pickVersion, renameVersion, clampCrop, scaleForWidth, capScale, outputSize } from './versions.js';
 import { extraOf, layout, normalizeBeautify, styleOf } from './beautify-pure.js';
 import { paintBackdrop } from './beautify.js';
-import { fitView, clampView, zoomAt, panBy } from './view.js';
+import { below } from './view.js';
 import { createSaver } from './saver.js';
 import { createHistory } from './history.js';
 import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
@@ -164,22 +164,26 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     canvas.setViewportTransform([v.z, 0, 0, v.z, v.tx, v.ty]);
     paintLook();
     canvas.requestRenderAll();
-    panel.showZoom(v.z);
+    panel.showZoom(v.z, fitMode);
   }
 
   const viewBox = () => lookOf()?.box;
-  const refit = () => { fitMode = true; setView(fitView(canvas.width, canvas.height, W, H, viewBox())); };
+  // The style bar floats over the top of the stage, so that the picture does not move when the bar changes its height: the view is worked
+  // out in the part under the bar, as high as the bar is at that moment, and left alone when the bar changes.
+  const under = () => below(panel.barTop());
+  const areaMiddle = () => { const top = panel.barTop(); return top + (canvas.height - top) / 2; };
+  const refit = () => { fitMode = true; setView(under().fit(canvas.width, canvas.height, W, H, viewBox())); };
 
   // The look, the crop or the scale changed: so did the part of the image that must stay in sight, and the look to draw.
   function relayoutLook() {
     if (!canvas) return;
-    setView(fitMode ? fitView(canvas.width, canvas.height, W, H, viewBox()) : clampView(view, canvas.width, canvas.height, W, H, viewBox()));
+    setView(fitMode ? under().fit(canvas.width, canvas.height, W, H, viewBox()) : under().clamp(view, canvas.width, canvas.height, W, H, viewBox()));
   }
 
   function actualSize() {
     if (!canvas) return;
     fitMode = false;
-    setView(zoomAt(view, 1 / view.z, canvas.width / 2, canvas.height / 2, canvas.width, canvas.height, W, H, viewBox()));
+    setView(under().zoom(view, 1 / view.z, canvas.width / 2, areaMiddle(), canvas.width, canvas.height, W, H, viewBox()));
   }
 
   function onWheel({ e }) {
@@ -188,8 +192,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     e.stopPropagation();
     fitMode = false;
     const { width: cw, height: ch } = canvas;
-    if (e.ctrlKey || e.metaKey) setView(zoomAt(view, Math.exp(-e.deltaY * WHEEL_ZOOM_RATE), e.offsetX, e.offsetY, cw, ch, W, H, viewBox()));
-    else setView(panBy(view, e.shiftKey ? -e.deltaY : -e.deltaX, e.shiftKey ? 0 : -e.deltaY, cw, ch, W, H, viewBox()));
+    if (e.ctrlKey || e.metaKey) setView(under().zoom(view, Math.exp(-e.deltaY * WHEEL_ZOOM_RATE), e.offsetX, e.offsetY, cw, ch, W, H, viewBox()));
+    else setView(under().pan(view, e.shiftKey ? -e.deltaY : -e.deltaX, e.shiftKey ? 0 : -e.deltaY, cw, ch, W, H, viewBox()));
   }
 
   // ---------- objects ----------
@@ -290,12 +294,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // Pans the view so that an object placed out of sight shows (the stamp, at the bottom of a very tall capture, or off to the side of a zoomed one).
   function reveal(o) {
     const left = view.tx + o.left * view.z, right = left + o.width * (o.scaleX || 1) * view.z;
-    const top = view.ty + o.top * view.z, bottom = top + o.height * (o.scaleY || 1) * view.z;
+    const top = view.ty + o.top * view.z, bottom = top + o.height * (o.scaleY || 1) * view.z, covered = panel.barTop();
     const dx = right > canvas.width ? canvas.width - 16 - right : left < 0 ? 16 - left : 0;
-    const dy = bottom > canvas.height ? canvas.height - 16 - bottom : top < 0 ? 16 - top : 0;
+    const dy = bottom > canvas.height ? canvas.height - 16 - bottom : top < covered ? covered + 16 - top : 0;
     if (!dx && !dy) return;
     fitMode = false;
-    setView(panBy(view, dx, dy, canvas.width, canvas.height, W, H, viewBox()));
+    setView(under().pan(view, dx, dy, canvas.width, canvas.height, W, H, viewBox()));
   }
 
   // A pen stroke is over (Fabric drew it): it becomes an object of the version, with the width kept as it is when it is resized.
@@ -437,12 +441,12 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
       return;
     }
     const h = H;
-    const middle = fitMode ? null : turnPoint((canvas.width / 2 - view.tx) / view.z, (canvas.height / 2 - view.ty) / view.z, h);
+    const middle = fitMode ? null : turnPoint((canvas.width / 2 - view.tx) / view.z, (areaMiddle() - view.ty) / view.z, h);
     for (const o of canvas.getObjects()) { bake(o); turnObject(o, h); }
     v.crop = turnRect(v.crop, h);
     v.turn = quarter;
     installFrame(next, quarter);
-    if (middle) setView(clampView({ z: view.z, tx: canvas.width / 2 - middle.x * view.z, ty: canvas.height / 2 - middle.y * view.z }, canvas.width, canvas.height, W, H, viewBox()));
+    if (middle) setView(under().clamp({ z: view.z, tx: canvas.width / 2 - middle.x * view.z, ty: areaMiddle() - middle.y * view.z }, canvas.width, canvas.height, W, H, viewBox()));
     else refit();
     syncOutput();
     syncPanel();
@@ -800,6 +804,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     const v = cur(), s = shot, blob = original, bmp = bitmap;
     return {
       shot: s, original: blob, edited: !!v, size: outputSize(W, H, v),
+      scale: v?.scale ?? 1, width: Math.floor((v?.crop?.w ?? W) * (v?.scale ?? 1) + 1e-6),
       source: () => (v ? renderCanvas(canvas, v, W, H) : bmp),
     };
   }
@@ -815,7 +820,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   async function downloadMenu() {
     try {
-      (await loadExportUi()).toggleMenu({ context: exportContext, warn });
+      (await loadExportUi()).toggleMenu({ context: exportContext, warn, setScale: (x) => ready() && setScale(x), setOutputWidth: (px) => ready() && setOutputWidth(px) });
     } catch (e) {
       console.error('Obturo: download menu', e);
       warn('export.err.generic');
@@ -1030,7 +1035,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   new ResizeObserver(() => {
     if (!canvas) return;
     canvas.setDimensions({ width: stage.clientWidth, height: stage.clientHeight });
-    setView(fitMode ? fitView(canvas.width, canvas.height, W, H, viewBox()) : clampView(view, canvas.width, canvas.height, W, H, viewBox()));
+    setView(fitMode ? under().fit(canvas.width, canvas.height, W, H, viewBox()) : under().clamp(view, canvas.width, canvas.height, W, H, viewBox()));
   }).observe(stage);
 
   // The versions are written first; the caller that waits (the history view) gets the thumbnail too.

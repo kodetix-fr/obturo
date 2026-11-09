@@ -234,7 +234,10 @@ Non-destructive: the original of a capture is never changed.
   a side that would leave the image is not given while the other one fits. The
   disc stays where you clicked whatever the text does. The text moves, resizes and
   is saved with the marker, and the box you select holds both.
-- Output scale (percentage or width), 50 levels of undo and redo, zoom and pan.
+- Output scale (percentage or width), set in the *Download* menu (the output size under the
+  editor is the button that opens it), 50 levels of undo and redo, zoom and pan. The style bar
+  floats over the top of the picture, so the picture does not move when the bar changes its
+  height; *Fit* and *100%* show which one applies. *Remove crop* shows only with a crop.
 - **Beautify** (the button in the bar under the editor) puts the capture on a
   **background**: none, one of the nine colors or a free color, or one of six
   gradients. The look has a **padding**, rounded **corners**, a **shadow** (none,
@@ -271,7 +274,7 @@ without losing anything.
 
 - **Download** saves the displayed version. The default format is shown beside
   the button; the arrow next to it opens the options: format (PNG, JPEG, WebP or
-  PDF), quality, and for a PDF the pages and the images. For JPEG and WebP the
+  PDF), size (scale and width), quality, and for a PDF the pages and the images. For JPEG and WebP the
   menu shows an estimate of the file size once you move the quality slider.
   The menu is a one-time *Download as*: it keeps your choices until the page is
   reloaded, and never changes the defaults of *Settings*, *Download* (the same

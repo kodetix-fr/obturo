@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fitView, zoomAt, panBy, clampView } from './view.js';
+import { fitView, zoomAt, panBy, clampView, below } from './view.js';
 
 test('fitView: 16:9 image centered and fitted, never enlarged', () => {
   const f = fitView(1400, 800, 3840, 2160);
@@ -60,4 +60,18 @@ test('zoomAt with a box keeps the point under the cursor, and the box is never l
 test('clampView with a box smaller than the canvas centers the box', () => {
   const c = clampView({ z: 1, tx: 999, ty: 999 }, 1000, 600, 200, 100, { x: -10, y: -20, w: 220, h: 140 });
   assert.deepEqual(plain(c, { x: -10, y: -20 }), { z: 1, tx: 390, ty: 230 }); // (1000 - 220) / 2, (600 - 140) / 2
+});
+
+test('below: the document lives under the covered part, and nothing moves up into it', () => {
+  const top = 100;
+  const f = below(top).fit(1400, 800, 1000, 500);
+  assert.equal(f.z, 1);
+  assert.equal(f.ty, top + (800 - top - 500) / 2, 'centered in the part that shows');
+  const long = below(top).fit(1400, 800, 4000, 3000);
+  assert.ok(long.ty >= top, 'the top of the document starts under the covered part');
+  const zoomed = below(top).zoom(long, 2, 700, 400, 1400, 800, 4000, 3000);
+  assert.ok(Math.abs((700 - long.tx) / long.z - (700 - zoomed.tx) / zoomed.z) < 1e-9, 'the point under the pointer stays');
+  const panned = below(top).pan({ z: 1, tx: 16, ty: top + 16 }, 0, 500, 1400, 800, 4000, 3000);
+  assert.equal(panned.ty, top + 16, 'no scrolling past the top of the document, measured under the covered part');
+  assert.deepEqual(below(0).fit(1400, 800, 1000, 500), fitView(1400, 800, 1000, 500));
 });

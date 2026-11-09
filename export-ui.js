@@ -27,6 +27,8 @@ const REVOKE_DELAY_MS = 10_000;
  * @property {Blob} original Its original PNG.
  * @property {boolean} edited A version is displayed (otherwise the original is).
  * @property {{ w: number, h: number }} size Size in pixels of the displayed version once cropped and scaled.
+ * @property {number} [scale] Its output scale (1 = 100 %); the editor gives it for the size of the format menu.
+ * @property {number} [width] Its output width in pixels (the crop, scaled); same.
  * @property {() => HTMLCanvasElement | ImageBitmap} source The displayed version: a canvas that belongs to the caller, or for
  *   the original the bitmap of the editor, which the caller must use before the next await (it is closed with the capture).
  *
@@ -199,7 +201,7 @@ const choice = { format: 'png', quality: 0.9, layout: 'fit', encoding: 'flate' }
  * when it is extrapolated from a band of the image (estimateBand), `band` is that band, kept until the menu closes.
  */
 const estimate = { asked: false, bytes: null, approx: false, pending: false, failed: false, band: null, latest: null, size: { w: 0, h: 0 } };
-let menuOptions = null; // { context, warn } of the opening
+let menuOptions = null; // { context, warn, setScale, setOutputWidth } of the opening
 let stopListening = null;
 
 // A language change (dom-i18n.js sets <html lang>) redraws what holds a formatted number: sizes and percentages.
@@ -232,16 +234,23 @@ function buildMenu() {
         segment('dlLayout', 'dlLayoutLabel', PDF_LAYOUTS.map((value) => ({ value, key: LAYOUT_KEYS[value] })))),
       h('div', { class: 'dl-line' }, h('span', { id: 'dlEncodingLabel', class: 'dl-h', 'data-i18n': 'dl.encoding' }),
         segment('dlEncoding', 'dlEncodingLabel', PDF_ENCODINGS.map((value) => ({ value, key: ENCODING_KEYS[value] }))))),
+    scale: h('input', { type: 'number', id: 'scalePct', min: '1', max: '1000', step: '1', value: '100' }),
+    width: h('input', { type: 'number', id: 'scaleW', min: '1', max: '20000', step: '1', value: '0' }),
     go: h('button', { type: 'button', class: 'btn primary', onclick: () => go() }, icon('download'), h('span', { id: 'dlGoLabel' })),
     pct,
   };
+  refs.sizeRow = h('div', { class: 'dl-sec' },
+    h('p', { id: 'dlSizeLabel', class: 'dl-h', 'data-i18n': 'dl.size' }),
+    h('div', { class: 'dl-fields', role: 'group', 'aria-labelledby': 'dlSizeLabel' },
+      h('label', { class: 'field' }, h('span', { class: 'fl', 'data-i18n': 'out.scale' }), refs.scale, h('span', { class: 'unit', text: '%' })),
+      h('label', { class: 'field' }, h('span', { class: 'fl', 'data-i18n': 'out.width' }), refs.width, h('span', { class: 'unit', text: 'px' }))));
   refs.estimateLine = refs.qualityRow.querySelector('.dl-est');
   refs.estimateValue = refs.qualityRow.querySelector('#dlEstimate');
   refs.layout = refs.pdfRow.querySelector('[role="radiogroup"]');
   refs.encoding = refs.pdfRow.querySelectorAll('[role="radiogroup"]')[1];
   refs.root = h('div', { id: 'dlPop', class: 'dl-pop', role: 'dialog', tabindex: '-1', hidden: true },
     h('div', { class: 'dl-sec' }, h('p', { id: 'dlFormatLabel', class: 'dl-h', 'data-i18n': 'dl.format' }), refs.formats),
-    refs.pdfRow, refs.qualityRow,
+    refs.sizeRow, refs.pdfRow, refs.qualityRow,
     h('div', { class: 'dl-foot' }, refs.go));
 
   refs.formats.addEventListener('change', (e) => {
@@ -255,6 +264,8 @@ function buildMenu() {
     estimate.asked = true; // the first move of the slider starts the estimate
     requestEstimate();
   });
+  refs.scale.addEventListener('change', () => { menuOptions.setScale(Number(refs.scale.value) / 100); resized(); });
+  refs.width.addEventListener('change', () => { menuOptions.setOutputWidth(Number(refs.width.value)); resized(); });
   refs.layout.addEventListener('change', (e) => { choice.layout = valueOf(e); });
   refs.encoding.addEventListener('change', (e) => { choice.encoding = valueOf(e); syncMenu(); });
   $('split').append(refs.root);
@@ -272,6 +283,24 @@ function keepInside(root) {
   const shift = box.left < margin ? margin - box.left : Math.min(0, innerWidth - margin - box.right);
   if (shift) root.style.right = `${-shift}px`;
   root.style.maxHeight = `${Math.max(160, innerHeight - box.top - margin)}px`;
+}
+
+/** The scale and the width of the menu show those of the displayed version. @param {ExportContext} ctx */
+function showSize(ctx) {
+  menu.scale.value = String(Math.round((ctx.scale ?? 1) * 100));
+  menu.width.value = String(ctx.width ?? ctx.size.w);
+}
+
+/** The scale or the width changed: the size, and the estimate that depends on it, are worked out again. */
+function resized() {
+  const ctx = menuOptions.context(true);
+  if (!ctx) return;
+  estimate.size = ctx.size;
+  release(estimate.band?.canvas);
+  estimate.band = null;
+  estimate.bytes = null;
+  showSize(ctx);
+  requestEstimate();
 }
 
 /** The elements of the menu follow `choice`. */
@@ -382,6 +411,7 @@ async function openMenu(options) {
     }
     estimate.size = ctx.size;
     menu ??= buildMenu();
+    showSize(ctx);
     startEstimator();
     syncMenu();
     menu.root.hidden = false;
@@ -412,6 +442,8 @@ async function openMenu(options) {
  * @param {object} options
  * @param {ContextFn} options.context
  * @param {(key: string) => void} options.warn
+ * @param {(scale: number) => void} options.setScale
+ * @param {(px: number) => void} options.setOutputWidth
  */
 export function toggleMenu(options) {
   if (menuOpen) closeMenu(true);

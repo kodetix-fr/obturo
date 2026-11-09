@@ -174,7 +174,7 @@ describe('editor: turn keeps what the person was doing', () => {
   after(() => h?.close());
 
   it('keeps the zoom, the selected object and a crop box that is not applied yet', async () => {
-    const zoom = () => page.locator('#zoomLabel').innerText();
+    const zoom = () => page.locator('#zoomLabel').textContent();
     await tool(page, 'flat');
     await drag(page, m, 100, 100, 400, 300);
     await tool(page, 'select');

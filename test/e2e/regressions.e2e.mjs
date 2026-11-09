@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
-  dbDump, decodePng, download, drag, mapper, outText, pngSize, poll, px, ready, resetLibrary, shotWhere, sleep, spec,
+  dbDump, decodePng, download, drag, mapper, outText, pngSize, poll, px, ready, resetLibrary, setOutput, shotWhere, sleep, spec,
   titled, tool, waitOut,
 } from './support/editor.mjs';
 
@@ -23,8 +23,7 @@ describe('editor: non-regressions', () => {
   const shots = () => dbDump(page);
   const objectCount = async (index = 0) => (await shots())[index].versions[0]?.objects.length ?? 0;
   const fillScale = async (percent) => {
-    await page.fill('#scalePct', String(percent));
-    await page.press('#scalePct', 'Tab');
+    await setOutput(page, '#scalePct', percent);
   };
   const pageErrors = () => h.errors.filter((e) => e.startsWith('[pageerror]'));
 
@@ -191,8 +190,7 @@ describe('editor: non-regressions', () => {
     assert.equal(await outText(page), 'Output: 800 × 450 px');
     await titled(page, 'S7b').click();
     await waitOut(page, 1400, 800);
-    await page.fill('#scaleW', '700');
-    await page.press('#scaleW', 'Tab');
+    await setOutput(page, '#scaleW', 700);
     await shotWhere(page, (await shots()).find((s) => s.title === 'S7b').id, (s) => s.versions[0]?.scale === 0.5, 'scale deduced from the width');
     assert.equal(await outText(page), 'Output: 700 × 400 px');
   });

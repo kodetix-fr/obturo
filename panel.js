@@ -206,15 +206,12 @@ let lastOutput = null; // arguments of the last showOutput, to draw it again whe
  */
 export function showOutput(version, W, H, capped) {
   lastOutput = [version, W, H, capped];
-  const crop = version?.crop ?? { w: W, h: H };
   const scale = version?.scale ?? 1;
   const size = outputSize(W, H, version);
   if (capped) setI18n(dom.outNote, 'out.capped', { pct: Math.floor(scale * 100), side: formatNumber(MAX_SIDE), mpix: formatNumber(MAX_PIXELS / 1e6) });
   else setI18n(dom.outNote);
-  dom.scalePct.value = String(Math.round(scale * 100));
-  dom.scaleW.value = String(Math.floor(crop.w * scale + 1e-6));
   setI18n(dom.out, 'out.size', { w: size.w, h: size.h });
-  dom.cropClear.disabled = !version?.crop;
+  dom.cropClear.hidden = !version?.crop;
   dom.beautify.toggleAttribute('data-on', !!styleOf(version));
 }
 
@@ -241,8 +238,16 @@ export function showCropButtons(editing) {
   if (editing) showTool(null); // the crop is the mode: no other tool shows as pressed beside it
 }
 
-export function showZoom(z) {
-  setI18n(dom.zoomLabel, 'zoom.value', { n: Math.round(z * 100) });
+/** Height of the style bar, which floats over the top of the stage. */
+export const barTop = () => dom.props.offsetHeight;
+
+/** `fit`: the view follows the window. The percentage stays out when the pressed button already says it. */
+export function showZoom(z, fit) {
+  const n = Math.round(z * 100);
+  dom.fit.setAttribute('aria-pressed', String(!!fit));
+  dom.actual.setAttribute('aria-pressed', String(n === 100));
+  dom.zoomLabel.hidden = n === 100;
+  setI18n(dom.zoomLabel, 'zoom.value', { n });
 }
 
 let flashTimer;
@@ -335,8 +340,7 @@ export function bindControls(actions) {
   dom.cropClear.addEventListener('click', () => ready() && actions.clearCrop());
 
   // The typed value is read HERE, before the editor creates V1 (which resets the fields to 100 %).
-  dom.scalePct.addEventListener('change', () => ready() && actions.setScale(Number(dom.scalePct.value) / 100));
-  dom.scaleW.addEventListener('change', () => ready() && actions.setOutputWidth(Number(dom.scaleW.value)));
+  dom.outBtn.addEventListener('click', () => ready() && actions.downloadMenu());
   dom.fit.addEventListener('click', () => actions.fit());
   dom.actual.addEventListener('click', () => actions.actualSize());
 

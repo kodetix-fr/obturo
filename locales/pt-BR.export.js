@@ -12,6 +12,7 @@ export default {
 
   // its menu
   'dl.format': 'Formato',
+  'dl.size': 'Tamanho',
   'dl.hint.png': 'Sem perdas, texto nítido',
   'dl.hint.jpeg': 'Arquivos pequenos, para fotografias',
   'dl.hint.webp': 'Arquivos pequenos, o texto continua nítido',

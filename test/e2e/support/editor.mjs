@@ -1,7 +1,7 @@
 // Helpers to drive the library and the editor: IndexedDB seeds, mouse, export, PNG decoding.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { fitView } from '../../../view.js';
+import { below } from '../../../view.js';
 
 export const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 
@@ -126,6 +126,36 @@ export const waitOut = (page, w, h) => page.waitForFunction(
 );
 
 export const outText = (page) => page.locator('#out').innerText();
+
+/** A screenshot of the part of the stage that the style bar does not cover. */
+export async function stageUnderBar(page) {
+  const box = await page.locator('#stage').boundingBox();
+  const top = await page.evaluate(() => document.getElementById('props').offsetHeight);
+  return page.screenshot({ clip: { x: box.x, y: box.y + top, width: box.width, height: box.height - top } });
+}
+
+// The scale and the width are fields of the Download menu: these open it, work on a field and close it.
+const openSize = async (page) => {
+  if ((await page.getAttribute('#downloadMenu', 'aria-expanded')) !== 'true') await page.click('#downloadMenu');
+  await page.waitForSelector('#scalePct', { state: 'visible' });
+};
+const closeSize = async (page) => {
+  if ((await page.getAttribute('#downloadMenu', 'aria-expanded')) === 'true') await page.keyboard.press('Escape');
+};
+/** Types `value` in `field` ('#scalePct' or '#scaleW') of the Download menu, confirms with `key`, closes the menu. */
+export async function setOutput(page, field, value, key = 'Tab') {
+  await openSize(page);
+  await page.fill(field, String(value));
+  await page.press(field, key);
+  await closeSize(page);
+}
+/** The value of `field` of the Download menu, as a string. */
+export async function readOutput(page, field) {
+  await openSize(page);
+  const value = await page.inputValue(field);
+  await closeSize(page);
+  return value;
+}
 export const titled = (page, title) => page.locator(`#strip button.open[title^="${title}"]`);
 export const tool = (page, name) => page.click(`[data-tool="${name}"]`);
 
@@ -133,12 +163,12 @@ export const tool = (page, name) => page.click(`[data-tool="${name}"]`);
 
 /** Mapping between document coordinates (image px) and screen coordinates, for the fitted view. */
 export async function mapper(page, docW, docH, keep) {
-  const [cw, ch] = await page.evaluate(() => {
+  const [cw, ch, top] = await page.evaluate(() => {
     const stage = document.getElementById('stage');
-    return [stage.clientWidth, stage.clientHeight];
+    return [stage.clientWidth, stage.clientHeight, document.getElementById('props').offsetHeight]; // the style bar floats over the top of the stage
   });
   const box = await page.locator('#stage').boundingBox();
-  const v = fitView(cw, ch, docW, docH, keep); // `keep`: the part of the document kept in sight (the capture and its beautify look)
+  const v = below(top).fit(cw, ch, docW, docH, keep); // `keep`: the part of the document kept in sight (the capture and its beautify look)
   return { v, pt: (x, y) => [box.x + v.tx + x * v.z, box.y + v.ty + y * v.z] };
 }
 

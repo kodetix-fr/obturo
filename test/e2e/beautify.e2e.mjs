@@ -7,7 +7,7 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
-import { dbDump, decodePng, download, outText, poll, px, ready, resetLibrary, shotWhere, spec, titled, waitOut } from './support/editor.mjs';
+import { dbDump, decodePng, download, outText, poll, px, readOutput, ready, resetLibrary, setOutput, shotWhere, spec, titled, waitOut } from './support/editor.mjs';
 import { MIME, batchDone, closeBatch, decodeImage, downloadAfter, readPdf, readZip, setDefaultFormat } from './support/export.mjs';
 
 const CLEAN = { language: 'en', theme: 'auto', downloadFormat: 'png', downloadQuality: 0.9, pdfLayout: 'fit', pdfEncoding: 'flate' };
@@ -262,15 +262,14 @@ describe('beautify: the editor, the downloads, the grouped export', () => {
   it('the scale ceiling counts the padding and the bar: the scale comes down further than for the capture alone', async () => {
     await library([spec('Wide', 1600, 900)]);
     await open(1600, 900);
-    await page.fill('#scalePct', '1000');
-    await page.press('#scalePct', 'Enter');
-    const plain = Number(await page.inputValue('#scalePct'));
+    await setOutput(page, '#scalePct', 1000, 'Enter');
+    const plain = Number(await readOutput(page, '#scalePct'));
     assert.ok(plain < 1000 && plain > 800, `the scale of the capture alone is brought down to the ceiling, got ${plain}`);
     await openPanel();
     await turnOn();
     await flat({ bg: '#2563eb', padding: 128, radius: 12, frame: 'window' });
-    await poll(async () => Number(await page.inputValue('#scalePct')) < plain, { what: 'the scale comes down again' });
-    const scale = Number(await page.inputValue('#scalePct')) / 100;
+    await poll(async () => Number(await readOutput(page, '#scalePct')) < plain, { what: 'the scale comes down again' });
+    const scale = Number(await readOutput(page, '#scalePct')) / 100;
     const [w, hgt] = (await outText(page)).match(/\d+/g).map(Number);
     assert.ok(w <= 16384 && hgt <= 16384 && w * hgt <= 100e6, `the output ${w} x ${hgt} is inside the ceilings`);
     assert.ok(w * hgt > 99e6 * 0.98, `and close to them, ${w * hgt} px (scale ${scale})`);
