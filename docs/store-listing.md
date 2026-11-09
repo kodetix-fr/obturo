@@ -190,7 +190,7 @@ Screenshots to produce, on made-up pages and data (no real capture, no personal 
 
 1. The editor with the tools of 0.3 on one capture: a pen stroke, a double arrow, an emoji, numbered markers and the stamp, with the floating style bar, the versions and the strip of captures visible.
 2. Beautify: a capture on a gradient with padding, shadow and window bar, its panel open.
-3. Hide sensitive text: a made-up page with fake e-mail addresses, phone numbers and IBANs covered in black, and the note of the page that says how many items were covered.
+3. Hide sensitive text: the element capture of a made-up dashboard, open in the editor, with the customer e-mail addresses covered in black.
 4. The history sheet in the dark theme: grid, search, filters, a few pinned captures, a selection with its action bar.
 5. The Download menu open: formats, size, quality with the size estimate, the PDF options.
 
