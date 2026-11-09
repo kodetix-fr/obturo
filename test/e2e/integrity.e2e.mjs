@@ -79,6 +79,7 @@ describe('integrity', () => {
 
   before(async () => {
     h = await launchExtension({ hook: true, size: { width: 1280, height: 800 } });
+    await h.context.addInitScript(() => { try { localStorage.setItem('obturo-strip', 'open'); } catch { /* a page with no storage */ } }); // this window is shorter than 900 px: the strip starts folded without it
     P = await blankPage(h);
     L = await h.context.newPage();
     L.on('dialog', (d) => d.accept());

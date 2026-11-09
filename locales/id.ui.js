@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': 'Tangkapan',
+  'strip.toggle.tip': 'Tampilkan atau sembunyikan tangkapan terbaru',
   'strip.open': 'Buka tangkapan pada {when}',
   'strip.delete': 'Hapus tangkapan',
   'lib.noTrace.tip': 'Mode tanpa jejak aktif: tangkapan disalin dan tidak disimpan di mana pun. Klik untuk mematikannya.',

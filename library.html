@@ -314,9 +314,13 @@
   </main>
 
   <nav class="filmstrip" data-i18n-aria="strip.label">
-    <!-- history: the shortcut to the whole history; the strip itself holds the latest captures only -->
-    <button type="button" id="historyAll" class="more"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg><span class="more-label" data-i18n="hist.all"></span><span id="historyAllCount" class="more-count"></span></button>
-    <ul id="strip"></ul>
+    <!-- The head folds the strip: closed by default in a window shorter than 900 px, open above, and the choice is kept. -->
+    <button type="button" id="stripToggle" class="strip-head" aria-expanded="true" aria-controls="stripBody" data-i18n-title="strip.toggle.tip"><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg><span data-i18n="hist.open"></span><span id="stripCount"></span></button>
+    <div id="stripBody" class="strip-body">
+      <!-- history: the shortcut to the whole history; the strip itself holds the latest captures only -->
+      <button type="button" id="historyAll" class="more"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg><span class="more-label" data-i18n="hist.all"></span><span id="historyAllCount" class="more-count"></span></button>
+      <ul id="strip"></ul>
+    </div>
   </nav>
 
   <!-- Settings. Every control with a `name` equal to a key of settings.js is read and saved by settings-ui.js on its

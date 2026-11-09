@@ -217,14 +217,15 @@ export const px = (img, x, y) => {
 
 /** Number of pixels that differ between two images and their bounding box, to understand a failure. */
 export function diffInfo(a, b) {
-  let n = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+  let n = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1, delta = 0;
   for (let y = 0; y < a.height; y++) {
     for (let x = 0; x < a.width; x++) {
       const i = (y * a.width + x) * 4;
       if (a.data[i] === b.data[i] && a.data[i + 1] === b.data[i + 1] && a.data[i + 2] === b.data[i + 2] && a.data[i + 3] === b.data[i + 3]) continue;
       n++;
+      for (let c = 0; c < 4; c++) delta = Math.max(delta, Math.abs(a.data[i + c] - b.data[i + c]));
       x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
     }
   }
-  return `${n} px, box x ${x0}..${x1} y ${y0}..${y1}`;
+  return `${n} px, box x ${x0}..${x1} y ${y0}..${y1}, largest channel gap ${delta}`;
 }

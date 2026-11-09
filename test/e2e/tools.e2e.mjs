@@ -385,3 +385,57 @@ describe('editor: the style bar floats, the output bar holds the output', () => 
     assert.deepEqual(pageErrors(), [], 'no error on the page');
   });
 });
+
+describe('library: the strip folds under its head', () => {
+  let h, page;
+  const pageErrors = () => h.errors.filter((e) => e.startsWith('[pageerror]'));
+  const state = () => page.evaluate(() => ({
+    expanded: document.getElementById('stripToggle').getAttribute('aria-expanded'),
+    body: getComputedStyle(document.getElementById('stripBody')).display !== 'none',
+    stage: document.getElementById('stage').clientHeight,
+  }));
+  const reopen = async () => {
+    await page.reload();
+    await ready(page);
+  };
+
+  before(async () => {
+    h = await launchExtension();
+    page = await h.context.newPage();
+    await resetLibrary(page, h, [spec('One', 1200, 700, false), spec('Two', 1200, 700, false)]);
+    await ready(page);
+  });
+  after(() => h?.close());
+
+  it('open at 900 px of height, with the count in the head', async () => {
+    const s = await state();
+    assert.deepEqual([s.expanded, s.body], ['true', true]);
+    const head = await page.locator('#stripToggle').textContent();
+    assert.match(head, /^History\s*·\s*2$/, `the head says what it holds: ${head}`);
+    assert.equal(await page.locator('#strip li.shot').count(), 2);
+  });
+
+  it('a click folds it, the stage grows, and the choice survives a reload', async () => {
+    const before = await state();
+    await page.click('#stripToggle');
+    const folded = await state();
+    assert.deepEqual([folded.expanded, folded.body], ['false', false]);
+    assert.ok(folded.stage > before.stage + 100, `the stage keeps the room: ${before.stage} then ${folded.stage}`);
+    await reopen();
+    assert.deepEqual([(await state()).expanded, (await state()).body], ['false', false], 'still folded after a reload');
+    await page.focus('#stripToggle');
+    await page.keyboard.press('Enter');
+    assert.deepEqual([(await state()).expanded, (await state()).body], ['true', true], 'the keyboard opens it');
+  });
+
+  it('with no choice made, a window shorter than 900 px starts with it folded', async () => {
+    await page.evaluate(() => localStorage.removeItem('obturo-strip'));
+    await page.setViewportSize({ width: 1440, height: 813 });
+    await reopen();
+    const s = await state();
+    assert.deepEqual([s.expanded, s.body], ['false', false], 'folded at 813 px');
+    await page.setViewportSize({ width: 1440, height: 940 });
+    await poll(async () => { const s2 = await state(); return s2.body && s2.expanded === 'true'; }, { what: 'open again in a taller window' });
+    assert.deepEqual(pageErrors(), [], 'no error on the page');
+  });
+});

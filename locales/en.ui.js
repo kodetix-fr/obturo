@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': 'Captures',
+  'strip.toggle.tip': 'Show or hide the latest captures',
   'strip.open': 'Open the capture from {when}',
   'strip.delete': 'Delete capture',
   'lib.noTrace.tip': 'No trace is on: captures are copied and saved nowhere. Click to turn it off.',

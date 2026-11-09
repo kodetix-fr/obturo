@@ -29,6 +29,11 @@ Notable changes to Obturo. The format follows
 
 ### Changed
 
+- **The strip of captures folds** under a head that keeps the count (*History · 12*): folded by default in a window
+  shorter than 900 px, open above, and the choice is kept in the browser. The picture gets the room (at 813 px of height
+  the stage goes from about 64 to 79 percent of the window).
+- **What you draw is what is saved**: the points of a new shape are kept at two decimals of a pixel, the precision of a saved
+  version, so that a shape does not change by a hair when the version is loaded again.
 - **The style bar floats over the top of the picture** instead of pushing it down: the picture no longer moves when you
   change tool, in narrow windows where the bar changes its height. The view is worked out under the bar as it is at that
   moment (Fit, zoom, move), and left alone when the bar changes.

@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': 'Capturas',
+  'strip.toggle.tip': 'Mostrar u ocultar las últimas capturas',
   'strip.open': 'Abrir la captura del {when}',
   'strip.delete': 'Eliminar captura',
   'lib.noTrace.tip': 'El modo sin rastro está activo: las capturas se copian y no se guardan en ningún sitio. Haz clic para desactivarlo.',

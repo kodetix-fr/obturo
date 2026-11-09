@@ -162,6 +162,7 @@ export default {
 
   // filmstrip
   'strip.label': '截图',
+  'strip.toggle.tip': '显示或隐藏最近的截图',
   'strip.open': '打开 {when} 的截图',
   'strip.delete': '删除截图',
   'lib.noTrace.tip': '“不留痕”模式已开启：截图只会被复制，不会保存到任何地方。点击即可关闭。',
