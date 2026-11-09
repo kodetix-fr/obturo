@@ -229,7 +229,7 @@ export default {
   'settings.support': 'Apoyar a Kodetix',
   'about.version': 'Versión {v}',
   'about.newsTitle': 'Novedades de esta versión',
-  'about.news': 'Un aspecto para tus capturas (Beautify), ocultación automática del texto sensible, captura de un elemento, un retraso antes de la captura y guardado del archivo justo después de una captura.',
+  'about.news': 'Un sello con la dirección de la página y la fecha, un lápiz, emojis, un cuarto de giro, una línea y una flecha doble, una barra de estilo que ya no empuja la imagen y una tira de capturas que se pliega.',
   'about.new': 'Nuevo',
   'about.note': 'Obturo es gratuito, de código abierto (MIT) y seguirá siéndolo; nada sale de tu ordenador. Una reseña ayuda a que otras personas lo encuentren y a seguir haciendo herramientas del mismo tipo. Si te resulta útil, también puedes apoyar a Kodetix, que lo desarrolla. Los enlaces se abren en una pestaña nueva.',
   'about.review': 'Dejar una reseña',

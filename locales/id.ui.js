@@ -229,7 +229,7 @@ export default {
   'settings.support': 'Dukung Kodetix',
   'about.version': 'Versi {v}',
   'about.newsTitle': 'Yang baru di versi ini',
-  'about.news': 'Tampilan untuk tangkapan layar Anda (Beautify), penyembunyian otomatis teks sensitif, tangkapan satu elemen, jeda sebelum menangkap, dan penyimpanan berkas tepat setelah tangkapan.',
+  'about.news': 'Cap dengan alamat halaman dan tanggal, pensil, emoji, putaran seperempat, garis dan panah ganda, bilah gaya yang tidak lagi mendorong gambar, dan deretan tangkapan yang bisa dilipat.',
   'about.new': 'Baru',
   'about.note': 'Obturo gratis, sumber terbuka (MIT), dan akan tetap begitu; tidak ada yang keluar dari komputer Anda. Ulasan membantu orang lain menemukannya dan membantu terus membuat alat sejenis. Jika berguna bagi Anda, Anda juga dapat mendukung Kodetix yang mengembangkannya. Tautan dibuka di tab baru.',
   'about.review': 'Beri ulasan',

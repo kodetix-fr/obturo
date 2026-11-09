@@ -229,7 +229,7 @@ export default {
   'settings.support': '支持 Kodetix',
   'about.version': '版本 {v}',
   'about.newsTitle': '此版本的新功能',
-  'about.news': '为截图添加外观（Beautify）、自动隐藏敏感文字、元素截图、截图前延时，以及截图后直接保存文件。',
+  'about.news': '带页面地址和日期的戳记、画笔、表情符号、四分之一旋转、直线和双向箭头、不再挤压图片的样式栏，以及可折叠的截图条。',
   'about.new': '新',
   'about.note': 'Obturo 免费、开源（MIT），并将一直如此；任何内容都不会离开你的电脑。评价可以帮助更多人找到它，也有助于继续制作同类工具。如果它对你有帮助，也可以支持开发它的 Kodetix。链接会在新标签页中打开。',
   'about.review': '写评价',

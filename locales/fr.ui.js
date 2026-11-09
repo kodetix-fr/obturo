@@ -230,7 +230,7 @@ export default {
   'settings.support': "Soutenir Kodetix",
   'about.version': 'Version {v}',
   'about.newsTitle': 'Nouveautés de cette version',
-  'about.news': "Un habillage pour tes captures (Beautify), le masquage automatique du texte sensible, la capture d'un élément, un délai avant la capture et l'enregistrement du fichier juste après une capture.",
+  'about.news': "Un tampon avec l'adresse de la page et la date, un crayon, des émojis, un quart de tour, un trait et une double flèche, une barre de style qui ne pousse plus l'image et un bandeau de captures repliable.",
   'about.new': 'Nouveau',
   'about.note': "Obturo est gratuit, open source (MIT) et le restera\u00a0; rien ne quitte ton ordinateur. Un avis aide d'autres personnes à le trouver et à continuer à faire des outils du même genre. S'il te sert, tu peux aussi soutenir Kodetix, qui le développe. Les liens s'ouvrent dans un nouvel onglet.",
   'about.review': 'Donner un avis',

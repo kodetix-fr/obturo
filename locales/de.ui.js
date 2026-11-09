@@ -229,7 +229,7 @@ export default {
   'settings.support': 'Kodetix unterstützen',
   'about.version': 'Version {v}',
   'about.newsTitle': 'Neu in dieser Version',
-  'about.news': 'Ein Look für deine Aufnahmen (Beautify), automatisches Verbergen sensibler Texte, Aufnahme eines Elements, eine Verzögerung vor der Aufnahme und das Speichern der Datei direkt nach der Aufnahme.',
+  'about.news': 'Ein Stempel mit Seitenadresse und Datum, ein Stift, Emojis, eine Vierteldrehung, eine Linie und ein Doppelpfeil, eine Stilleiste, die das Bild nicht mehr verschiebt, und eine einklappbare Leiste mit Aufnahmen.',
   'about.new': 'Neu',
   'about.note': 'Obturo ist kostenlos, Open Source (MIT) und bleibt es; alles bleibt auf deinem Computer. Eine Bewertung hilft anderen, es zu finden, und hilft dabei, weitere Werkzeuge dieser Art zu entwickeln. Wenn es dir nützt, kannst du außerdem Kodetix unterstützen, das es entwickelt. Die Links öffnen sich in einem neuen Tab.',
   'about.review': 'Bewertung abgeben',
