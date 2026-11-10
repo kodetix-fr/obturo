@@ -1,6 +1,6 @@
 # Obturo - Privacy policy
 
-Last updated: 2026-11-09
+Last updated: 2026-11-10
 
 This policy is in English, then in French (below). Both say the same thing.
 
@@ -27,13 +27,13 @@ A screenshot may contain personal or confidential information visible on the pag
 
 An image you add yourself (a file you pick, an image you paste with Ctrl+V or drop on the library) is stored the same way, as a PNG, with the name of the file as its title (*Pasted image* for a paste) and no address.
 
-Obturo also stores your settings: language, theme, how long to keep captures, the size limit, and the default download format and options. Three technical records go with them: a copy of the language and the theme (so that the library opens in the right ones), the list of the captures that the open library holds (so that the cleanup does not remove them), and a few bare facts about Obturo itself: the last version whose news you have read, how many captures were kept in the history (a number, nothing about them), and where the one request for a review stands (how many times it was shown, and after how many captures it comes back). None of these leaves your computer.
+Obturo also stores your settings: language, theme, how long to keep captures, the size limit, and the default download format and options. Three technical records go with them: a copy of the language, the theme, the no-trace mode and the delay before a capture (so that the library and the popup open in the right state), the list of the captures that the open library holds (so that the cleanup does not remove them), and a few bare facts about Obturo itself: the last version whose news you have read, how many captures were kept in the history (a number, nothing about them), and where the one request for a review stands (how many times it was shown, and after how many captures it comes back). None of these leaves your computer.
 
 Obturo does not read page content beyond the captured image, the address and the title, except when you turn on *Hide sensitive text* in the settings: it then reads the text of the page, inside the page, to find what to cover while the image is taken, and keeps none of it and sends none of it. It reads the clipboard only at the moment you paste into the library (Ctrl+V), and then only an image, never text; otherwise it only writes the image you have just captured, when you ask for it or when the setting that copies straight away is on. It sets no cookie and has no identifier of you or of your device.
 
 ## Where and for how long
 
-- Data is stored in the browser's local storage for the extension (IndexedDB, and a small copy of the language and the theme in `localStorage`), on your computer, private to the extension and to your profile. It is stored as is, not encrypted: anyone who has access to your browser profile can read it.
+- Data is stored in the browser's local storage for the extension (IndexedDB, and a few small records in `localStorage`: the copy of the language, the theme, the no-trace mode and the delay described above, whether the strip of captures is folded, and the last colors, stroke widths, blur strength, arrow ends and emoji you chose in the editor, which are conveniences and hold no personal data), on your computer, private to the extension and to your profile. It is stored as is, not encrypted: anyone who has access to your browser profile can read it.
 - **No trace.** A switch in the popup and in the settings: while it is on, a capture is copied to the clipboard and saved nowhere (not in the history, no file), and the icon turns violet so that you know (the library shows it too). Importing or pasting an image is refused while it is on. Turning it off brings the history back; the captures already kept stay.
 - **How long is up to you.** By default, captures older than 30 days are deleted automatically and the history is kept under 2 GB. In the settings you can keep captures for 7 days, 30 days, 90 days, 1 year or forever, and set the size limit to 500 MB, 1 GB, 2 GB, 5 GB, 10 GB or none.
   - A capture you pin is never deleted automatically.
@@ -55,7 +55,7 @@ None. Obturo does not send, sell, share or transfer any data to anyone.
 
 - `activeTab`: capture the active tab, only after an action from you.
 - `scripting`: show the area selection, scroll the page for a full-page capture, write the image to the clipboard, show a short note on the page (that the capture was copied, or that a full-page capture is not the whole page or stopped), and, when *Hide sensitive text* is on, cover the sensitive text of the page while the image is taken, from the active tab.
-- `contextMenus`: the icon's right-click menu: Capture and Capture and edit (each with Area, Visible part and Full page), Open the library, and Settings.
+- `contextMenus`: the icon's right-click menu: Capture and Capture and edit (each with Area, Visible part, Full page and Element), Open the library, and Settings.
 
 Obturo requests no broad access to websites. It does not use `unlimitedStorage`.
 
@@ -81,7 +81,7 @@ Questions about this policy: support@kodetix.fr.
 
 # Obturo - Politique de confidentialité
 
-Dernière mise à jour : 2026-11-09
+Dernière mise à jour : 2026-11-10
 
 ## Résumé
 
@@ -106,13 +106,13 @@ Une capture d'écran peut contenir des informations personnelles ou confidentiel
 
 Une image que tu ajoutes toi-même (un fichier que tu choisis, une image que tu colles avec Ctrl+V ou que tu déposes sur la bibliothèque) est stockée de la même façon, en PNG, avec le nom du fichier pour titre (*Image collée* pour un collage) et sans adresse.
 
-Obturo enregistre aussi tes paramètres : langue, thème, durée de conservation des captures, limite de taille, format et options de téléchargement par défaut. Trois enregistrements techniques les accompagnent : une copie de la langue et du thème (pour que la bibliothèque s'ouvre dans les bons), la liste des captures que la bibliothèque ouverte tient (pour que le nettoyage ne les supprime pas), et quelques faits tout simples sur Obturo lui-même : la dernière version dont tu as lu les nouveautés, le nombre de captures gardées dans l'historique (un nombre, rien sur elles), et où en est la demande d'avis unique (combien de fois elle a été affichée, et après combien de captures elle revient). Rien de cela ne quitte ton ordinateur.
+Obturo enregistre aussi tes paramètres : langue, thème, durée de conservation des captures, limite de taille, format et options de téléchargement par défaut. Trois enregistrements techniques les accompagnent : une copie de la langue, du thème, du mode sans trace et du délai avant une capture (pour que la bibliothèque et le popup s'ouvrent dans le bon état), la liste des captures que la bibliothèque ouverte tient (pour que le nettoyage ne les supprime pas), et quelques faits tout simples sur Obturo lui-même : la dernière version dont tu as lu les nouveautés, le nombre de captures gardées dans l'historique (un nombre, rien sur elles), et où en est la demande d'avis unique (combien de fois elle a été affichée, et après combien de captures elle revient). Rien de cela ne quitte ton ordinateur.
 
 Obturo ne lit pas le contenu des pages en dehors de l'image capturée, de l'adresse et du titre, sauf si tu actives *Masquer le texte sensible* dans les paramètres : il lit alors le texte de la page, dans la page, pour trouver ce qu'il faut recouvrir pendant la prise de l'image, et n'en garde rien et n'en envoie rien. Il ne lit le presse-papiers qu'au moment où tu colles dans la bibliothèque (Ctrl+V), et alors seulement une image, jamais du texte ; sinon il y écrit seulement l'image que tu viens de capturer, quand tu le demandes ou quand le réglage qui copie directement est actif. Il ne dépose aucun cookie et n'a aucun identifiant de toi ni de ton appareil.
 
 ## Où et combien de temps
 
-- Les données sont stockées dans l'espace de stockage local de l'extension dans le navigateur (IndexedDB, et une petite copie de la langue et du thème dans `localStorage`), sur ton ordinateur, propre à l'extension et à ton profil. Elles sont stockées telles quelles, non chiffrées : toute personne qui a accès à ton profil de navigateur peut les lire.
+- Les données sont stockées dans l'espace de stockage local de l'extension dans le navigateur (IndexedDB, et quelques petits enregistrements dans `localStorage` : la copie de la langue, du thème, du mode sans trace et du délai décrite plus haut, l'état replié ou non de la bande de captures, et les dernières couleurs, épaisseurs de trait, force de flou, extrémités de flèche et émojis choisis dans l'éditeur, qui sont des commodités et ne contiennent aucune donnée personnelle), sur ton ordinateur, propre à l'extension et à ton profil. Elles sont stockées telles quelles, non chiffrées : toute personne qui a accès à ton profil de navigateur peut les lire.
 - **Sans trace.** Un interrupteur dans le popup et dans les paramètres : tant qu'il est actif, une capture est copiée dans le presse-papiers et enregistrée nulle part (ni dans l'historique, ni en fichier), et l'icône devient violette pour que tu le saches. Le désactiver rend l'historique ; les captures déjà gardées restent.
 - **La durée dépend de toi.** Par défaut, les captures de plus de 30 jours sont supprimées automatiquement et l'historique reste sous 2 Go. Dans les paramètres, tu peux garder les captures 7 jours, 30 jours, 90 jours, 1 an ou sans limite de durée, et fixer la limite de taille à 500 Mo, 1 Go, 2 Go, 5 Go, 10 Go ou sans limite.
   - Une capture que tu épingles n'est jamais supprimée automatiquement.
@@ -134,7 +134,7 @@ Aucun. Obturo n'envoie, ne vend, ne partage ni ne transfère aucune donnée à q
 
 - `activeTab` : capturer l'onglet actif, uniquement après une action de ta part.
 - `scripting` : afficher la sélection de zone, faire défiler la page pour une capture de la page entière, écrire l'image dans le presse-papiers, afficher une courte note sur la page quand une capture de la page entière n'est pas la page complète ou s'est arrêtée, et, quand *Masquer le texte sensible* est actif, recouvrir le texte sensible de la page pendant la prise de l'image, depuis l'onglet actif.
-- `contextMenus` : le menu du clic droit sur l'icône : Capturer et Capturer et éditer (chacun avec Zone, Partie visible et Page entière), Ouvrir la bibliothèque, et Paramètres.
+- `contextMenus` : le menu du clic droit sur l'icône : Capturer et Capturer et éditer (chacun avec Zone, Partie visible, Page entière et Élément), Ouvrir la bibliothèque, et Paramètres.
 
 Obturo ne demande aucun accès général aux sites web. Il n'utilise pas `unlimitedStorage`.
 

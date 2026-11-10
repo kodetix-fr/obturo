@@ -402,7 +402,7 @@ full page is scrolled and stitched instead, with the limits below.
   you pick in the strip or the history, as the editor would export it, and
   keeps *Copy image* and *Download*; editing, versions, pins, deletions and
   imports stay off.
-- **The very last change**: edits are saved 500 ms after the last one, and at
+- **The very last change**: edits are saved 60 ms after the last one, and at
   once when the tab is hidden, reloaded or closed. A change made less than about
   25 ms before the tab goes away can still be lost on a busy machine.
 - **Large purges**: removing 1,000 captures takes about 1 to 2 seconds
@@ -422,7 +422,7 @@ browser profile:
 | same database, store `originals` | the original PNG of each capture or imported image, written once and never rewritten |
 | same database, store `catalog` | one light entry per capture (date, size, flags, host, text to search), in buckets: search, filters, totals and the retention read it instead of the captures |
 | IndexedDB `obturo-settings` | the settings, the list of captures the open library holds (so that the cleanup spares them), and two bare facts about Obturo itself: the last version whose news were read, and how many captures were kept (they decide the dot of the news and the one request for a review) |
-| `localStorage` | a copy of the language and the theme, so that the first paint of the library is in the right language and theme; IndexedDB stays the truth |
+| `localStorage` | a copy of the language, the theme, the no-trace mode and the delay before a capture, so that the first paint of the library and of the popup is in the right state (IndexedDB stays the truth); whether the strip of captures is folded; the last colors, stroke widths, blur strength, arrow ends and emoji chosen in the editor |
 
 A database left by an earlier development build (version 2) is upgraded in
 place, without losing a capture.

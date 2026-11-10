@@ -86,13 +86,15 @@ A few things that are easy to miss:
 - **The service worker stays light.** At load time it holds constants and
   listeners only, because it restarts often (the one exception is the rebuild of
   the icon menu, asynchronous and off the capture path). It imports `db.js`,
-  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js` and `settings.js` and
-  what they import, never Fabric.js.
+  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js`, `settings.js`, `notice.js`
+  and `about.js` and what they import, never Fabric.js.
 - **Stay small.** No build step, no test framework, no code formatter: follow
   `.editorconfig` and ESLint, and the style of the file you are in. Tests use
   `node:test`; Playwright is only the browser driver (`devDependency`).
-- **Code, comments and log strings in English, ASCII only.** User-facing texts
-  are not in the code: they live in `locales/` (nine languages) and in
+- **Code, comments and log strings in English, ASCII only**, but for the display
+  data that is not ASCII by nature (the arrows and the key names of `gestures.js`,
+  the names of the languages in `languages.js`, the middle dot of a caption).
+  User-facing texts are not in the code: they live in `locales/` (nine languages) and in
   `_locales/`, never in `library.html` (a test fails on visible text written
   there). A text added in one language is added in every other (a test compares
   each language with English, key by key), and the French one addresses the
@@ -227,7 +229,7 @@ from `manifest.json`. The script needs nothing but Node. It checks the manifest
 compares it with the disk, warns about any file over 500 KB outside `vendor/`,
 then prints the list of files, their sizes and the SHA-256 of the zip. The
 package holds the runtime files only: no tests, no documentation, no tool
-configuration, no hidden folders.
+configuration, no hidden folders (`package.test.js` checks it).
 
 To release, in one pull request: set `version` in `manifest.json`, `package.json`
 and `package-lock.json`, replace "unreleased" by the date in the entry of
