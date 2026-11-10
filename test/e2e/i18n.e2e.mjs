@@ -331,6 +331,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     await fromWorker([{ type: 'open-settings' }]);
     await page.waitForSelector('dialog#settings[open]');
     await fromWorker([{ type: 'open-settings' }]); // already open: nothing to do, nothing breaks
+    await sleep(ABSENCE_MS); // the message must have been handled before Escape closes the dialog, or it opens it again
     await closeSettings();
     await fromWorker([{ type: 'open-settings' }]); // and again after it was closed
     await page.waitForSelector('dialog#settings[open]');

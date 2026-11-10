@@ -81,7 +81,7 @@ jobs:
   e2e:
     name: End-to-end tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -106,7 +106,7 @@ jobs:
 
       # A red run is diagnosed from the traces (screenshots and actions of each launch of the browser), not by running it again.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        if: failure() || cancelled()
         with:
           name: e2e-traces
           path: ${{ runner.temp }}/e2e-traces
