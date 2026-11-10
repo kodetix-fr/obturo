@@ -11,6 +11,18 @@ let shown = null;
 let ticket = 0;
 let flashTimer;
 
+/** Gives the pixels of a picture back. @param {HTMLCanvasElement | ImageBitmap} picture */
+const free = (picture) => { if (picture instanceof ImageBitmap) picture.close(); else picture.width = picture.height = 0; };
+
+/** A canvas of its own with the pixels of `canvas`: an export gives its source back when it is done. @param {HTMLCanvasElement} canvas */
+function copyOf(canvas) {
+  const copy = document.createElement('canvas');
+  copy.width = canvas.width;
+  copy.height = canvas.height;
+  copy.getContext('2d')?.drawImage(canvas, 0, 0);
+  return copy;
+}
+
 /**
  * Shows `shot`: its displayed version, or its original.
  * @param {import('./db.js').Shot} shot
@@ -26,15 +38,27 @@ export async function show(shot) {
   let picture = bitmap;
   let blob = original;
   if (version) {
-    const canvas = await (await import('./export-batch.js')).renderVersion(bitmap, version);
-    bitmap.close();
-    picture = canvas;
+    try {
+      picture = await (await import('./export-batch.js')).renderVersion(bitmap, version);
+    } finally {
+      bitmap.close();
+    }
+    const canvas = /** @type {HTMLCanvasElement} */ (picture);
     const png = await new Promise((done) => canvas.toBlob(done, 'image/png'));
-    if (!png) throw new Error('the picture could not be encoded');
+    if (!png) {
+      free(picture);
+      throw new Error('the picture could not be encoded');
+    }
     blob = /** @type {Blob} */ (png);
   }
-  if (mine !== ticket) return true; // another capture was asked for meanwhile
-  if (shown) URL.revokeObjectURL(shown.url);
+  if (mine !== ticket) { // another capture was asked for meanwhile
+    free(picture);
+    return true;
+  }
+  if (shown) {
+    URL.revokeObjectURL(shown.url);
+    free(shown.picture);
+  }
   const url = URL.createObjectURL(blob);
   shown = { shot, original, blob, picture, edited: !!version, url };
   const img = $('viewerImg', HTMLImageElement);
@@ -64,6 +88,7 @@ export function setup(warn) {
     if (!shown) return;
     const { shot, original, picture, edited } = shown;
     const { download } = await import('./export-ui.js');
-    await download({ context: () => ({ shot, original, edited, size: { w: picture.width, h: picture.height }, source: () => picture }), warn });
+    const source = () => (picture instanceof ImageBitmap ? picture : copyOf(picture));
+    await download({ context: () => ({ shot, original, edited, size: { w: picture.width, h: picture.height }, source }), warn });
   });
 }

@@ -421,6 +421,9 @@ describe('editor: non-regressions', () => {
       const img = await decodePng(page, readFileSync(await file.path()));
       assert.deepEqual(px(img, 250, 200), [0, 0, 0, 255], 'the file is the edited picture');
       assert.deepEqual([img.width, img.height], [1200, 700]);
+      const [again] = await Promise.all([second.waitForEvent('download', { timeout: 20_000 }), second.click('#viewerDownload')]);
+      assert.ok(readFileSync(await file.path()).equals(readFileSync(await again.path())), 'a second download gives the same file');
+      assert.equal(await second.locator('#viewerImg').evaluate((i) => i.naturalWidth), 1200, 'the picture is still displayed');
       await tool(page, 'flat');
       await drag(page, m, 600, 400, 900, 550);
       await poll(() => second.locator('#viewerImg').evaluate((img) => {
@@ -430,6 +433,11 @@ describe('editor: non-regressions', () => {
       }), { what: 'the read-only tab follows an edit made in the editing tab' });
       await second.locator('#strip button.open').nth(1).click();
       await poll(async () => (await second.locator('#viewerImg').evaluate((i) => i.naturalWidth)) === 1000, { what: 'the other capture' });
+      const open = () => second.evaluate(() => window.__c.bmp - window.__c.bmpClosed);
+      const settled = await open();
+      for (let i = 0; i < 6; i++) await second.locator('#strip button.open').nth(i % 2).click();
+      await poll(async () => (await second.locator('#viewerImg').evaluate((img) => img.naturalWidth)) === 1000, { what: 'the capture the last click asked for' });
+      assert.equal(await open(), settled, 'no bitmap is left open by captures shown in quick succession');
       assert.notEqual(await second.locator('#ui').getAttribute('disabled'), null, 'nothing to edit in this tab');
       assert.equal(await second.locator('#pin').isDisabled(), true);
       assert.equal((await shots()).length, 2, 'nothing was written');

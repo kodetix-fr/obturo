@@ -12,6 +12,9 @@ Notable changes to Obturo. The format follows
   capture) are read once when the capture begins. Flipping one from the settings page while a capture runs no longer
   mixes two states in the same capture, and the notes it shows come in the chosen language from the first capture of a
   freshly started worker.
+- **A capture can be downloaded again from a read-only tab**: the second download of a capture that has an edited
+  version used to fail, because the first one emptied the picture on screen. Each download now works on its own copy,
+  and the pictures of the captures that were shown before are given back.
 
 ## [0.3.0] - 2026-11-09
 
