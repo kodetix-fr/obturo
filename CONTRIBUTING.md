@@ -11,7 +11,7 @@ dependency, open an issue first and talk it through.
 
 ## Getting set up
 
-Node 22.13 or newer (CI runs Node 24) and Chrome 116 or newer.
+Node 22.13 or newer (CI runs Node 24, and also Node 22.13 and Windows) and Chrome 116 or newer.
 
 ```sh
 npm ci --ignore-scripts
@@ -145,7 +145,9 @@ A few things that are easy to miss:
   keyboard gesture, and the copy of the manifest gets host permissions where a
   test needs `captureVisibleTab` without one; the scenarios that prove no extra
   permission is needed run without them. The `E2E_DPR` environment variable
-  (`1.5`, `2`...) simulates a display scale. To add a scenario, reuse the
+  (`1.5`, `2`...) simulates a display scale, `E2E_TRACES` (a folder) keeps a
+  Playwright trace of every launch of the browser: CI uploads them when the job
+  fails. To add a scenario, reuse the
   helpers in `test/e2e/support/` (launch, IndexedDB seeds, mouse, export) and
   wait for a condition (`poll`, `shotWhere`) rather than a fixed delay.
 - **Benchmark**: `npm run bench` measures the budgets of

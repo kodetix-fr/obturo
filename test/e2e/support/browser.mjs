@@ -5,10 +5,11 @@
 // - The browser profile is throwaway too. The temporary folder (profile + copy) is deleted on close, by its exact
 //   path.
 // - E2E_DPR environment variable: simulated display scale (1, 1.5, 2...), 1 by default.
+// - E2E_TRACES environment variable: a folder where each launch leaves a Playwright trace (screenshots and actions), for CI to keep.
 import { chromium } from 'playwright-core';
 import { appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listRuntimeFiles } from '../../../scripts/package.mjs';
 import { instrument } from './instrument.mjs';
@@ -117,6 +118,8 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
       ...(realWindow ? { viewport: null } : { viewport: size, deviceScaleFactor: DPR }),
     });
     if (instrumented) await context.addInitScript(instrument);
+    const traces = process.env.E2E_TRACES;
+    if (traces) await context.tracing.start({ screenshots: true });
 
     const errors = [];
     const watch = (page) => {
@@ -132,6 +135,10 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
       context, sw, id, errors,
       url: (path = 'library.html') => `chrome-extension://${id}/${path}`,
       async close() {
+        if (traces) {
+          mkdirSync(traces, { recursive: true });
+          await context.tracing.stop({ path: join(traces, `${Date.now()}-${basename(root)}.zip`) }).catch(() => {});
+        }
         await context.close();
         cleanup();
       },

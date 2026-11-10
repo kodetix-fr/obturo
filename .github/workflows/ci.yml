@@ -27,18 +27,13 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
 
       - name: Install (no install scripts)
         run: npm ci --ignore-scripts
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Types
-        run: npm run typecheck
-
-      - name: Unit tests
-        run: npm test
+      - name: Lint, types, unit tests
+        run: npm run check
 
       - name: Package
         run: npm run package
@@ -48,6 +43,37 @@ jobs:
           name: obturo-zip
           path: dist/*.zip
           if-no-files-found: error
+
+  # The floor of `engines` (Node 22.13, which scripts/package.mjs needs for zlib.crc32) and Windows, where the project is developed.
+  # Apart from `check`, whose name is a required status.
+  compat:
+    name: Check on Node ${{ matrix.node }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, node: 22.13.0 }
+          - { os: windows-latest, node: 24 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install (no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Lint, types, unit tests
+        run: npm run check
+
+      - name: Package
+        run: npm run package
 
   # End-to-end tests: the real extension in the Chromium of Playwright (headless), throwaway profile.
   # A separate job: slower than `check`, and it downloads a browser. The benchmark (npm run bench) does not run
@@ -64,6 +90,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
 
       - name: Install (no install scripts)
         run: npm ci --ignore-scripts
@@ -73,4 +100,15 @@ jobs:
         run: npx playwright-core install --with-deps --no-shell chromium
 
       - name: End-to-end tests
+        env:
+          E2E_TRACES: ${{ runner.temp }}/e2e-traces
         run: npm run test:e2e
+
+      # A red run is diagnosed from the traces (screenshots and actions of each launch of the browser), not by running it again.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: e2e-traces
+          path: ${{ runner.temp }}/e2e-traces
+          if-no-files-found: ignore
+          retention-days: 7
