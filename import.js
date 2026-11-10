@@ -1,10 +1,10 @@
 // Import of images that come from outside the extension: files picked or dropped, an image pasted. Loaded on first use by
 // library.js (a dynamic import), so it costs nothing at startup.
-// Everything is kept as a PNG, like a capture (the editor, the thumbnails and the exports all start from one): a PNG file as it is,
-// anything else decoded and written again without loss (a JPEG becomes a bigger PNG, a GIF gives its first image). The address of
-// an imported shot is empty, its title the name of the file.
+// Everything is kept as a PNG, like a capture (the editor, the thumbnails and the exports all start from one): a PNG file without its
+// metadata chunks (text, EXIF, time), anything else decoded and written again without loss (a JPEG becomes a bigger PNG, a GIF gives its
+// first image). The address of an imported shot is empty, its title the name of the file.
 import { addShot } from './db.js';
-import { IMPORT_MAX_BYTES, declaredSize, importFits, importTitle, isPng, looksLikeImage } from './import-pure.js';
+import { IMPORT_MAX_BYTES, declaredSize, importFits, importTitle, isPng, looksLikeImage, stripPngMetadata } from './import-pure.js';
 
 /** A refusal with the key of its text (locales/*.ui.js). @param {string} key */
 const refuse = (key) => Object.assign(new Error(key), { key });
@@ -18,6 +18,12 @@ async function toPng(bmp) {
   const blob = await canvas.convertToBlob({ type: 'image/png' });
   canvas.width = canvas.height = 0; // the pixels go back now, not when the garbage collector comes
   return blob;
+}
+
+/** A PNG file as a Blob, without its metadata chunks (and without the name or the date of the File); written again from the decoded image when its chunks cannot be read. @param {File} file @param {ImageBitmap} bmp */
+async function cleanPng(file, bmp) {
+  const bytes = stripPngMetadata(new Uint8Array(await file.arrayBuffer()));
+  return bytes ? new Blob([/** @type {BlobPart} */ (bytes)], { type: 'image/png' }) : toPng(bmp);
 }
 
 /** @param {File} file @param {string} fallbackTitle @returns {Promise<number>} the id of the new shot */
@@ -37,7 +43,7 @@ async function importOne(file, fallbackTitle) {
   try {
     const { width: w, height: h } = bmp;
     if (!importFits({ w, h, bytes: file.size })) throw refuse('import.err.big');
-    const original = isPng(head) ? file.slice(0, file.size, 'image/png') : await toPng(bmp); // a Blob, not the File: no name or date kept
+    const original = isPng(head) ? await cleanPng(file, bmp) : await toPng(bmp);
     return await addShot({ original, url: '', title: importTitle(file.name, fallbackTitle), w, h });
   } finally {
     bmp.close();

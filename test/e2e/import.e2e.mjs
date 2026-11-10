@@ -3,6 +3,7 @@
 // permission is involved, which is the point (the manifest is pinned by manifest.test.js).
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { crc32 } from 'node:zlib';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, poll, ready, resetLibrary, sha256, spec, waitOut } from './support/editor.mjs';
 import enUi from '../../locales/en.ui.js';
@@ -90,7 +91,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     }
   });
 
-  it('a file picked with the button: a PNG is kept as it is, titled by its name, with no address, and opens in the editor', async () => {
+  it('a file picked with the button: a PNG with no metadata is kept as it is, titled by its name, with no address, and opens in the editor', async () => {
     await fresh();
     const before = await count();
     // the file: made in the page, taken out as bytes (what a disk would give)
@@ -112,6 +113,41 @@ describe('library: import of images (picked, pasted, dropped)', () => {
       return [...new Uint8Array(await (await getOriginal(id)).arrayBuffer())];
     }, (await last()).id))), sha256(buffer));
     assert.equal(await bannerText(), null, 'nothing to say');
+  });
+
+  it('a PNG that carries text and EXIF chunks is imported without them, and opens as the same picture', async () => {
+    await fresh();
+    const before = await count();
+    const plain = Buffer.from(await page.evaluate(async () => {
+      const [f] = await window.__make([{ name: 'photo.png', type: 'image/png', w: 400, h: 240 }]);
+      return btoa(String.fromCharCode(...new Uint8Array(await f.arrayBuffer())));
+    }), 'base64');
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type), data]);
+      const head = Buffer.alloc(4);
+      head.writeUInt32BE(data.length);
+      const tail = Buffer.alloc(4);
+      tail.writeUInt32BE(crc32(body));
+      return Buffer.concat([head, body, tail]);
+    };
+    const secret = 'Jane Doe, 12 rue des Lilas';
+    const afterHeader = 8 + 12 + plain.readUInt32BE(8); // the signature, then the IHDR chunk
+    const tagged = Buffer.concat([plain.subarray(0, afterHeader), chunk('tEXt', Buffer.from(`Author\0${secret}`)), chunk('iTXt', Buffer.from(`Comment\0\0\0\0\0${secret}`)),
+      chunk('eXIf', Buffer.from(`II*\0${secret}`)), chunk('tIME', Buffer.from([7, 234, 11, 10, 9, 8, 7])), plain.subarray(afterHeader)]);
+    assert.ok(tagged.includes(secret), 'the file given carries the text');
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('#importBtn')]);
+    await chooser.setFiles([{ name: 'photo.png', mimeType: 'image/png', buffer: tagged }]);
+    await grew(before);
+    await waitOut(page, 400, 240);
+    const id = (await last()).id;
+    const kept = Buffer.from(await page.evaluate(async (id) => {
+      const { getOriginal } = await import(`${location.origin}/db.js`);
+      return [...new Uint8Array(await (await getOriginal(id)).arrayBuffer())];
+    }, id));
+    assert.equal(kept.includes(secret), false, 'no text of the file is stored');
+    for (const type of ['tEXt', 'iTXt', 'eXIf', 'tIME']) assert.equal(kept.includes(type), false, `no ${type} chunk is stored`);
+    assert.equal(sha256(kept), sha256(plain), 'what is left is the file without the metadata, byte for byte');
+    assert.deepEqual([(await stored(id)).w, (await stored(id)).h], [400, 240]);
   });
 
   it('an image pasted (Ctrl+V): titled "Pasted image", opens in the editor, the paste is taken by the page', async () => {

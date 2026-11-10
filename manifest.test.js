@@ -7,6 +7,7 @@ import { MENU } from './gestures.js';
 import enSw from './locales/en.sw.js';
 import SW_TEXTS from './locales/sw.js';
 import { LANGUAGES } from './languages.js';
+import { LINKS } from './about-pure.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const manifest = read('./manifest.json');
@@ -40,9 +41,11 @@ test('content security policy: no request outside the extension, no remote scrip
 // A policy does not stop the connections that a browser opens ahead of its checks: a resource hint (<link rel="preconnect">) or the
 // navigation of a frame. The code has neither.
 // Own code only (vendor/ is covered by the policy above, in the browser). Comments are dropped: they explain why fetch() is NOT used.
+const code = (file) => readFileSync(new URL(`./${file}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
+const ownFiles = () => listRuntimeFiles(fileURLToPath(new URL('.', import.meta.url))).filter((f) => /\.(js|html)$/.test(f) && !f.startsWith('vendor/'));
+
 test('no network API and no remote address in the code of the extension', () => {
-  const code = (file) => readFileSync(new URL(`./${file}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
-  const files = listRuntimeFiles(fileURLToPath(new URL('.', import.meta.url))).filter((f) => /\.(js|html)$/.test(f) && !f.startsWith('vendor/'));
+  const files = ownFiles();
   assert.ok(files.includes('sw.js') && files.includes('library.js') && files.includes('popup.html'), 'the scan reads the real files');
   const allowed = new Set(['http://www.w3.org/2000/svg', 'https://obturo/', 'https://kodetix.fr/soutenir', 'https://chromewebstore.google.com/detail', 'https://github.com/kodetix-fr/obturo/issues']); // the SVG namespace and the placeholder of batchFilename (not fetched), the pages opened by a click on a link (support, store reviews and publisher, issues)
   for (const file of files) {
@@ -52,6 +55,45 @@ test('no network API and no remote address in the code of the extension', () => 
     assert.doesNotMatch(text, /<(iframe|frame|object|embed)\b|createElement\(\s*['"](iframe|frame|object|embed)['"]/, `${file}: a frame or an embedded object`);
     assert.deepEqual((text.match(/https?:\/\/[^\s'"`)<>]+/g) ?? []).filter((u) => !allowed.has(u)), [], `${file}: a remote address`);
   }
+});
+
+// The policy stops requests, not navigation: a tab or a window that the extension opens is not blocked by it. So the places where the code
+// opens one, or navigates, are listed here with where they go, and any other fails the test. A new one is a decision, not an accident.
+test('the code opens a tab, a window or a navigation only where this list says, and only to the places it names', () => {
+  const OPENING = {
+    'chrome.tabs.create(': /chrome\.tabs\.create\(/g,
+    'chrome.tabs.update(': /chrome\.tabs\.update\(/g,
+    'chrome.windows.create(': /chrome\.windows\.create\(/g,
+    'window.open(': /\bwindow\.open\(/g,
+    'a change of location': /\blocation(\.href)?\s*=(?!=)|\blocation\.(assign|replace)\(/g,
+    'a link that opens a tab': /target="_blank"/g,
+  };
+  const ALLOWED = {
+    'sw.js': { 'chrome.tabs.create(': 3, 'chrome.tabs.update(': 1 }, // the page of actions, the library (extension pages), and the library tab that is already open
+    'popup.js': { 'chrome.tabs.create(': 1 }, // the two chrome:// pages of its links, and the reviews of the store from the request for a review
+    'chooser.js': { 'chrome.tabs.update(': 2 }, // brings a tab forward, no address
+    'library.js': { 'chrome.tabs.update(': 1 }, // same
+    'library.html': { 'a link that opens a tab': 4 }, // the About section and the support link: ordinary links, opened by a click
+  };
+  for (const file of ownFiles()) {
+    const text = code(file);
+    /** @type {Record<string, number>} */
+    const found = {};
+    for (const [name, re] of Object.entries(OPENING)) {
+      const n = (text.match(re) ?? []).length;
+      if (n > 0) found[name] = n;
+    }
+    assert.deepEqual(found, ALLOWED[file] ?? {}, `${file}: a tab, a window or a navigation that is not on the list`);
+  }
+  // Where they go: extension pages for the worker, chrome:// pages for the popup, and these web pages for the links.
+  const sw = code('sw.js');
+  assert.match(sw, /const CHOOSER_URL = chrome\.runtime\.getURL\('chooser\.html'\)/);
+  assert.match(sw, /const lib = chrome\.runtime\.getURL\('library\.html'\)/);
+  const popupLinks = [...code('popup.js').matchAll(/url: '([^']+)'/g)].map((m) => m[1]);
+  assert.deepEqual(popupLinks, ['chrome://extensions', 'chrome://extensions/shortcuts']);
+  const webPages = ['https://chromewebstore.google.com/detail/kaafiicmlbdchfalaljmbeoblihjbnih/', 'https://chromewebstore.google.com/detail/oblitero-pdf-merge-redact/', 'https://github.com/kodetix-fr/obturo/issues'];
+  for (const url of Object.values(LINKS)) assert.ok(webPages.some((page) => url.startsWith(page)), `${url} is not a place the extension may open`);
+  assert.deepEqual(code('library.html').match(/href="https?:\/\/[^"]+"/g), ['href="https://kodetix.fr/soutenir"']);
 });
 
 // The no-trace mode turns the icon violet (sw.js: setIcon): the files the worker names must be in the package, and not the usual ones.

@@ -6,6 +6,12 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- **An imported PNG keeps no metadata**: its text, EXIF and time chunks are left out when it is added (the pixels and the
+  color information stay, the bytes are otherwise untouched). Before, an imported PNG was stored and exported with
+  whatever the file carried, while an imported JPEG lost it; the privacy policy says what an import keeps.
+
 ### Fixed
 
 - **A capture keeps the settings it started with**: the switches (No trace, Hide sensitive text, what happens after a

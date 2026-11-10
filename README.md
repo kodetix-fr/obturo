@@ -130,7 +130,8 @@ open above, and your choice is kept.
   (its first image), BMP and AVIF files work, up to 32 million pixels, 16,384
   px a side and 64 MB each; an image that does not fit is refused with the
   reason, the others are added. An imported image is kept as a PNG (a PNG file
-  as it is, anything else without loss, so a JPEG becomes a bigger PNG), titled
+  without its text, EXIF and time chunks, anything else without loss, so a JPEG
+  becomes a bigger PNG), titled
   with its file name (*Pasted image* for a paste), and has no page address.
   A paste into a text field, or while a dialog is open, is left alone, and a
   tab that cannot edit (another one holds the lock) imports nothing.
