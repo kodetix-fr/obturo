@@ -5,10 +5,11 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
-  RED, badges, clipSize, finalBadge, libraryPages, menuState, quota, resetBadges, sleep, startSite, stopServiceWorker, tabActive, tabOf, until,
+  RED, badges, clipSize, closeLibraries, finalBadge, libraryPages, menuState, quota, resetBadges, sleep, startSite, stopServiceWorker, tabActive, tabOf, until,
 } from './support/capture.mjs';
 import { seedSettings } from './support/editor.mjs';
 import enSw from '../../locales/en.sw.js';
+import frSw from '../../locales/fr.sw.js';
 
 const VIOLET = '#7c3aed';
 const GREEN = '#26a269';
@@ -149,6 +150,43 @@ describe('no trace: copy only, nothing saved', () => {
     const before = await count();
     await run('capture-visible-edit', await tabOf(sw));
     await until(async () => (await count()) === before + 1 && libraryPages(h).length === 1, 'captured and opened in the library');
+  });
+
+  it('a capture follows the settings it started with, whatever is changed while it runs', async () => {
+    await closeLibraries(h);
+    await page.bringToFront();
+    await tabActive(sw, await tabOf(sw));
+    await quota();
+    const before = await count();
+    await resetBadges(sw);
+    await sw.evaluate(() => {
+      const grab = chrome.tabs.captureVisibleTab.bind(chrome.tabs);
+      chrome.tabs.captureVisibleTab = async (...args) => {
+        const png = await grab(...args);
+        await __t.settings.setSettings({ noTrace: true });
+        return png;
+      };
+      globalThis.__restoreGrab = () => { chrome.tabs.captureVisibleTab = grab; };
+    });
+    try {
+      await call('capture', await tabOf(sw));
+    } finally {
+      await sw.evaluate(() => globalThis.__restoreGrab());
+      await setNoTrace(false);
+    }
+    assert.deepEqual(await finalBadge(sw), ['OK', GREEN]);
+    assert.equal(await count(), before + 1, 'kept in the history: the capture began with no trace off');
+  });
+
+  it('on a worker that has not set its language yet, the note of "and edit" comes in the language of the settings', async () => {
+    await sw.evaluate(() => __t.settings.setSettings({ language: 'fr', noTrace: true }));
+    await menuWhere((list) => list.find((i) => i.id === 'capture-edit')?.enabled === false, 'the menu follows the settings');
+    try {
+      await sw.evaluate((tab) => { __t.i18n.setLanguage('en'); return __t.run('capture-visible-edit', tab); }, await tabOf(sw));
+      await until(async () => (await noticeText())?.includes(frSw['sw.noTrace.edit']), 'the note, in French');
+    } finally {
+      await sw.evaluate(() => __t.settings.setSettings({ language: 'en', noTrace: false }));
+    }
   });
 
   it('no console error over the whole session (the 404 of the test page for its icon is not ours)', () => {

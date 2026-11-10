@@ -6,6 +6,13 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **A capture keeps the settings it started with**: the switches (No trace, Hide sensitive text, what happens after a
+  capture) are read once when the capture begins. Flipping one from the settings page while a capture runs no longer
+  mixes two states in the same capture, and the notes it shows come in the chosen language from the first capture of a
+  freshly started worker.
+
 ## [0.3.0] - 2026-11-09
 
 ### Added

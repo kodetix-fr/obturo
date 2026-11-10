@@ -22,6 +22,7 @@ export const DPR = Number(process.env.E2E_DPR || 1);
 const SW_HOOK = `
 import * as __db from './db.js';
 import * as __settings from './settings.js';
+import * as __i18n from './i18n.js';
 const __badge = [];
 const __setText = chrome.action.setBadgeText.bind(chrome.action);
 const __setColor = chrome.action.setBadgeBackgroundColor.bind(chrome.action);
@@ -40,7 +41,7 @@ globalThis.__menu = [];
   api.create = (props, cb) => create.call(api, props, () => { globalThis.__menu.push(['create', props, chrome.runtime.lastError?.message ?? null, performance.now()]); cb?.(); });
   api.removeAll = (cb) => removeAll.call(api, () => { globalThis.__menu.push(['removeAll', null, null, performance.now()]); cb?.(); });
 }
-globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, badge: __badge };
+globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, i18n: __i18n, badge: __badge };
 `;
 
 // macOS ignores --lang: the language of the interface comes from AppleLanguages, which the command line of the process can set
