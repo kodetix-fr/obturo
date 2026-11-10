@@ -116,11 +116,12 @@ A few things that are easy to miss:
 
 - **ESLint** (`eslint.config.js`): the recommended rules, `no-var`,
   `prefer-const`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, and the
-  ban on HTML parsing. `sw.js`, `db.js`, `pure.js`, `fullpage-pure.js`,
-  `thumb-pure.js` and the encoders (`encode.js`,
-  `pdf.js`, `zip.js`, which also run in a worker) are checked with the globals
-  of a service worker, so using `document` or `window` by mistake is reported.
-  `vendor/` is not linted.
+  ban on HTML parsing. `sw.js` and every file it imports (the list is
+  read from its imports by `eslint.config.js`, `notice.js` apart, whose functions
+  run in the captured page), and the encoders (`encode.js`, `pdf.js`, `zip.js`,
+  which also run in a worker) are checked with the globals of a service worker,
+  so using `document` or `window` by mistake is reported. `vendor/` is not
+  linted.
 - **TypeScript** (`tsconfig.json`): `allowJs` and `checkJs`, `noEmit`, with the
   types of `@types/chrome`. The mode is permissive (`strict` is off). Fabric.js
   ships without type files: `noResolve` keeps `tsc` out of the minified bundle,
@@ -134,7 +135,9 @@ A few things that are easy to miss:
   files at the root. They also check texts: the same keys and placeholders in
   every language as in English, every key used by the code, no visible text in
   `library.html`, the "tu" of the French, the manifest texts of each language
-  (description within 132 characters) and the three permissions.
+  (description within 132 characters) and the three permissions. They also check
+  the package: no Markdown, test, script or tool configuration in it, and the
+  checksums of `vendor/` against the ones `vendor/README.md` writes down.
 - **End-to-end tests**: `test/e2e/*.e2e.mjs`, run by `npm run test:e2e` at
   concurrency 1 (one file at a time). They drive Playwright's Chromium,
   headless, with the extension loaded (`--load-extension`). The extension they

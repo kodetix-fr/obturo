@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { posix } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import globals from 'globals';
 
@@ -6,9 +9,20 @@ import globals from 'globals';
 const NO_HTML = 'Forbidden: interprets HTML (the title and URL of the captured page flow through the UI). Use textContent, createElement or replaceChildren.';
 const HTML_SINKS = ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'createContextualFragment', 'setHTMLUnsafe', 'parseHTMLUnsafe'];
 
-// Files that run in the service worker, or that it may import (the export engines build the batch downloads): no
-// document or window.
-const WORKER = ['sw.js', 'db.js', 'idb.js', 'pure.js', 'fullpage-pure.js', 'thumb-pure.js', 'encode.js', 'pdf.js', 'zip.js'];
+// The files the service worker loads: sw.js and everything its static imports lead to.
+const STATIC_IMPORT = /^\s*(?:import|export)\b[^;]*?\bfrom\s+'(\.[^']+)'/gm;
+function importedBy(file, seen = new Set()) {
+  if (seen.has(file)) return seen;
+  seen.add(file);
+  for (const [, specifier] of readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8').matchAll(STATIC_IMPORT)) {
+    importedBy(posix.join(posix.dirname(file), specifier), seen);
+  }
+  return seen;
+}
+// notice.js holds the functions that the worker serializes into the captured page: they use the DOM.
+const INJECTED = ['notice.js'];
+// Files that run in the service worker, or that it may import, and the export engines (they build the batch downloads): no document or window.
+const WORKER = [...importedBy('sw.js'), 'encode.js', 'pdf.js', 'zip.js'].filter((file) => !INJECTED.includes(file));
 const NODE = ['**/*.test.js', 'scripts/**/*.mjs', 'test/**/*.mjs', 'eslint.config.js'];
 
 export default [
@@ -55,10 +69,15 @@ export default [
     files: WORKER,
     languageOptions: { globals: { ...globals.serviceworker, chrome: 'readonly' } },
   },
-  // Only exceptions: the functions passed to chrome.scripting.executeScript run in the page (window, ClipboardItem).
+  // Only exceptions: the functions passed to chrome.scripting.executeScript run in the page (window, ClipboardItem), and the settings
+  // copy their appearance to localStorage where there is one (a worker has none, the access is guarded).
   {
     files: ['sw.js'],
     languageOptions: { globals: { ClipboardItem: 'readonly', window: 'readonly' } },
+  },
+  {
+    files: ['settings.js'],
+    languageOptions: { globals: { localStorage: 'readonly' } },
   },
 
   // Tests and scripts: Node.
