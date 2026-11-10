@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { crc32 } from 'node:zlib';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, poll, ready, resetLibrary, sha256, spec, waitOut } from './support/editor.mjs';
+import { ABSENCE_MS, sleep } from './support/wait.mjs';
 import enUi from '../../locales/en.ui.js';
 
 // A 1x1 GIF, the smallest one there is (a format the browser decodes and cannot encode).
@@ -184,7 +185,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     await page.evaluate(() => { const i = document.createElement('input'); i.id = 'field'; document.body.append(i); });
     assert.equal(await paste([{ name: 'image.png', type: 'image/png' }], '#field'), false, 'an image pasted into a text field is the field\'s');
     await page.evaluate(() => document.getElementById('field').remove());
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before, 'nothing was added');
   });
 
@@ -287,7 +288,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     assert.equal(await paste([{ name: 'behind.png', type: 'image/png' }]), false, 'the paste is not taken behind a dialog');
     const r = await drag([{ name: 'behind.png', type: 'image/png' }]);
     assert.deepEqual([r.overPrevented, r.shown, r.dropped], [true, false, true], 'the drag is taken (the file is not opened), the box is not shown, nothing is imported');
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before);
     await page.keyboard.press('Escape');
     await page.waitForSelector('dialog#settings:not([open])', { state: 'attached' });
@@ -305,7 +306,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     await page.evaluate(() => { document.getElementById('banner').hidden = true; });
     await drag([{ name: 'secret.png', type: 'image/png' }]);
     await poll(async () => (await bannerText())?.startsWith('No trace is on: nothing is saved'), { what: 'the banner after a drop' });
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before, 'nothing was kept');
     await page.click('#noTraceBadge');
     await page.waitForSelector('#noTraceBadge', { state: 'hidden' });
@@ -343,7 +344,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
         return { paste: paste.defaultPrevented, drop: drop.defaultPrevented };
       });
       assert.deepEqual(taken, { paste: false, drop: true });
-      await new Promise((done) => setTimeout(done, 600));
+      await sleep(ABSENCE_MS);
       assert.equal(await count(), before, 'nothing was added from the read-only tab');
       assert.equal(second.url().split('#')[0], h.url(), 'the tab did not navigate to the dropped file');
     } finally {

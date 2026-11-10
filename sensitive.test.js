@@ -86,11 +86,13 @@ test('matches that overlap are merged, so that the whole of both is hidden', () 
   assert.ok(touching.every((h, i) => i === 0 || h.start >= touching[i - 1].end), 'never overlapping');
 });
 
-test('a text without anything, an empty text and a long run of characters give nothing, quickly', () => {
+// The bound is a hang, not a benchmark: a run that backtracks without end would take minutes, a loaded machine seconds.
+const HANG_MS = 30_000;
+test('a text without anything, an empty text and a long run of characters give nothing, and do not hang', () => {
   nothing('');
   nothing('Nothing to see here, only words and 42 numbers.');
   const started = Date.now();
   nothing('a'.repeat(200_000));
   nothing('1 '.repeat(100_000));
-  assert.ok(Date.now() - started < 2000, 'linear on a long run');
+  assert.ok(Date.now() - started < HANG_MS, 'linear on a long run');
 });

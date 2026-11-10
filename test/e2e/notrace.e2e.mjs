@@ -5,7 +5,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import {
-  RED, badges, clipSize, closeLibraries, finalBadge, libraryPages, menuState, quota, resetBadges, sleep, startSite, stopServiceWorker, tabActive, tabOf, until,
+  RED, badges, clipSize, closeLibraries, finalBadge, libraryPages, menuState, quota, resetBadges, startSite, stopServiceWorker, tabActive, tabOf, until, waitBadge,
 } from './support/capture.mjs';
 import { seedSettings } from './support/editor.mjs';
 import enSw from '../../locales/en.sw.js';
@@ -24,7 +24,6 @@ describe('no trace: copy only, nothing saved', () => {
   const noticeText = () => page.evaluate(() => document.getElementById('obturo-notice')?.shadowRoot?.textContent ?? null);
   /** The entries of the menu as the last rebuild left them, once `check` holds. */
   const menuWhere = (check, what) => until(async () => { const s = await menuState(sw); return check(s.items) ? s.items : null; }, what);
-  const waitBadge = async (text) => { for (let i = 0; i < 160 && !(await badges(sw)).some((b) => b[1] === 'text' && b[2] === text); i++) await sleep(50); };
 
   before(async () => {
     site = await startSite();
@@ -80,7 +79,7 @@ describe('no trace: copy only, nothing saved', () => {
     await page.mouse.down();
     await page.mouse.move(700, 500, { steps: 8 });
     await page.mouse.up();
-    await waitBadge('OK');
+    await waitBadge(sw, 'OK');
     assert.deepEqual(await finalBadge(sw), ['OK', VIOLET]);
     const [w, h2] = await clipSize(page);
     assert.ok(Math.abs(w - 600 * viewport[2]) <= 2 && Math.abs(h2 - 400 * viewport[2]) <= 2, `${w}x${h2}: the area, on the clipboard`);

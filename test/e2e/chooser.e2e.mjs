@@ -6,7 +6,8 @@ import { after, afterEach, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DPR, launchExtension } from './support/browser.mjs';
-import { GREEN, badges, clipSize, finalBadge, libraryActive, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until } from './support/capture.mjs';
+import { GREEN, clipSize, finalBadge, libraryActive, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until, waitBadge } from './support/capture.mjs';
+import { ABSENCE_MS } from './support/wait.mjs';
 import { sha256 } from './support/editor.mjs';
 
 describe('after a capture: ask what to do', () => {
@@ -180,7 +181,7 @@ describe('after a capture: ask what to do', () => {
     const lib = await until(() => libraryPages(h)[0], 'the library tab');
     assert.ok(lib.url().endsWith(`#shot=${id}`), lib.url());
     await until(() => choosers().length === 0, 'the tab closes itself');
-    await sleep(800);
+    await sleep(ABSENCE_MS);
     assert.equal(await libraryActive(sw), true, 'the editor is the tab in front, not the captured page');
     await closeLibraries();
   });
@@ -194,7 +195,7 @@ describe('after a capture: ask what to do', () => {
     await slowTabUpdate(win);
     await win.click('#edit');
     await until(() => choosers().length === 0, 'the tab closes itself');
-    await sleep(800);
+    await sleep(ABSENCE_MS);
     assert.equal(libraryPages(h).length, 1, 'no second library tab');
     assert.equal(await libraryActive(sw), true, 'the editor is the tab in front, not the captured page');
     assert.equal(await lib.evaluate(() => document.querySelector('li.shot[aria-current="true"]')?.getAttribute('data-id')), String(id), 'the editor holds the capture');
@@ -235,7 +236,7 @@ describe('after a capture: ask what to do', () => {
     await resetBadges(sw);
     await run('capture-visible-edit', tab);
     await until(() => libraryPages(h)[0], 'the editor');
-    await sleep(800);
+    await sleep(ABSENCE_MS);
     assert.equal(choosers().length, 0, 'no page of actions beside the editor');
     assert.equal(await shotCount(), before + 1);
     await closeLibraries();
@@ -245,8 +246,8 @@ describe('after a capture: ask what to do', () => {
     await tabActive(sw, tab);
     await resetBadges(sw);
     await call('capture', tab);
-    for (let i = 0; i < 100 && !(await badges(sw)).some((b) => b[1] === 'text' && b[2] === 'OK'); i++) await sleep(50);
-    await sleep(800);
+    await waitBadge(sw, 'OK');
+    await sleep(ABSENCE_MS);
     assert.equal(choosers().length, 0, 'nothing is kept in no-trace mode: nothing to ask about');
     assert.equal(await shotCount(), before + 1, 'nothing saved');
     assert.ok(Array.isArray(await clipSize(page)), 'the capture was copied');

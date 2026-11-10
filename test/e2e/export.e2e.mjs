@@ -17,24 +17,14 @@ import { fileURLToPath } from 'node:url';
 import { crc32 } from 'node:zlib';
 import { chromium } from 'playwright-core';
 import { PDFDict, PDFDocument, PDFName, PDFNumber, PDFStream, decodePDFRawStream } from 'pdf-lib';
+import { poll } from './support/wait.mjs';
 
 /** @typedef {import('pdf-lib').PDFRawStream} PDFRawStream */
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const MODULES = new Set(['/encode.js', '/pdf.js', '/zip.js']);
-const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 const once = (fn) => { let p; return () => (p ??= fn()); };
-
-/** Retries `fn` until it returns a truthy value; fails with `what` after `timeout` ms. */
-async function waitFor(fn, { timeout = 20_000, interval = 250, what = 'condition' } = {}) {
-  const end = Date.now() + timeout;
-  for (;;) {
-    const value = await fn();
-    if (value) return value;
-    if (Date.now() > end) throw new Error(`timed out: ${what}`);
-    await sleep(interval);
-  }
-}
+const waitFor = (fn, options) => poll(fn, { timeout: 20_000, interval: 250, ...options });
 
 // A worker that runs the three engines, then reports what it saw. It has no document or window, like the service worker.
 const WORKER = `
@@ -155,6 +145,13 @@ describe('export engines in Chromium', () => {
   const errors = [];
   const shown = { pdf: null }; // the PDF that the server hands to the viewer
   let viewerReady = false;
+  // The three PDFium scenarios need the PDF viewer of the browser: a runner without one may skip them, CI may not (they would vanish unseen).
+  const noViewer = (t) => {
+    if (viewerReady) return false;
+    if (process.env.CI) throw new Error('no PDF viewer in this Chromium');
+    t.skip('no PDF viewer in this Chromium');
+    return true;
+  };
   let seq = 0;
 
   /** The result of a function of the page that returns the base64 of a Blob, as a Buffer. */
@@ -463,7 +460,7 @@ describe('export engines in Chromium', () => {
     });
 
     it('fit, page too tall: PDFium draws the right half of the picture on each page', async (t) => {
-      if (!viewerReady) return t.skip('no PDF viewer in this Chromium');
+      if (noViewer(t)) return;
       const buf = await tall();
       // page 1: 0 to 7500 pt, red until 5000 pt (67%), then green. page 2: green until 10,000 pt (33%), then blue.
       assert.deepEqual(await renderPage(buf, 1, [0.15, 0.5, 0.85]), [css(RED), css(RED), css(GREEN)]);
@@ -488,7 +485,7 @@ describe('export engines in Chromium', () => {
     });
 
     it('a4: PDFium shows each page at the right offset, the end of the picture on a white page', async (t) => {
-      if (!viewerReady) return t.skip('no PDF viewer in this Chromium');
+      if (noViewer(t)) return;
       const buf = await a4();
       // 595 pt per band. page 1 (0-842): red to 595 (71%), green after. page 2 (842-1684): green to 1190 (41%), blue after.
       // page 3 (1684-2526): blue to 1785 (12%), then the white of the sheet.
@@ -557,7 +554,7 @@ describe('export engines in Chromium', () => {
     });
 
     it('jpeg: PDFium draws the pages of the mixed document, each at its own size', async (t) => {
-      if (!viewerReady) return t.skip('no PDF viewer in this Chromium');
+      if (noViewer(t)) return;
       const buf = await mixed();
       // The viewer zooms to the widest page and stacks the others: the first page (225 x 150 pt) fills the top 40% of
       // the view, the next ones start at the top. (The last page cannot be scrolled to the top: it is not checked here;

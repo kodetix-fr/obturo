@@ -2,6 +2,9 @@
 // clipboard. The functions that take `sw` run in the service worker of the test copy (see SW_HOOK in browser.mjs).
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { poll, sleep, until } from './wait.mjs';
+
+export { sleep, until } from './wait.mjs';
 
 export const GREEN = '#26a269';
 export const ORANGE = '#e5a50a';
@@ -49,7 +52,6 @@ export async function startSite() {
   return { origin, close: () => new Promise((done) => server.close(done)) };
 }
 
-export const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 /** Chrome limits captureVisibleTab to 2 calls per second: to respect between two captures. */
 export const quota = () => sleep(700);
 
@@ -85,6 +87,9 @@ export const lastShotColumns = (sw, xs, probe) => sw.evaluate(async ({ xs, probe
   bitmap.close();
   return { columns, pixel };
 }, { xs, probe });
+
+/** Waits until the badge `text` has been set (a result badge: the capture is over, whatever its outcome). */
+export const waitBadge = (sw, text) => poll(async () => (await badges(sw)).some((b) => b[1] === 'text' && b[2] === text), { what: `the ${text} badge`, timeout: 8000, interval: 50 });
 
 /** [text, color] of the last non-empty badge other than the "n/m" progress, or null. */
 export async function finalBadge(sw) {
@@ -160,17 +165,6 @@ export async function verifyFullPage(sw, shot, dpr, cssTotal) {
 }
 
 // ---------------------------------------------------------------- library tab ("capture and edit")
-
-/** Waits until `fn` returns something truthy and returns it. */
-export async function until(fn, what, timeout = 8000) {
-  const end = Date.now() + timeout;
-  for (;;) {
-    const v = await fn();
-    if (v) return v;
-    if (Date.now() > end) throw new Error(`timed out: ${what}`);
-    await sleep(40);
-  }
-}
 
 /** The library pages open in the browser, whatever their query or hash. `h` comes from launchExtension. */
 export const libraryPages = (h) => h.context.pages().filter((p) => p.url().split(/[?#]/)[0] === h.url('library.html'));

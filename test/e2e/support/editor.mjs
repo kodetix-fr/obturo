@@ -2,20 +2,9 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { below } from '../../../view.js';
+import { poll } from './wait.mjs';
 
-export const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
-
-/** Retries `fn` until it returns a truthy value; fails with `what` after `timeout` ms. */
-export async function poll(fn, { timeout = 10_000, interval = 40, what = 'condition' } = {}) {
-  const end = Date.now() + timeout;
-  let last;
-  for (;;) {
-    last = await fn();
-    if (last) return last;
-    if (Date.now() > end) throw new Error(`timed out: ${what}`);
-    await sleep(interval);
-  }
-}
+export { poll, sleep } from './wait.mjs';
 
 export const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 

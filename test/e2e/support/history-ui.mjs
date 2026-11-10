@@ -3,6 +3,7 @@
 // that a screenshot of the view looks like the product), and shortcuts to drive the sheet.
 // The functions given to page.evaluate run in the browser, on an extension page: the same origin as the library.
 import { DAY } from './history.mjs';
+import { poll } from './wait.mjs';
 
 export { DAY };
 
@@ -155,13 +156,14 @@ export const view = (page) => page.evaluate(() => ({
 
 /** Waits for a condition on view(), with the last state in the error. */
 export async function viewWhere(page, check, what, timeout = 20_000) {
-  const end = Date.now() + timeout;
   let last;
-  for (;;) {
-    last = await view(page);
-    if (check(last)) return last;
-    if (Date.now() > end) throw new Error(`timed out: ${what}; last view: ${JSON.stringify({ ...last, ids: last.ids.slice(0, 5) })}`);
-    await new Promise((done) => setTimeout(done, 40));
+  try {
+    return await poll(async () => {
+      last = await view(page);
+      return check(last) ? last : null;
+    }, { what, timeout });
+  } catch (e) {
+    throw new Error(`${e.message}; last view: ${JSON.stringify({ ...last, ids: last?.ids.slice(0, 5) })}`, { cause: e });
   }
 }
 
