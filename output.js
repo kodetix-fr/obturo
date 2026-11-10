@@ -6,6 +6,19 @@ import { thumbPlan, THUMB_QUALITY, THUMB_WIDTH } from './thumb-pure.js';
 import { framedSize, styleOf } from './beautify-pure.js';
 import { drawBeautified } from './beautify.js';
 
+/**
+ * Draws the original under what Fabric renders, with the view matrix of the canvas: the image is not a Fabric object, the editor and the
+ * grouped export both draw it in 'before:render'.
+ * @param {any} canvas @param {CanvasRenderingContext2D} ctx @param {CanvasImageSource} image
+ */
+export function drawUnder(canvas, ctx, image) {
+  const v = canvas.viewportTransform;
+  ctx.save();
+  ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
+  ctx.drawImage(image, 0, 0);
+  ctx.restore();
+}
+
 // Renders the region of the document starting at `from` (x, y), at scale `scale`, into a w x h px canvas. The view
 // is reset to the identity for the duration of the call: we export in document coordinates, not screen ones.
 function renderRegion(canvas, from, scale, w, h) {

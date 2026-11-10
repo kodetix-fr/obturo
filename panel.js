@@ -32,7 +32,7 @@ export const blurBlock = () => Number(dom.blur.value);
 /** Color of the next highlighter (the yellow when nothing else was chosen). */
 export const highlightPick = () => highlightColor(dom.hlColor.value);
 /** Background of the next text: '' for none (the "None" swatch is checked), else the color in use. */
-export const textBackground = () => (/** @type {HTMLInputElement | null} */ (dom.bgSwatches.querySelector('input:checked'))?.value === '' ? '' : dom.bgColor.value);
+const textBackground = () => (/** @type {HTMLInputElement | null} */ (dom.bgSwatches.querySelector('input:checked'))?.value === '' ? '' : dom.bgColor.value);
 /** Color of the next solid fill: always opaque (a value with transparency is never kept), black when nothing else was chosen. */
 export const fillColor = () => solidColor(dom.flatColor.value) ?? DEFAULT_FILL;
 

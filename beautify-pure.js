@@ -19,7 +19,7 @@ export const GRADIENTS = [
 
 export const PADDING = { min: 0, max: 128, step: 4 };
 export const RADIUS = { min: 0, max: 48, step: 2 };
-export const SHADOWS = Object.freeze({ none: null, soft: { blur: 24, dy: 8, alpha: 0.25 }, strong: { blur: 40, dy: 16, alpha: 0.45 } });
+const SHADOWS = Object.freeze({ none: null, soft: { blur: 24, dy: 8, alpha: 0.25 }, strong: { blur: 40, dy: 16, alpha: 0.45 } });
 export const BAR_HEIGHT = 36;
 
 export const DEFAULT_BEAUTIFY = /** @type {Beautify} */ (Object.freeze({ bg: { type: 'gradient', index: 0 }, padding: 48, radius: 12, shadow: 'soft', frame: 'none' }));

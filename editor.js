@@ -23,11 +23,12 @@ import { paintBackdrop } from './beautify.js';
 import { below } from './view.js';
 import { createSaver } from './saver.js';
 import { createHistory } from './history.js';
-import { editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
+import { drawUnder, editorSync, renderCanvas, renderPng, renderThumb } from './output.js';
 import { getSettings } from './settings.js';
 import { clamp } from './pure.js';
 import { versionsKey } from './thumb-pure.js';
 import { getLanguage, t } from './i18n.js';
+import { BUS_NAME, MESSAGES } from './bus.js';
 import { setAria } from './dom-i18n.js';
 import * as panel from './panel.js';
 
@@ -72,6 +73,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   const ready = () => !!(shot && canvas); // false while a shot is opening or closing
   const selected = () => { const o = canvas?.getActiveObject(); return o && !o.isCrop ? o : null; };
   const warn = (key, vars) => onError?.(key, vars);
+  const report = (e) => console.error('Obturo: editor', e); // an undo, or a version shown, that failed: the keyboard and the panel have nobody to tell
   const serial = (fn) => { const run = chain.then(fn); chain = run.catch(() => {}); return run; };
 
   // Before changing state: abandons a crop in progress and validates a text being edited (which is then committed
@@ -88,11 +90,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // A render that is already scheduled can land during closing: canvas and bitmap are then null.
   function drawBase({ ctx }) {
     if (!canvas || !bitmap) return;
-    const v = canvas.viewportTransform;
-    ctx.save();
-    ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
-    ctx.drawImage(bitmap, 0, 0);
-    ctx.restore();
+    drawUnder(canvas, ctx, bitmap);
   }
 
   const cropNow = () => cropBox
@@ -357,7 +355,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
         if (changed || marker.side !== side) commit();
         else if (cur()) { cur().objects = objects(); saver.schedule(); } // (what was typed and put back is saved as it is again)
       },
-      onUndo: (delta) => step(delta),
+      onUndo: (delta) => step(delta).catch(report),
     });
   }
 
@@ -674,7 +672,7 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
 
   async function removeVersion() {
     if (shot.active < 0) return;
-    const { confirmDialog } = await import('./history-dialogs.js'); // the same dialog as the history and the strip
+    const { confirmDialog } = await import('./dialogs.js'); // the same dialog as the history and the strip
     if (!(await confirmDialog({ title: t('ver.confirmDelete', { name: cur().name }), ok: t('hist.del.ok') }))) return;
     if (!ready()) return; // the shot was closed while the dialog was open
     // A text being edited is validated HERE, while the version to delete is still the active one:
@@ -857,8 +855,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // The format shown on the button follows the settings (the menu, the settings dialog, another tab).
   const showFormat = () => getSettings().then((s) => panel.showFormat(s.downloadFormat)).catch(() => {});
   showFormat();
-  const bus = new BroadcastChannel('obturo');
-  bus.onmessage = ({ data }) => { if (data?.type === 'settings-changed') showFormat(); };
+  const bus = new BroadcastChannel(BUS_NAME);
+  bus.onmessage = ({ data }) => { if (data?.type === MESSAGES.settingsChanged) showFormat(); };
 
   // Saving, in two writers that never wait for each other.
   //  - The versions go first, alone, in a short transaction, SAVE_DELAY_MS after the last change. A page that closes or reloads
@@ -1017,8 +1015,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
   // ---------- document listeners (set once: the page has a single editor) ----------
 
   panel.bindControls({
-    ready, setTool, showVersion: show, newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
-    fit: () => canvas && refit(), actualSize, step, deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp, rotate,
+    ready, setTool, showVersion: (i) => show(i).catch(report), newVersion, removeVersion, nameVersion, setMarkerSide, showVersions: () => panel.showVersions(shot), enterCrop, exitCrop, clearCrop, setScale, setOutputWidth,
+    fit: () => canvas && refit(), actualSize, step: (delta) => step(delta).catch(report), deleteSelection, copyImage, downloadImage, downloadMenu, beautifyMenu, addStamp, rotate,
     restyle, editMarker: () => { const o = selected(); if (o instanceof Marker) openMarkerEdit(o, 'label'); }, tool: () => tool, hasSelection: () => !!selected(), selection: selected, release, commit, strokeWidth: () => panel.strokeWidth(W), markerSize: () => panel.markerSize(W),
   });
 
@@ -1027,8 +1025,8 @@ export function createEditor({ stage, onSave, onThumb, onGone, onVersions, onErr
     if (document.querySelector('dialog[open]') || exportUi?.isMenuOpen?.() || beautifyUi?.isOpen?.()) return; // a modal dialog (settings), the format menu or the beautify panel has the keyboard
     const k = e.key.toLowerCase();
     if (k === 'delete' || k === 'backspace') { e.preventDefault(); deleteSelection(); }
-    else if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey) { e.preventDefault(); step(-1); }
-    else if ((e.ctrlKey || e.metaKey) && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); step(1); }
+    else if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey) { e.preventDefault(); step(-1).catch(report); }
+    else if ((e.ctrlKey || e.metaKey) && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); step(1).catch(report); }
     else if (k === 'enter' && selected() instanceof Marker) { e.preventDefault(); openMarkerEdit(/** @type {Marker} */ (selected()), 'label'); }
     else if (k === 'escape') { if (cropBox) exitCrop(false); else setTool('select'); }
   });

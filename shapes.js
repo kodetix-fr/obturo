@@ -23,7 +23,7 @@ const measure = (font, text) => {
  * Adds to the current path of `ctx` the shape of a w x h box at (x, y) with corner radii rx, ry: a rectangle (no radius), an ellipse
  * (radii of half the sides) or a rounded rectangle. The rectangles, rounded or not, of Fabric and this are the same box.
  */
-export function tracePath(ctx, x, y, w, h, rx = 0, ry = 0) {
+function tracePath(ctx, x, y, w, h, rx = 0, ry = 0) {
   rx = Math.min(rx, w / 2);
   ry = Math.min(ry, h / 2);
   if (!(rx > 0 && ry > 0)) ctx.rect(x, y, w, h);

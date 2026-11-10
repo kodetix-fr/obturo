@@ -17,7 +17,8 @@ import { getShot, listEntries, listHosts, queryShots, setPinnedMany, storageUsag
 import {
   GRID, PAGE, filterOf, gridLayout, hostChoices, isFiltered, moveIndex, rowsOf, scrollToShow, windowRows, withRange,
 } from './history-model.js';
-import { confirmDialog, countText, deleteWithProgress, deleteWords, guardWith, notify, askPurge } from './history-dialogs.js';
+import { confirmDialog } from './dialogs.js';
+import { countText, deleteWithProgress, deleteWords, guardWith, notify, askPurge } from './history-dialogs.js';
 import { fmtBytes, formatDate, formatNumber, plural, t } from './i18n.js';
 import { icon, setI18n } from './dom-i18n.js';
 import { clamp } from './pure.js';
