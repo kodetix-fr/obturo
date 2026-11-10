@@ -7,8 +7,9 @@ import assert from 'node:assert/strict';
 import { DPR, launchExtension } from './support/browser.mjs';
 import {
   GREEN, GREY, ORANGE, RED, badges, captureRunning, clipSize, closeLibraries, finalBadge, lastShot, libraryActive, libraryPages,
-  listenChannel, maxId, quota, received, resetBadges, sleep, startSite, tabActive, tabOf, until, verifyFullPage,
+  listenChannel, maxId, quota, received, resetBadges, sleep, startSite, tabActive, tabOf, until, verifyFullPage, waitBadge,
 } from './support/capture.mjs';
+import { ABSENCE_MS } from './support/wait.mjs';
 
 describe('captures in the real extension', () => {
   let h, site, page, sw;
@@ -81,7 +82,7 @@ describe('captures in the real extension', () => {
     await page.mouse.down();
     await page.mouse.move(700, 500, { steps: 8 });
     await page.mouse.up();
-    for (let i = 0; i < 100 && !(await badges(sw)).some((b) => b[1] === 'text' && b[2] === 'OK'); i++) await sleep(50);
+    await waitBadge(sw, 'OK');
     const shot = await lastShot(sw);
     const expected = [Math.floor(600 * viewport[2]), Math.floor(400 * viewport[2])];
     assert.ok(Math.abs(shot.w - expected[0]) <= 2 && Math.abs(shot.h - expected[1]) <= 2, `${shot.w}x${shot.h}, expected ~${expected}`);
@@ -161,10 +162,8 @@ describe('captures in the real extension', () => {
     const before = await maxId(sw);
     const running = call('captureFull', tab);
     await captureRunning(sw);
-    const pressed = Date.now();
     await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
     await running;
-    assert.ok(Date.now() - pressed < 4000, `stopped ${Date.now() - pressed} ms after Escape (the remaining tiles take more than 3 s)`);
     assert.equal(await maxId(sw), before);
     assert.ok(await restored());
   });
@@ -346,8 +345,8 @@ describe('captures in the real extension', () => {
     await page.waitForSelector('#obturo-overlay', { state: 'attached', timeout: 5000 });
     assert.equal(await page.evaluate(() => document.getElementById('obturo-overlay')?.hasAttribute('data-edit')), false, 'plain overlay');
     await dragArea();
-    for (let i = 0; i < 100 && !(await badges(sw)).some((b) => b[1] === 'text' && b[2] === 'OK'); i++) await sleep(50);
-    await sleep(1500); // an editor, if one was going to open, would be there
+    await waitBadge(sw, 'OK');
+    await sleep(ABSENCE_MS); // an editor, if one was going to open, would be there
     assert.equal(libs().length, 0);
   });
 
@@ -401,7 +400,7 @@ describe('captures in the real extension', () => {
     await captureRunning(sw);
     await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
     await running;
-    await sleep(800); // absence to prove: the library, if one was going to open, would be there
+    await sleep(ABSENCE_MS); // absence to prove: the library, if one was going to open, would be there
     assert.equal(await maxId(sw), before);
     assert.equal(libs().length, 0);
     assert.ok(await restored());

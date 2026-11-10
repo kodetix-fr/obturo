@@ -1,7 +1,9 @@
 name: Release
 
 # A tag v* publishes the extension package, a zip and its SHA-256, as a GitHub Release. Uses the gh CLI shipped
-# with the runner rather than a third-party action. Tag the merge commit on main once CI is green.
+# with the runner rather than a third-party action. Tag the merge commit on main. The tag is checked before anything is
+# built (on main, same version as the manifest, package.json and package-lock.json), and the checks of CI run again on
+# the tagged commit: a tag that fails one of them publishes nothing.
 on:
   push:
     tags: ["v*"]
@@ -14,29 +16,47 @@ jobs:
   release:
     name: Build and publish the package
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0 # the history of main, to know that the tagged commit is on it
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
-      # The tag names the release and the zip carries the version of manifest.json: they must agree.
-      - name: Check the tag against the manifest
+      # Only what is on main ships. The tag names the release and the zip carries the version of manifest.json: they must agree,
+      # and package.json and package-lock.json say the same.
+      - name: Check the tag
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          version=$(node -p "require('./manifest.json').version")
-          if [ "$TAG" != "v$version" ]; then
-            echo "Tag $TAG does not match the version $version of manifest.json" >&2
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Tag $TAG is on a commit that is not on main" >&2
             exit 1
           fi
+          for file in manifest.json package.json package-lock.json; do
+            version=$(node -p "require('./$file').version")
+            if [ "$TAG" != "v$version" ]; then
+              echo "Tag $TAG does not match the version $version of $file" >&2
+              exit 1
+            fi
+          done
 
       - name: Install (no install scripts)
         run: npm ci --ignore-scripts
+
+      - name: Lint, types, unit tests
+        run: npm run check
+
+      # playwright-core is pinned by package-lock.json: same Playwright, so same Chromium as in CI.
+      - name: Install Chromium and its system dependencies
+        run: npx playwright-core install --with-deps --no-shell chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
 
       - name: Package
         run: npm run package

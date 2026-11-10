@@ -77,7 +77,7 @@ export async function renderPng(canvas, version, W, H) {
   }
 }
 
-// The editor registers here how it writes its pending changes (they wait 500 ms to be saved): a grouped export reads the
+// The editor registers here how it writes its pending changes (they are written a moment after the change): a grouped export reads the
 // database, and must find there what is on screen.
 export const editorSync = { flush: () => Promise.resolve() };
 

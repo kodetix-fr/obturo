@@ -6,6 +6,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, decodePng, download, drag, mapper, poll, px, ready, resetLibrary, shotWhere, spec, tool, waitOut } from './support/editor.mjs';
+import { ABSENCE_MS, sleep } from './support/wait.mjs';
 
 const CLEAN = { language: 'en', theme: 'auto', downloadFormat: 'png', downloadQuality: 0.9, pdfLayout: 'fit', pdfEncoding: 'flate' };
 const BLUE = [37, 99, 235, 255]; // #2563eb, the blue of the palette
@@ -233,7 +234,7 @@ describe('beautify: the editor shows the look around the capture', () => {
     });
     await waitOut(page, 1520, 960); // 1280 + 2 x 120, 720 + 2 x 120
     await poll(async () => (await placed()).w < before, { what: 'the capture is smaller on the stage: the padding grew' });
-    await new Promise((done) => setTimeout(done, 500));
+    await sleep(ABSENCE_MS);
     assert.equal((await dbDump(page)).find((s) => s.id === id).versions[0].beautify.padding, 48, 'nothing is kept while the slider is held');
     await page.evaluate(() => document.getElementById('bePadding').dispatchEvent(new Event('change', { bubbles: true })));
     await shotWhere(page, id, (s) => s.versions[0].beautify.padding === 120, 'kept when it is let go');

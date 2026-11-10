@@ -6,6 +6,7 @@ import { after, afterEach, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import { badges, libraryPages, maxId, quota, resetBadges, sleep, startSite, tabActive, tabOf, until } from './support/capture.mjs';
+import { ABSENCE_MS } from './support/wait.mjs';
 
 describe('delay before a capture', () => {
   let h, site, page, sw;
@@ -94,7 +95,7 @@ describe('delay before a capture', () => {
     await run('capture-full', tab); // any capture gesture, here another kind: the shortcut, the menu and the popup all go through run
     assert.equal((await texts()).at(-1), '', 'the badge is cleared at once');
     await first;
-    await sleep(5500);
+    await sleep(5000 + ABSENCE_MS); // past the countdown of 5 s, which would have ended in a capture
     assert.equal(await maxId(sw), before, 'nothing was taken, neither by the first nor by the second');
     assert.equal((await texts()).at(-1), '', 'and no result badge');
     await run('open-settings', tab); // a gesture that is not a capture does not cancel anything and does not wait

@@ -16,8 +16,44 @@ export const importFits = ({ w, h, bytes }) => bytes <= IMPORT_MAX_BYTES && w >=
 export const looksLikeImage = ({ type, name }) => String(type ?? '').startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(String(name ?? ''));
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-/** A PNG is kept as it is; the first 8 bytes tell. @param {ArrayLike<number>} bytes */
+/** A PNG is kept without its metadata, not decoded and encoded again; the first 8 bytes tell. @param {ArrayLike<number>} bytes */
 export const isPng = (bytes) => PNG_SIGNATURE.every((b, i) => bytes[i] === b);
+
+// The chunks of a PNG that are not critical and that change what it shows or how it is read: transparency, color, resolution, animation.
+// Every other one goes: the texts (tEXt, zTXt, iTXt), the EXIF block, the time of the last change, the suggested palettes, and whatever a
+// program wrote in a chunk of its own (a name, a place, a device, a date).
+const KEPT_CHUNKS = new Set(['tRNS', 'gAMA', 'cHRM', 'sRGB', 'iCCP', 'sBIT', 'bKGD', 'pHYs', 'acTL', 'fcTL', 'fdAT']);
+
+/**
+ * A PNG without its metadata chunks, the other bytes untouched (the pixels are not decoded). null when the chunks do not add up (the
+ * caller writes the image again from what the decoder made of it).
+ * @param {Uint8Array} bytes
+ * @returns {Uint8Array | null}
+ */
+export function stripPngMetadata(bytes) {
+  if (!isPng(bytes)) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  /** @type {Uint8Array[]} */
+  const kept = [bytes.subarray(0, 8)];
+  let first = true, ended = false;
+  for (let at = 8; at < bytes.length;) {
+    if (ended || at + 12 > bytes.length) return null;
+    const end = at + 12 + view.getUint32(at); // length, type, data, crc
+    if (end > bytes.length) return null;
+    const type = String.fromCharCode(...bytes.subarray(at + 4, at + 8));
+    if ((type === 'IHDR') !== first) return null;
+    first = false;
+    ended = type === 'IEND';
+    const critical = (bytes[at + 4] & 0x20) === 0; // an uppercase first letter: the file cannot be read without it
+    if (critical || KEPT_CHUNKS.has(type)) kept.push(bytes.subarray(at, end));
+    at = end;
+  }
+  if (!ended) return null;
+  const out = new Uint8Array(kept.reduce((n, part) => n + part.length, 0));
+  let at = 0;
+  for (const part of kept) { out.set(part, at); at += part.length; }
+  return out;
+}
 
 // What a file says its size is, read from its header before anything is decoded: a small file can declare an image of billions of
 // pixels (a PNG of one color is a few KB at any size) and the decoder would try to build it. PNG, GIF, BMP, JPEG and WebP; null for

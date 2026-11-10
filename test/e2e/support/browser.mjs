@@ -5,10 +5,11 @@
 // - The browser profile is throwaway too. The temporary folder (profile + copy) is deleted on close, by its exact
 //   path.
 // - E2E_DPR environment variable: simulated display scale (1, 1.5, 2...), 1 by default.
+// - E2E_TRACES environment variable: a folder where each launch leaves a Playwright trace (screenshots and actions), for CI to keep.
 import { chromium } from 'playwright-core';
 import { appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listRuntimeFiles } from '../../../scripts/package.mjs';
 import { instrument } from './instrument.mjs';
@@ -22,6 +23,7 @@ export const DPR = Number(process.env.E2E_DPR || 1);
 const SW_HOOK = `
 import * as __db from './db.js';
 import * as __settings from './settings.js';
+import * as __i18n from './i18n.js';
 const __badge = [];
 const __setText = chrome.action.setBadgeText.bind(chrome.action);
 const __setColor = chrome.action.setBadgeBackgroundColor.bind(chrome.action);
@@ -40,7 +42,7 @@ globalThis.__menu = [];
   api.create = (props, cb) => create.call(api, props, () => { globalThis.__menu.push(['create', props, chrome.runtime.lastError?.message ?? null, performance.now()]); cb?.(); });
   api.removeAll = (cb) => removeAll.call(api, () => { globalThis.__menu.push(['removeAll', null, null, performance.now()]); cb?.(); });
 }
-globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, badge: __badge };
+globalThis.__t = { capture, captureFull, startArea, startElement, openLibrary, run, onMessage, db: __db, settings: __settings, i18n: __i18n, badge: __badge };
 `;
 
 // macOS ignores --lang: the language of the interface comes from AppleLanguages, which the command line of the process can set
@@ -116,6 +118,8 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
       ...(realWindow ? { viewport: null } : { viewport: size, deviceScaleFactor: DPR }),
     });
     if (instrumented) await context.addInitScript(instrument);
+    const traces = process.env.E2E_TRACES;
+    if (traces) await context.tracing.start({ screenshots: true });
 
     const errors = [];
     const watch = (page) => {
@@ -131,6 +135,10 @@ export async function launchExtension({ hook = false, hostPermissions = false, r
       context, sw, id, errors,
       url: (path = 'library.html') => `chrome-extension://${id}/${path}`,
       async close() {
+        if (traces) {
+          mkdirSync(traces, { recursive: true });
+          await context.tracing.stop({ path: join(traces, `${Date.now()}-${basename(root)}.zip`) }).catch(() => {});
+        }
         await context.close();
         cleanup();
       },

@@ -11,7 +11,7 @@ dependency, open an issue first and talk it through.
 
 ## Getting set up
 
-Node 22.13 or newer (CI runs Node 24) and Chrome 116 or newer.
+Node 22.13 or newer (CI runs Node 24, and also Node 22.13 and Windows) and Chrome 116 or newer.
 
 ```sh
 npm ci --ignore-scripts
@@ -86,13 +86,15 @@ A few things that are easy to miss:
 - **The service worker stays light.** At load time it holds constants and
   listeners only, because it restarts often (the one exception is the rebuild of
   the icon menu, asynchronous and off the capture path). It imports `db.js`,
-  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js` and `settings.js` and
-  what they import, never Fabric.js.
+  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js`, `settings.js`, `notice.js`
+  and `about.js` and what they import, never Fabric.js.
 - **Stay small.** No build step, no test framework, no code formatter: follow
   `.editorconfig` and ESLint, and the style of the file you are in. Tests use
   `node:test`; Playwright is only the browser driver (`devDependency`).
-- **Code, comments and log strings in English, ASCII only.** User-facing texts
-  are not in the code: they live in `locales/` (nine languages) and in
+- **Code, comments and log strings in English, ASCII only**, but for the display
+  data that is not ASCII by nature (the arrows and the key names of `gestures.js`,
+  the names of the languages in `languages.js`, the middle dot of a caption).
+  User-facing texts are not in the code: they live in `locales/` (nine languages) and in
   `_locales/`, never in `library.html` (a test fails on visible text written
   there). A text added in one language is added in every other (a test compares
   each language with English, key by key), and the French one addresses the
@@ -116,11 +118,12 @@ A few things that are easy to miss:
 
 - **ESLint** (`eslint.config.js`): the recommended rules, `no-var`,
   `prefer-const`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, and the
-  ban on HTML parsing. `sw.js`, `db.js`, `pure.js`, `fullpage-pure.js`,
-  `thumb-pure.js` and the encoders (`encode.js`,
-  `pdf.js`, `zip.js`, which also run in a worker) are checked with the globals
-  of a service worker, so using `document` or `window` by mistake is reported.
-  `vendor/` is not linted.
+  ban on HTML parsing. `sw.js` and every file it imports (the list is
+  read from its imports by `eslint.config.js`, `notice.js` apart, whose functions
+  run in the captured page), and the encoders (`encode.js`, `pdf.js`, `zip.js`,
+  which also run in a worker) are checked with the globals of a service worker,
+  so using `document` or `window` by mistake is reported. `vendor/` is not
+  linted.
 - **TypeScript** (`tsconfig.json`): `allowJs` and `checkJs`, `noEmit`, with the
   types of `@types/chrome`. The mode is permissive (`strict` is off). Fabric.js
   ships without type files: `noResolve` keeps `tsc` out of the minified bundle,
@@ -134,7 +137,9 @@ A few things that are easy to miss:
   files at the root. They also check texts: the same keys and placeholders in
   every language as in English, every key used by the code, no visible text in
   `library.html`, the "tu" of the French, the manifest texts of each language
-  (description within 132 characters) and the three permissions.
+  (description within 132 characters) and the three permissions. They also check
+  the package: no Markdown, test, script or tool configuration in it, and the
+  checksums of `vendor/` against the ones `vendor/README.md` writes down.
 - **End-to-end tests**: `test/e2e/*.e2e.mjs`, run by `npm run test:e2e` at
   concurrency 1 (one file at a time). They drive Playwright's Chromium,
   headless, with the extension loaded (`--load-extension`). The extension they
@@ -145,7 +150,9 @@ A few things that are easy to miss:
   keyboard gesture, and the copy of the manifest gets host permissions where a
   test needs `captureVisibleTab` without one; the scenarios that prove no extra
   permission is needed run without them. The `E2E_DPR` environment variable
-  (`1.5`, `2`...) simulates a display scale. To add a scenario, reuse the
+  (`1.5`, `2`...) simulates a display scale, `E2E_TRACES` (a folder) keeps a
+  Playwright trace of every launch of the browser: CI uploads them when the job
+  fails. To add a scenario, reuse the
   helpers in `test/e2e/support/` (launch, IndexedDB seeds, mouse, export) and
   wait for a condition (`poll`, `shotWhere`) rather than a fixed delay.
 - **Benchmark**: `npm run bench` measures the budgets of
@@ -222,15 +229,19 @@ from `manifest.json`. The script needs nothing but Node. It checks the manifest
 compares it with the disk, warns about any file over 500 KB outside `vendor/`,
 then prints the list of files, their sizes and the SHA-256 of the zip. The
 package holds the runtime files only: no tests, no documentation, no tool
-configuration, no hidden folders.
+configuration, no hidden folders (`package.test.js` checks it).
 
 To release, in one pull request: set `version` in `manifest.json`, `package.json`
 and `package-lock.json`, replace "unreleased" by the date in the entry of
 `CHANGELOG.md`, and run `npm run check` and `npm run package`. Once it is
 merged, tag the merge commit
-`vX.Y.Z` on `main`. The release workflow checks that the tag matches the version
-of `manifest.json`, creates the GitHub release with generated notes, and uploads
-the zip with a `.sha256` file.
+`vX.Y.Z` on `main`. The release workflow first refuses a tag whose commit is not
+on `main` or whose name differs from the version of `manifest.json`,
+`package.json` or `package-lock.json`; then it runs `npm run check` and the
+end-to-end tests on the tagged commit; only then does it create the GitHub
+release with generated notes and upload the zip with a `.sha256` file. A tag that
+fails one of these publishes nothing, and the job can be re-run once the cause is
+fixed (a tag moved to another commit is deleted and pushed again).
 
 ## Reporting a bug
 

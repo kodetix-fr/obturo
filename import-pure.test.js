@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { IMPORT_MAX_BYTES, IMPORT_MAX_PIXELS, IMPORT_MAX_SIDE, declaredSize, importFits, importTitle, isPng, looksLikeImage } from './import-pure.js';
+import { crc32 } from 'node:zlib';
+import { IMPORT_MAX_BYTES, IMPORT_MAX_PIXELS, IMPORT_MAX_SIDE, declaredSize, importFits, importTitle, isPng, looksLikeImage, stripPngMetadata } from './import-pure.js';
 
 // Headers as the formats write them: only what declaredSize reads is meaningful, the rest is padding.
 const u8 = (...parts) => Uint8Array.from(parts.flat(Infinity));
@@ -86,4 +87,52 @@ test('importTitle: the file name without its extension, the fallback for a gener
   assert.equal(importTitle('', 'Pasted image'), 'Pasted image');
   assert.equal(importTitle(undefined, 'Pasted image'), 'Pasted image');
   assert.equal(importTitle('noext', 'x'), 'noext');
+});
+
+// A PNG built chunk by chunk: length, type, data, CRC. The pixels do not matter here, the chunks do.
+const chunk = (type, data = []) => {
+  const bytes = [data].flat(Infinity);
+  const body = u8(asc(type), bytes);
+  return [be32(bytes.length), [...body], be32(crc32(body))];
+};
+const SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const png = (...chunks) => u8(SIGNATURE, chunks);
+const types = (bytes) => {
+  const found = [];
+  for (let at = 8; at < bytes.length;) {
+    const length = new DataView(bytes.buffer, bytes.byteOffset).getUint32(at);
+    found.push(String.fromCharCode(...bytes.subarray(at + 4, at + 8)));
+    at += 12 + length;
+  }
+  return found;
+};
+const IHDR = chunk('IHDR', [be32(2), be32(2), 8, 6, 0, 0, 0]);
+const IDAT = chunk('IDAT', [1, 2, 3, 4, 5]);
+const IEND = chunk('IEND');
+
+test('stripPngMetadata: the text, EXIF and time chunks go, what the picture needs stays, the bytes are the same', () => {
+  const secret = asc('Jane Doe, 12 rue des Lilas');
+  const input = png(IHDR, chunk('tEXt', [asc('Author'), 0, secret]), chunk('iTXt', [asc('XML:com.adobe.xmp'), 0, secret]), chunk('zTXt', [asc('Comment'), 0, 0, secret]),
+    chunk('eXIf', [secret]), chunk('tIME', [7, 232, 11, 10, 9, 8, 7]), chunk('pHYs', [be32(2835), be32(2835), 1]), chunk('tRNS', [0, 255]), chunk('sRGB', [0]),
+    chunk('prVt', [secret]), IDAT, chunk('PRVT', [9]), IEND);
+  const out = stripPngMetadata(input);
+  assert.ok(out && isPng(out));
+  assert.deepEqual(types(out), ['IHDR', 'pHYs', 'tRNS', 'sRGB', 'IDAT', 'PRVT', 'IEND'], 'critical chunks, transparency, color, resolution; a private critical chunk stays, a private ancillary one goes');
+  assert.equal(Buffer.from(out).includes(Buffer.from('Jane Doe')), false, 'no text of the file is left');
+  assert.equal(Buffer.from(out).includes(Buffer.from('IDAT')) && Buffer.from(out).includes(Buffer.from(u8(be32(5), asc('IDAT'), [1, 2, 3, 4, 5]))), true, 'the image data is copied as it is');
+});
+
+test('stripPngMetadata: a PNG with no metadata comes out identical', () => {
+  const clean = png(IHDR, IDAT, IEND);
+  assert.deepEqual(stripPngMetadata(clean), clean);
+});
+
+test('stripPngMetadata: null when the chunks do not add up, so that the caller writes the image again', () => {
+  const clean = png(IHDR, IDAT, IEND);
+  assert.equal(stripPngMetadata(clean.subarray(0, clean.length - 3)), null, 'cut short');
+  assert.equal(stripPngMetadata(png(IHDR, IDAT)), null, 'no IEND');
+  assert.equal(stripPngMetadata(png(IDAT, IEND)), null, 'no IHDR first');
+  assert.equal(stripPngMetadata(png(IHDR, IEND, IDAT)), null, 'bytes after IEND');
+  assert.equal(stripPngMetadata(u8(asc('GIF89a'), [0, 0, 0, 0, 0, 0])), null, 'not a PNG');
+  assert.equal(stripPngMetadata(u8(SIGNATURE, be32(0xffffffff), asc('IHDR'))), null, 'a length past the end');
 });

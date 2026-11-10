@@ -25,9 +25,9 @@ function isExcluded(rel) {
   const base = segments.at(-1).toLowerCase();
   if (EXCLUDED_NAMES.has(base) || /^tsconfig.*\.json$/.test(base) || /^eslint\.config\./.test(base)) return true;
   if (SUFFIXES.some((s) => base.endsWith(s))) return true;
-  // Every .md outside vendor/ stays out of the package, THIRD_PARTY_NOTICES.md included: the license of Fabric.js
+  // Every .md stays out of the package, THIRD_PARTY_NOTICES.md and vendor/README.md included: the license of Fabric.js
   // travels in vendor/fabric.LICENSE (full text). LICENSE, with no extension, stays at the root: it is Obturo's license.
-  return base.endsWith('.md') && segments[0] !== 'vendor';
+  return base.endsWith('.md');
 }
 
 // Runtime files of the extension in `base` (relative paths with "/" separators). The E2E tests use it too, to load

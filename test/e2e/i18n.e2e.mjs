@@ -5,6 +5,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, drag, mapper, poll, ready, resetLibrary, seed, seedSettings, spec, tool, waitOut } from './support/editor.mjs';
+import { ABSENCE_MS, sleep } from './support/wait.mjs';
 
 const BODY_BACKGROUND = { light: 'rgb(238, 241, 246)', dark: 'rgb(9, 14, 23)' }; // --bg of library.css
 
@@ -202,7 +203,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     await page.keyboard.press('Delete');
     await page.keyboard.press('Control+z');
     await closeSettings();
-    await new Promise((done) => setTimeout(done, 900)); // absence to prove: the autosave would have fired by now
+    await sleep(ABSENCE_MS); // absence to prove: the autosave would have fired by now
     assert.equal((await dbDump(page)).at(-1).versions[0].objects.length, 1, 'the rectangle was deleted behind the dialog');
   });
 
@@ -237,7 +238,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     assert.equal(await page.evaluate(() => window.__marker), 3, 'the page was reloaded');
     // The same message again, and for a shot that does not exist: nothing happens, nothing breaks.
     await fromWorker([{ type: 'open-shot', id: third.id }, { type: 'open-shot', id: 424242 }]);
-    await new Promise((done) => setTimeout(done, 500));
+    await sleep(ABSENCE_MS);
     assert.equal(await text('#out'), 'Output: 1000 × 500 px');
   });
 
@@ -330,6 +331,7 @@ describe('library: language, theme, settings, opening a shot from outside', () =
     await fromWorker([{ type: 'open-settings' }]);
     await page.waitForSelector('dialog#settings[open]');
     await fromWorker([{ type: 'open-settings' }]); // already open: nothing to do, nothing breaks
+    await sleep(ABSENCE_MS); // the message must have been handled before Escape closes the dialog, or it opens it again
     await closeSettings();
     await fromWorker([{ type: 'open-settings' }]); // and again after it was closed
     await page.waitForSelector('dialog#settings[open]');

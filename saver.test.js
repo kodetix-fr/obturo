@@ -4,7 +4,15 @@ import { createSaver } from './saver.js';
 
 // ---- saver: regression of the blocking defect (writes that stop without an error) ----
 
-const tick = (ms) => new Promise((r) => setTimeout(r, ms));
+const realTick = (ms) => new Promise((r) => setTimeout(r, ms));
+// The clock is the test's: the timers of the saver are advanced by hand, so no run depends on the speed of the machine.
+const fakeClock = (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  return async (ms) => {
+    t.mock.timers.tick(ms);
+    await new Promise((done) => setImmediate(done)); // the promises that the timers released
+  };
+};
 const deferred = () => { let resolve; const p = new Promise((r) => { resolve = r; }); return { p, resolve }; };
 
 // The old implementation (IIFE + ??=): kept here to prove that the scenario detects the defect.
@@ -16,20 +24,22 @@ function legacySaver({ write, delay }) {
   return { schedule() { dirty = true; clearTimeout(timer); timer = setTimeout(save, delay); }, flush: async () => { clearTimeout(timer); await save(); } };
 }
 
-// Write held back, 2nd change DURING the write, stale timer that fires on nothing, 3rd change.
+// Write held back, 2nd change DURING the write, stale timer that fires on nothing, 3rd change. In real time: it is the order in which timers and
+// promises settle that exposes the defect, and a fake clock does not reproduce it; the margins are wide so that a slow machine keeps the order.
 async function scenario(make) {
+  const tick = realTick;
   const gates = [];
   let writes = 0;
-  const s = make({ delay: 10, write: () => { writes++; const d = deferred(); gates.push(d); return d.p; } });
+  const s = make({ delay: 50, write: () => { writes++; const d = deferred(); gates.push(d); return d.p; } });
   s.schedule();               // change 1
-  await tick(40);             // the timer fires: write 1 is in flight
+  await tick(250);            // the timer fires: write 1 is in flight
   s.schedule();               // change 2, during the write
   gates[0].resolve(true);
-  await tick(5);              // change 2 is picked up right away
+  await tick(25);             // change 2 is picked up right away
   gates[1]?.resolve(true);
-  await tick(40);             // the stale timer of change 2 fires on nothing
+  await tick(250);            // the stale timer of change 2 fires on nothing
   s.schedule();               // change 3
-  await tick(40);
+  await tick(250);
   const n = writes;
   gates.forEach((g) => g.resolve(true));
   await s.flush();
@@ -44,7 +54,8 @@ test('saver: the same scenario does expose the old defect (guard for the test)',
   assert.equal(await scenario(legacySaver), 2, 'the old version loses the 3rd write without an error');
 });
 
-test('saver: a failing write keeps the change, notifies, and the next one retries', async () => {
+test('saver: a failing write keeps the change, notifies, and the next one retries', async (t) => {
+  const tick = fakeClock(t);
   let fail = true, tried = 0, written = 0, errors = 0;
   const s = createSaver({ delay: 5, write: async () => { tried++; if (fail) throw new Error('quota'); written++; return true; }, onError: () => errors++ });
   s.schedule();
@@ -58,7 +69,8 @@ test('saver: a failing write keeps the change, notifies, and the next one retrie
   assert.equal(written, 1);
 });
 
-test('saver: shot gone -> onGone once, no loop', async () => {
+test('saver: shot gone -> onGone once, no loop', async (t) => {
+  const tick = fakeClock(t);
   let writes = 0, gone = 0;
   const s = createSaver({ delay: 5, write: async () => { writes++; return false; }, onGone: () => gone++ });
   s.schedule();
@@ -67,7 +79,8 @@ test('saver: shot gone -> onGone once, no loop', async () => {
   assert.deepEqual([writes, gone], [1, 1]);
 });
 
-test('saver: flush waits for the write in flight then writes what changed in the meantime', async () => {
+test('saver: flush waits for the write in flight then writes what changed in the meantime', async (t) => {
+  const tick = fakeClock(t);
   const gates = [];
   let writes = 0;
   const s = createSaver({ delay: 10, write: () => { writes++; const d = deferred(); gates.push(d); return d.p; } });

@@ -1,5 +1,5 @@
 // Undo / redo history: a stack of snapshots (strings) and a cursor. Pure: no Fabric, no DOM, testable
-// with `node --test`. The editor stores the JSON { objects, crop, scale } of the displayed version in it, never pixels.
+// with `node --test`. The editor stores the JSON array [objects, crop, scale, beautify, turn] of the displayed version in it, never pixels.
 
 // ponytail: 50 undo levels, each a full JSON snapshot of the version (no diffs); store diffs if long sessions or heavy annotation sets need more.
 export const HISTORY_MAX = 50;

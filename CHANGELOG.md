@@ -6,6 +6,22 @@ Notable changes to Obturo. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- **An imported PNG keeps no metadata**: its text, EXIF and time chunks are left out when it is added (the pixels and the
+  color information stay, the bytes are otherwise untouched). Before, an imported PNG was stored and exported with
+  whatever the file carried, while an imported JPEG lost it; the privacy policy says what an import keeps.
+
+### Fixed
+
+- **A capture keeps the settings it started with**: the switches (No trace, Hide sensitive text, what happens after a
+  capture) are read once when the capture begins. Flipping one from the settings page while a capture runs no longer
+  mixes two states in the same capture, and the notes it shows come in the chosen language from the first capture of a
+  freshly started worker.
+- **A capture can be downloaded again from a read-only tab**: the second download of a capture that has an edited
+  version used to fail, because the first one emptied the picture on screen. Each download now works on its own copy,
+  and the pictures of the captures that were shown before are given back.
+
 ## [0.3.0] - 2026-11-09
 
 ### Added

@@ -3,8 +3,10 @@
 // permission is involved, which is the point (the manifest is pinned by manifest.test.js).
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { crc32 } from 'node:zlib';
 import { launchExtension } from './support/browser.mjs';
 import { dbDump, poll, ready, resetLibrary, sha256, spec, waitOut } from './support/editor.mjs';
+import { ABSENCE_MS, sleep } from './support/wait.mjs';
 import enUi from '../../locales/en.ui.js';
 
 // A 1x1 GIF, the smallest one there is (a format the browser decodes and cannot encode).
@@ -90,7 +92,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     }
   });
 
-  it('a file picked with the button: a PNG is kept as it is, titled by its name, with no address, and opens in the editor', async () => {
+  it('a file picked with the button: a PNG with no metadata is kept as it is, titled by its name, with no address, and opens in the editor', async () => {
     await fresh();
     const before = await count();
     // the file: made in the page, taken out as bytes (what a disk would give)
@@ -112,6 +114,41 @@ describe('library: import of images (picked, pasted, dropped)', () => {
       return [...new Uint8Array(await (await getOriginal(id)).arrayBuffer())];
     }, (await last()).id))), sha256(buffer));
     assert.equal(await bannerText(), null, 'nothing to say');
+  });
+
+  it('a PNG that carries text and EXIF chunks is imported without them, and opens as the same picture', async () => {
+    await fresh();
+    const before = await count();
+    const plain = Buffer.from(await page.evaluate(async () => {
+      const [f] = await window.__make([{ name: 'photo.png', type: 'image/png', w: 400, h: 240 }]);
+      return btoa(String.fromCharCode(...new Uint8Array(await f.arrayBuffer())));
+    }), 'base64');
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type), data]);
+      const head = Buffer.alloc(4);
+      head.writeUInt32BE(data.length);
+      const tail = Buffer.alloc(4);
+      tail.writeUInt32BE(crc32(body));
+      return Buffer.concat([head, body, tail]);
+    };
+    const secret = 'Jane Doe, 12 rue des Lilas';
+    const afterHeader = 8 + 12 + plain.readUInt32BE(8); // the signature, then the IHDR chunk
+    const tagged = Buffer.concat([plain.subarray(0, afterHeader), chunk('tEXt', Buffer.from(`Author\0${secret}`)), chunk('iTXt', Buffer.from(`Comment\0\0\0\0\0${secret}`)),
+      chunk('eXIf', Buffer.from(`II*\0${secret}`)), chunk('tIME', Buffer.from([7, 234, 11, 10, 9, 8, 7])), plain.subarray(afterHeader)]);
+    assert.ok(tagged.includes(secret), 'the file given carries the text');
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('#importBtn')]);
+    await chooser.setFiles([{ name: 'photo.png', mimeType: 'image/png', buffer: tagged }]);
+    await grew(before);
+    await waitOut(page, 400, 240);
+    const id = (await last()).id;
+    const kept = Buffer.from(await page.evaluate(async (id) => {
+      const { getOriginal } = await import(`${location.origin}/db.js`);
+      return [...new Uint8Array(await (await getOriginal(id)).arrayBuffer())];
+    }, id));
+    assert.equal(kept.includes(secret), false, 'no text of the file is stored');
+    for (const type of ['tEXt', 'iTXt', 'eXIf', 'tIME']) assert.equal(kept.includes(type), false, `no ${type} chunk is stored`);
+    assert.equal(sha256(kept), sha256(plain), 'what is left is the file without the metadata, byte for byte');
+    assert.deepEqual([(await stored(id)).w, (await stored(id)).h], [400, 240]);
   });
 
   it('an image pasted (Ctrl+V): titled "Pasted image", opens in the editor, the paste is taken by the page', async () => {
@@ -148,7 +185,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     await page.evaluate(() => { const i = document.createElement('input'); i.id = 'field'; document.body.append(i); });
     assert.equal(await paste([{ name: 'image.png', type: 'image/png' }], '#field'), false, 'an image pasted into a text field is the field\'s');
     await page.evaluate(() => document.getElementById('field').remove());
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before, 'nothing was added');
   });
 
@@ -251,7 +288,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     assert.equal(await paste([{ name: 'behind.png', type: 'image/png' }]), false, 'the paste is not taken behind a dialog');
     const r = await drag([{ name: 'behind.png', type: 'image/png' }]);
     assert.deepEqual([r.overPrevented, r.shown, r.dropped], [true, false, true], 'the drag is taken (the file is not opened), the box is not shown, nothing is imported');
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before);
     await page.keyboard.press('Escape');
     await page.waitForSelector('dialog#settings:not([open])', { state: 'attached' });
@@ -269,7 +306,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
     await page.evaluate(() => { document.getElementById('banner').hidden = true; });
     await drag([{ name: 'secret.png', type: 'image/png' }]);
     await poll(async () => (await bannerText())?.startsWith('No trace is on: nothing is saved'), { what: 'the banner after a drop' });
-    await new Promise((done) => setTimeout(done, 600));
+    await sleep(ABSENCE_MS);
     assert.equal(await count(), before, 'nothing was kept');
     await page.click('#noTraceBadge');
     await page.waitForSelector('#noTraceBadge', { state: 'hidden' });
@@ -307,7 +344,7 @@ describe('library: import of images (picked, pasted, dropped)', () => {
         return { paste: paste.defaultPrevented, drop: drop.defaultPrevented };
       });
       assert.deepEqual(taken, { paste: false, drop: true });
-      await new Promise((done) => setTimeout(done, 600));
+      await sleep(ABSENCE_MS);
       assert.equal(await count(), before, 'nothing was added from the read-only tab');
       assert.equal(second.url().split('#')[0], h.url(), 'the tab did not navigate to the dropped file');
     } finally {

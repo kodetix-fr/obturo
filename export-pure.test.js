@@ -176,7 +176,8 @@ test('createLatest: the real timers work too', async () => {
   const q = createLatest({ delay: 5, run: (v) => v + 1, onResult: (r) => got.push(r) });
   q.request(1);
   q.request(10);
-  await new Promise((done) => setTimeout(done, 40));
+  for (let waited = 0; !got.length && waited < 5000; waited += 10) await new Promise((done) => setTimeout(done, 10));
+  await new Promise((done) => setTimeout(done, 50)); // a stale run, if there was one, would have answered by now
   assert.deepEqual(got, [11]);
 });
 

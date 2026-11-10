@@ -43,8 +43,17 @@ let busy = false;
 const said = { lines: /** @type {string[]} */ ([]), error: false, long: false };
 let lastNote = { tabId: -1, at: 0 };
 let editing = false; // the capture that runs ends in the editor ("Capture and edit"): there is no question to ask about it
+// The settings a capture follows, read once when it starts: the switches can be flipped while it runs and it keeps the state it started with.
+// Unreadable: the defaults (copy it, keep it, nothing hidden). The language is set here, so every text of the capture comes in the chosen one.
+/** @returns {Promise<import('./settings.js').Settings>} */
+const readSettings = async () => {
+  const settings = await getSettings().catch(() => DEFAULT_SETTINGS);
+  setLanguage(resolveLanguage(settings.language, chrome.i18n.getUILanguage()));
+  return settings;
+};
+
 /**
- * @param {() => Promise<unknown>} job A capture; what it returns says whether the shot was saved (see `save`).
+ * @param {(settings: import('./settings.js').Settings) => Promise<unknown>} job A capture; what it returns says whether the shot was saved (see `save`).
  * @param {boolean} [edit] "Capture and edit": once the shot is copied and saved, show it in the editor.
  */
 const exclusive = async (job, edit) => {
@@ -54,14 +63,10 @@ const exclusive = async (job, edit) => {
   said.lines.length = 0;
   said.error = said.long = false;
   let saved;
-  try { saved = await job(); } catch (e) { fail(e); } finally { busy = false; editing = false; }
+  try { saved = await job(await readSettings()); } catch (e) { fail(e); } finally { busy = false; editing = false; }
   if (!edit || !saved) return; // nothing saved (cancelled, failed): nothing to open
   try { await openLibrary(typeof saved === 'number' ? { shot: saved } : undefined); } catch (e) { fail(e); }
 };
-
-// Is the no-trace mode on? Read at every capture (the switch can be flipped between two). false when the settings cannot be read: the
-// mode is a choice the person made, and an unreadable database is no reason to refuse a capture its place in the history.
-const isNoTrace = () => getSettings().then((s) => s.noTrace, () => false);
 
 // Promise -> true if it succeeds (or its boolean value, or what it returns), false otherwise, and never rejects.
 const succeeds = (promise) => promise.then((v) => v ?? true, (e) => { console.error('Obturo:', e); return false; });
@@ -152,9 +157,8 @@ async function copyToClipboard(tabId, blob, b64) {
 
 // The copy goes first (the user wants to paste right away), the IndexedDB write runs in parallel.
 // Resolves with what addShot gave back (the id of the new shot), false if it was not saved.
-/** @param {Tab} tab @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @param {number} [covered] How many sensitive items the image has covered, when it was asked to cover them. @returns {Promise<number | boolean>} */
-async function save(tab, blob, w, h, b64, covered) {
-  const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (copy it, keep it)
+/** @param {Tab} tab @param {import('./settings.js').Settings} settings @param {Blob} blob @param {number} w @param {number} h @param {string} [b64] The PNG as base64 text, if known. @param {number} [covered] How many sensitive items the image has covered, when it was asked to cover them. @returns {Promise<number | boolean>} */
+async function save(tab, settings, blob, w, h, b64, covered) {
   // "Ask what to do" (a page offers the actions) and "Save the file" (the page downloads it): the capture is kept and nothing goes to the
   // clipboard unasked. Not in the no-trace mode (nothing is kept) and not for "Capture and edit" (the editor is the answer).
   if (settings.afterCapture !== 'copy' && !settings.noTrace && !editing) {
@@ -187,8 +191,8 @@ async function grabTabPng(tab) {
   return { blob: new Blob([bytes], { type: 'image/png' }), b64 };
 }
 
-/** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] An area, absent for the visible part. @param {boolean} [covered] The sensitive text is covered: it is uncovered as soon as the image is taken. */
-async function shoot(tab, area, covered) {
+/** @param {Tab} tab @param {import('./settings.js').Settings} settings @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] An area, absent for the visible part. @param {boolean} [covered] The sensitive text is covered: it is uncovered as soon as the image is taken. */
+async function shoot(tab, settings, area, covered) {
   await dropNote(tab);
   let { blob, b64 } = await grabTabPng(tab);
   if (covered) await uncover(tab);
@@ -207,11 +211,11 @@ async function shoot(tab, area, covered) {
     b64 = undefined; // the cropped image is another PNG
     w = c.w; h = c.h;
   }
-  return save(tab, blob, w, h, b64, hidden);
+  return save(tab, settings, blob, w, h, b64, hidden);
 }
 /** @param {Tab} tab @param {{ rect: import('./versions.js').Rect, vw: number, vh: number }} [area] @param {boolean} [edit] */
-const capture = (tab, area, edit) => exclusive(async () => {
-  const saved = await hiding(tab, (covered) => shoot(tab, area, covered), area?.rect);
+const capture = (tab, area, edit) => exclusive(async (settings) => {
+  const saved = await hiding(tab, settings, (covered) => shoot(tab, settings, area, covered), area?.rect);
   await saySo(tab);
   return saved;
 }, edit);
@@ -244,12 +248,10 @@ async function redactNote(tab) {
 
 /**
  * Runs a capture of one image, `job(covered)`, with the sensitive text covered when the settings ask for it, then says what was hidden.
- * @param {Tab} tab @param {(covered: boolean) => Promise<unknown>} job @param {import('./versions.js').Rect} [region] The part of the window the image keeps (an area).
+ * @param {Tab} tab @param {import('./settings.js').Settings} settings @param {(covered: boolean) => Promise<unknown>} job @param {import('./versions.js').Rect} [region] The part of the window the image keeps (an area).
  */
-async function hiding(tab, job, region) {
-  const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // unreadable: the defaults (nothing hidden)
+async function hiding(tab, settings, job, region) {
   if (!settings.redactSensitive) return job(false);
-  setLanguage(resolveLanguage(settings.language, chrome.i18n.getUILanguage()));
   await injectRedact(tab);
   await callRedact(tab, 'apply', region);
   let saved;
@@ -411,7 +413,7 @@ async function fullPageTiles(tab, settings, notes) {
       const key = unscrolledKey(scan);
       if (key) notes.push(t(key));
       if (settings.redactSensitive) await callRedact(tab, 'apply');
-      return await shoot(tab, undefined, settings.redactSensitive);
+      return await shoot(tab, settings, undefined, settings.redactSensitive);
     }
 
     const tol = 1 / m.dpr + 1; // the browser snaps a scroll to a device pixel
@@ -472,7 +474,7 @@ async function fullPageTiles(tab, settings, notes) {
     const { blob, w, h, k } = await stitcher.finish();
     if (isCut(plan.covered, lastMax + m.view)) notes.push(t('sw.full.cut'));
     if (k < 0.995) notes.push(t('sw.full.scaled', { n: Math.round(k * 100) }));
-    return await save(tab, blob, w, h, undefined, settings.redactSensitive ? await coveredCount(tab) : undefined);
+    return await save(tab, settings, blob, w, h, undefined, settings.redactSensitive ? await coveredCount(tab) : undefined);
   } finally {
     await callPage(tab, 'end').catch(() => {}); // idempotent: safety net if an error interrupted the loop
     if (settings.redactSensitive) await uncover(tab);
@@ -505,10 +507,8 @@ const dropNote = (tab) => (lastNote.tabId === tab.id && Date.now() - lastNote.at
 
 // The full page, and what it tells the user: in the language of the settings, once the page is back in order (the box must not be
 // in the image). A capture that stops says why and is still a failure (red badge, nothing saved).
-/** @param {Tab} tab */
-async function fullPage(tab) {
-  const settings = await getSettings().catch(() => DEFAULT_SETTINGS); // no settings: the defaults
-  setLanguage(resolveLanguage(settings.language, chrome.i18n.getUILanguage()));
+/** @param {Tab} tab @param {import('./settings.js').Settings} settings */
+async function fullPage(tab, settings) {
   /** @type {string[]} */
   const notes = [];
   let saved;
@@ -525,7 +525,7 @@ async function fullPage(tab) {
   return saved;
 }
 /** @param {Tab} tab @param {boolean} [edit] */
-const captureFull = (tab, edit) => exclusive(() => fullPage(tab), edit);
+const captureFull = (tab, edit) => exclusive((settings) => fullPage(tab, settings), edit);
 
 // ---------- user gestures ----------
 
@@ -563,12 +563,11 @@ const cancelCountdown = () => {
   badge('', GREY, 0);
 };
 /**
- * Waits for the delay of the settings (none: no wait). Resolves false when the capture must not go on: cancelled, another one is running,
+ * Waits `seconds` (none: no wait). Resolves false when the capture must not go on: cancelled, another one is running,
  * or the tab is no longer the one in front (captureVisibleTab would take another).
- * @param {Tab} tab
+ * @param {Tab} tab @param {number} seconds
  */
-async function afterDelay(tab) {
-  const seconds = await getSettings().then((s) => s.captureDelay, () => 0);
+async function afterDelay(tab, seconds) {
   if (!seconds) return true;
   if (busy) return void badge('...', GREY, IGNORED_BADGE_MS);
   const mine = (countdown = { cancelled: false });
@@ -599,13 +598,15 @@ const ACTIONS = {
 /** @param {string} name Command or menu entry. @param {any} [tab] The active tab (chrome.tabs.Tab). */
 const run = async (name, tab) => {
   if (!Object.hasOwn(ACTIONS, name)) return undefined;
-  if (countdown && name.startsWith('capture-')) return cancelCountdown();
+  if (!name.startsWith('capture-')) return ACTIONS[name](tab);
+  if (countdown) return cancelCountdown();
+  const settings = await readSettings();
   // "and edit" opens the capture in the library: with no trace there is none to open, and the person is told why
-  if (name.endsWith('-edit') && (await isNoTrace())) {
+  if (name.endsWith('-edit') && settings.noTrace) {
     if (tab) await notice(tab, [t('sw.noTrace.edit')]);
     return undefined;
   }
-  if (name.startsWith('capture-') && !(await afterDelay(tab))) return undefined;
+  if (!(await afterDelay(tab, settings.captureDelay))) return undefined;
   return ACTIONS[name](tab);
 };
 

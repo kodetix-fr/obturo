@@ -3,7 +3,8 @@
 // How: a local server logs everything it receives (requests, upgrades, new connections). One channel at a time (fetch, XHR, WebSocket, EventSource, beacon,
 // image, stylesheet, font, media, object, worker, prefetch, preconnect, frame, form, importScripts) is tried from a page of the test site (the control: the server MUST see
 // the connection, or the counter proves nothing), then from the pages of the extension and from the service worker (it must see
-// none). A failure names the channel that got through.
+// none). A failure names the channel that got through. Navigation (a tab, a window, a change of address) is the one thing the policy does not
+// stop: the last test says so, and manifest.test.js lists the only places where the code opens or navigates.
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -112,6 +113,21 @@ describe('privacy: the extension cannot reach a network', () => {
 
   it('the service worker: every channel is blocked, the server sees nothing', async () => {
     assert.deepEqual(await leaks((name) => h.sw.evaluate(tryChannel, [url, name])), [], 'channels that reached the server');
+  });
+
+  it('navigation is not stopped by the policy, which is why manifest.test.js lists every place the code may open a tab', async () => {
+    const page = await h.context.newPage();
+    await page.goto(h.url('popup.html'));
+    const reached = async (what, open) => {
+      const from = log.length;
+      await open();
+      await sleep(500);
+      assert.ok(log.length > from, `${what}: the server saw nothing, the browser now stops it: the sentence of PRIVACY.md can say so`);
+    };
+    await reached('window.open from a page of the extension', () => page.evaluate((u) => { window.open(u); }, url));
+    await reached('chrome.tabs.create from the service worker', () => h.sw.evaluate((u) => chrome.tabs.create({ url: u, active: false }), url));
+    await reached('a change of address of a page of the extension', () => page.evaluate((u) => { location.href = u; }, url));
+    for (const open of h.context.pages()) await open.close().catch(() => {});
   });
 
   it('opening the library and the popup makes no request but to the extension itself', async () => {

@@ -14,17 +14,20 @@ concurrency:
   group: security-${{ github.ref }}
   cancel-in-progress: true
 
-# Actions pinned to a commit; the comment carries the tag Dependabot tracks.
+# Actions pinned to a commit; the comment carries the tag Dependabot tracks. The Semgrep image is pinned by digest and bumped by hand
+# (Dependabot does not read the image of a job).
 jobs:
   semgrep:
     name: Semgrep (code, secrets, workflows)
     runs-on: ubuntu-latest
-    container: semgrep/semgrep
+    container: semgrep/semgrep:1.184.0@sha256:cc1b68266f267878b39739373ea9985b9a78e5d64497dd875c8de100b22695ed
     permissions:
       contents: read
       security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # No rule is excluded. vendor/ is left out: it is Fabric.js, third-party and minified, pinned and checked by
       # hand (vendor/README.md), and no scanner rule can be fixed there.
       - name: Scan
