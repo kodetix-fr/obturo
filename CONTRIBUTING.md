@@ -228,9 +228,13 @@ To release, in one pull request: set `version` in `manifest.json`, `package.json
 and `package-lock.json`, replace "unreleased" by the date in the entry of
 `CHANGELOG.md`, and run `npm run check` and `npm run package`. Once it is
 merged, tag the merge commit
-`vX.Y.Z` on `main`. The release workflow checks that the tag matches the version
-of `manifest.json`, creates the GitHub release with generated notes, and uploads
-the zip with a `.sha256` file.
+`vX.Y.Z` on `main`. The release workflow first refuses a tag whose commit is not
+on `main` or whose name differs from the version of `manifest.json`,
+`package.json` or `package-lock.json`; then it runs `npm run check` and the
+end-to-end tests on the tagged commit; only then does it create the GitHub
+release with generated notes and upload the zip with a `.sha256` file. A tag that
+fails one of these publishes nothing, and the job can be re-run once the cause is
+fixed (a tag moved to another commit is deleted and pushed again).
 
 ## Reporting a bug
 
