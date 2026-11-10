@@ -67,6 +67,8 @@ The seven languages after French are assisted translations, not yet reviewed by 
 
 Obturo capture, annote et garde tes captures d'écran, sans compte et sans serveur.
 
+Gratuit et open source (licence MIT, code sur github.com/kodetix-fr/obturo) : aucun compte, aucun filigrane, aucune publicité, aucune limite au nombre de captures, et rien ne quitte ton ordinateur.
+
 CAPTURER
 - Capture une zone, un élément de la page, la partie visible ou la page entière d'un onglet : au clic sur l'icône, au raccourci clavier ou dans le menu du clic droit sur l'icône.
 - Les variantes « Capturer et éditer » ouvrent la capture dans l'éditeur dès qu'elle est prête.
@@ -103,6 +105,8 @@ Limites : la capture de la page entière suit une seule zone de défilement par
 ### English
 
 Obturo captures, annotates and keeps your screenshots, with no account and no server.
+
+Free and open source (MIT licence, source at github.com/kodetix-fr/obturo): no account, no watermark, no ads, no limit on the number of captures, and nothing leaves your computer.
 
 CAPTURE
 - Capture an area, an element of the page, the visible part or the full page of a tab: from the icon, a keyboard shortcut or the icon's right-click menu.

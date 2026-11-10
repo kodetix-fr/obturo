@@ -15,6 +15,10 @@ screenshots: an area, the visible part or the full page of a tab, copied to the
 clipboard and kept in a searchable history on your computer. 100% local,
 no account, free and open source. The interface comes in nine languages.
 
+**The promise**: free and open source (MIT), no account, no watermark, no ads,
+no limit on the number of captures, and nothing leaves your computer. The code
+that keeps it is this repository.
+
 It exists because capturing a page, hiding the part that must not be shared and
 pasting the result into a ticket needs no account, no server and no permission
 to read every site you open. Obturo does it with three permissions, and keeps
