@@ -1,6 +1,7 @@
 // What the icon's right-click menu contains and where a gesture sends the user, as data and pure functions (no chrome.*,
 // no i18n import): sw.js builds the menu from it, the tests check it without a browser.
 import { resolveLanguage } from './languages.js';
+import { MESSAGES } from './bus.js';
 //
 // A leaf is named after the action it runs, which is also the name of the manifest command that does the same thing
 // (capture-area, capture-visible-edit...): the keyboard shortcuts and the menu share one dispatch table in sw.js.
@@ -51,8 +52,8 @@ export function menuItems(translate, defs = MENU, parentId) {
  * @returns {{ hash: string, message: { type: string, id?: number } | null }}
  */
 export function libraryTarget({ shot, settings } = {}) {
-  if (Number.isInteger(shot)) return { hash: `#shot=${shot}`, message: { type: 'open-shot', id: shot } };
-  if (settings) return { hash: '#settings', message: { type: 'open-settings' } };
+  if (Number.isInteger(shot)) return { hash: `#shot=${shot}`, message: { type: MESSAGES.openShot, id: shot } };
+  if (settings) return { hash: '#settings', message: { type: MESSAGES.openSettings } };
   return { hash: '', message: null };
 }
 

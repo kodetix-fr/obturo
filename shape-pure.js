@@ -7,7 +7,7 @@ export const SHAPES = /** @type {const} */ (['rect', 'round', 'ellipse', 'free']
 export const DEFAULT_SHAPE = 'rect';
 
 /** The ends an arrow can have: a head at the end, none (a plain line), a head at both ends. */
-export const ENDS = /** @type {const} */ (['end', 'none', 'both']);
+const ENDS = /** @type {const} */ (['end', 'none', 'both']);
 export const DEFAULT_ENDS = 'end';
 
 /** @param {unknown} value @returns {'end' | 'none' | 'both'} the ends, or the default for anything else (an arrow saved before the choice existed has none: a head at the end) */
@@ -50,7 +50,7 @@ export function shapeOf({ width = 0, height = 0, rx = 0, ry = 0, pts }) {
 // --- Free shapes ---
 
 /** A free shape needs at least this many points (two make a line: the brush of the highlighter, nothing for an area). */
-export const MIN_POINTS = 2;
+const MIN_POINTS = 2;
 
 /**
  * Drops the points of a path that a straight line between the others replaces within `tolerance` (Ramer-Douglas-Peucker): a hand

@@ -9,6 +9,7 @@ import { thumbPlan, THUMB_QUALITY, versionsKey } from './thumb-pure.js';
 import { DEFAULT_SETTINGS, LIBRARY_LOCK, getSettings, readAppearance, setOpenShots, setSettings, writeAppearance } from './settings.js';
 import { formatDate, formatNumber, loadLanguage, resolveLanguage, setLanguage, t } from './i18n.js';
 import { applyDom, byId as $, icon, setI18n } from './dom-i18n.js';
+import { BUS_NAME, MESSAGES } from './bus.js';
 
 /** @typedef {import('./db.js').Shot} Shot */
 
@@ -123,8 +124,8 @@ async function applySettings(s) {
   applyDom();
   relabelStrip();
   if (booted) showHistoryCount(); // the first time, after the first paint (init): formatting a number builds an Intl object, 7 to 13 ms when cold
-  historyModule?.then((m) => m.relocalize()).catch(() => {});
-  editorPromise?.then((e) => e.relocalize()).catch(() => {});
+  historyModule?.then((m) => m.relocalize()).catch((e) => console.error('Obturo: history language', e));
+  editorPromise?.then((e) => e.relocalize()).catch((e) => console.error('Obturo: editor language', e));
 }
 
 // The page was hidden until the language and the theme are known.
@@ -403,7 +404,8 @@ async function remove(id) {
   if (readOnly) return;
   const s = shots.find((x) => x.id === id);
   if (!s) return;
-  const { confirmDialog, deleteWords } = await import('./history-dialogs.js'); // the same dialog as the history
+  const { confirmDialog } = await import('./dialogs.js'); // the same dialog as the history
+  const { deleteWords } = await import('./history-dialogs.js');
   if (!(await confirmDialog(await deleteWords([id], s)))) return;
   try {
     if (id === current?.id) {
@@ -464,14 +466,14 @@ const bringForward = () => chrome.tabs.getCurrent()
   .catch(() => {});
 
 // Messages of the other parts of the extension (service worker, other tabs).
-const bus = new BroadcastChannel('obturo');
+const bus = new BroadcastChannel(BUS_NAME);
 bus.onmessage = ({ data }) => {
-  if (data?.type === 'settings-changed') getSettings().then(applySettings).catch((e) => console.error('Obturo: settings', e));
-  else if (data?.type === 'open-shot' && Number.isInteger(data.id)) {
+  if (data?.type === MESSAGES.settingsChanged) getSettings().then(applySettings).catch((e) => console.error('Obturo: settings', e));
+  else if (data?.type === MESSAGES.openShot && Number.isInteger(data.id)) {
     if (!readOnly) bringForward();
     openShot(data.id);
   }
-  else if (data?.type === 'open-settings') openSettings(); // the icon menu, on a tab that is already open
+  else if (data?.type === MESSAGES.openSettings) openSettings(); // the icon menu, on a tab that is already open
   else if (data?.type === 'shot-saved' && readOnly && current?.id === data.id) redrawViewed(data.id);
 };
 
@@ -683,14 +685,14 @@ function afterStartup() {
     } catch (e) {
       console.error('Obturo: retention', e);
     }
-    loadHistory().catch(() => {});
-    import('./about-ui.js').then((m) => m.showNewsDot()).catch(() => {}); // the dot of the settings button, if there are news
+    loadHistory().catch((e) => console.error('Obturo: history', e));
+    import('./about-ui.js').then((m) => m.showNewsDot()).catch((e) => console.error('Obturo: news', e)); // the dot of the settings button, if there are news
   });
 }
 
 // ---------- startup ----------
 
-const readTotal = () => countShots().then((n) => { totalCount = n; showHistoryCount(); }).catch(() => {}); // what "All history" says
+const readTotal = () => countShots().then((n) => { totalCount = n; showHistoryCount(); }).catch((e) => console.error('Obturo: count', e)); // what "All history" says
 
 async function init() {
   const lock = acquireLock(); // in parallel: the strip does not wait for it

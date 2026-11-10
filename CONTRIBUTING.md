@@ -86,8 +86,9 @@ A few things that are easy to miss:
 - **The service worker stays light.** At load time it holds constants and
   listeners only, because it restarts often (the one exception is the rebuild of
   the icon menu, asynchronous and off the capture path). It imports `db.js`,
-  `pure.js`, `fullpage-pure.js`, `gestures.js`, `i18n.js`, `settings.js`, `notice.js`
-  and `about.js` and what they import, never Fabric.js.
+  `pure.js`, `fullpage-pure.js`, `fullpage-stitch.js`, `gestures.js`, `i18n.js`,
+  `settings.js`, `notice.js`, `about.js` and `bus.js` and what they import, never
+  Fabric.js.
 - **Stay small.** No build step, no test framework, no code formatter: follow
   `.editorconfig` and ESLint, and the style of the file you are in. Tests use
   `node:test`; Playwright is only the browser driver (`devDependency`).

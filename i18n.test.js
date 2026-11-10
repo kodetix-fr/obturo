@@ -255,7 +255,7 @@ test('history texts: plurals complete in every language, every key used, every k
     if (Object.hasOwn(enHistory, key)) assert.ok(pair, `${key} has no twin`);
     if (pair && m[2] === 'other') for (const code of CODES) assert.match(whole[code][key], /\{n\}/, `${code}: ${key} takes {n}`);
   }
-  const sources = ['library.html', 'library.js', 'i18n.js', 'editor.js', 'history-view.js', 'history-dialogs.js', 'history-settings.js'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'));
+  const sources = ['library.html', 'library.js', 'i18n.js', 'editor.js', 'history-view.js', 'history-dialogs.js', 'dialogs.js', 'history-settings.js'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'));
   const used = new Set();
   for (const text of sources) {
     for (const m of text.matchAll(/['"](hist(?:\.[A-Za-z]+)+)['"]/g)) used.add(m[1]);
@@ -299,8 +299,8 @@ test('popup.js loads the sw and popup parts of every language of the extension, 
   assert.ok(code.indexOf("import('./popup-notice.js')") > code.indexOf("'obturo:popup-painted'"), 'the notice (dot, request for a review) comes after the first paint');
   assert.deepEqual(Object.keys(POPUP_TEXTS).sort(), [...CODES].sort(), 'locales/popup.js carries every language');
   for (const code of CODES) assert.deepEqual(POPUP_TEXTS[code], { ...parts[code].sw, ...parts[code].popup }, `locales/popup.js: the texts of ${code}`);
-  assert.ok(source.includes("'obturo.appearance'"), 'the key of the copy of settings.js');
-  assert.ok(readFileSync(new URL('settings.js', import.meta.url), 'utf8').includes("const APPEARANCE_KEY = 'obturo.appearance'"));
+  assert.match(source, /^import \{ APPEARANCE_KEY \} from '\.\/bus\.js';$/m, 'the key of the copy of settings.js, from bus.js');
+  assert.ok(readFileSync(new URL('bus.js', import.meta.url), 'utf8').includes("APPEARANCE_KEY = 'obturo.appearance'"));
 });
 
 // chooser: the texts of the window that asks what to do with a capture (locales/*.chooser.js), checked against chooser.js and chooser.html.

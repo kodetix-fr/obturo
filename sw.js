@@ -1,12 +1,14 @@
 import { addShot } from './db.js';
 import { cropRect, cleanArea, pngSize, decodeDataUrl } from './pure.js';
-import { planTiles, growPlan, pickScroller, clipBox, canvasSize, tileDest, isCut, unscrolledKey, failureKey } from './fullpage-pure.js';
+import { planTiles, growPlan, pickScroller, clipBox, isCut, unscrolledKey, failureKey } from './fullpage-pure.js';
+import { createStitcher } from './fullpage-stitch.js';
 import { menuItems, libraryTarget, cleanNoTrace, cleanDelay, cleanPopupRun, cleanChooserEdit } from './gestures.js';
 import { t, plural, addTexts, setLanguage, resolveLanguage } from './i18n.js';
 import SW_TEXTS from './locales/sw.js';
 import { DEFAULT_SETTINGS, getSettings, setSettings } from './settings.js';
 import { removeNotice, showNotice } from './notice.js';
 import { countCapture, noteInstalled } from './about.js';
+import { BUS_NAME, MESSAGES } from './bus.js';
 
 // The texts of the worker in every language (a worker cannot import() a language on demand): the menu, the tooltip, the notices.
 for (const [lang, texts] of Object.entries(SW_TEXTS)) addTexts(lang, texts);
@@ -101,7 +103,7 @@ async function openLibrary(target) {
   const { hash, message } = libraryTarget(target);
   const announce = () => {
     if (!message) return;
-    const channel = new BroadcastChannel('obturo');
+    const channel = new BroadcastChannel(BUS_NAME);
     channel.postMessage(message);
     channel.close();
   };
@@ -203,7 +205,7 @@ async function shoot(tab, settings, area, covered) {
     if (c.w < 1 || c.h < 1) throw new Error('area outside the page');
     const bmp = await createImageBitmap(blob, c.x, c.y, c.w, c.h); // a single decode, already cropped
     const out = new OffscreenCanvas(c.w, c.h);
-    const ctx = out.getContext('2d', { willReadFrequently: true }); // CPU canvas, see createStitcher
+    const ctx = out.getContext('2d', { willReadFrequently: true }); // CPU canvas, see openCanvas in fullpage-stitch.js
     if (!ctx) { bmp.close(); throw new Error('2D context unavailable'); }
     ctx.drawImage(bmp, 0, 0);
     bmp.close();
@@ -305,85 +307,6 @@ function callPage(tab, method, ...args) {
     if (r?.result == null) throw new Error(`page did not answer (${method})`);
     return r.result;
   });
-}
-
-/**
- * A canvas for the stitching. willReadFrequently: a canvas kept in the memory of the worker instead of the GPU process,
- * where its 2D canvas lives otherwise. MEASURED (Chromium 143, headless, software GL: no hardware GPU, so the figures are an
- * order of magnitude, not a promise): for a 31 Mpx page the GPU process grows by 597 MB (1080p tiles) or 681 MB (4K tiles)
- * without it, by 53 and 197 MB with it; all processes together +858 -> +463 MB (1080p) and +935 -> +623 MB (4K); the duration
- * goes from 10.0 to 9.6 s (1080p, the 550 ms per tile dominates) and from 5.9 to 2.5 s (4K, the PNG encoding no longer
- * reads the canvas back from the GPU). pdf.js does the same for its readbacks.
- */
-function openCanvas(w, h) {
-  const canvas = new OffscreenCanvas(w, h);
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('2D context unavailable');
-  ctx.imageSmoothingQuality = 'high'; // only useful when the scale falls back
-  return { canvas, ctx };
-}
-
-/**
- * Stitches the tiles of a full page into an OffscreenCanvas, one decoded tile at a time. The geometry comes from the
- * first tile (size of the captured image relative to the window); the following tiles must have the same size. Of each
- * tile, only the part that shows the target (the whole window for the document, the box of a scroller) is kept.
- * @param {ImageBitmap} first First tile (not closed here; only its dimensions are used).
- * @param {Target} m What is scrolled and where it shows.
- * @param {number} covered Height covered, in CSS px.
- */
-function createStitcher(first, m, covered) {
-  const { width, height } = first; // read right away: once closed, a bitmap is 0 x 0 px
-  const sy = height / m.vh; // image px per CSS px
-  const crop = cropRect(m.vis, m.vw, m.vh, width, height); // the target in a tile, without the scrollbar, in image px
-  if (crop.w < 1 || crop.h < 1) throw new Error('scrolled area outside the window');
-  let size = canvasSize(covered, crop.w, sy); // where the page is planned to end; the canvas is as tall only once a tile needs it
-  let { canvas, ctx } = openCanvas(size.w, size.h);
-  let end = Infinity; // first canvas row not covered yet (nothing is pasted at the start)
-
-  // The same pixels in a canvas of another height, the old one freed at once. For the rare cases only (the target grew, or
-  // ended sooner than planned): the old and the new canvas live together for the duration of the copy.
-  const resize = (h) => {
-    const next = openCanvas(size.w, h);
-    next.ctx.drawImage(canvas, 0, 0);
-    canvas.width = canvas.height = 0;
-    ({ canvas, ctx } = next);
-  };
-
-  return {
-    /** Pastes a tile taken at the ACTUAL scroll position `y` (CSS px), then closes its bitmap. */
-    paste(bmp, y) {
-      if (bmp.width !== width || bmp.height !== height) {
-        bmp.close();
-        throw new Error('window size changed during the capture');
-      }
-      // +1 row: covers rounding, the next tile paints over it. Not for a scroller: that row is outside its box, another content
-      const srcRows = Math.min(bmp.height - crop.y, crop.h + (m.inner ? 0 : 1));
-      const d = tileDest(y, sy, srcRows, size.k, end, size.h);
-      if (d.dy + d.dh > canvas.height && canvas.height < size.h) resize(size.h); // the page grew since the canvas was made
-      ctx.drawImage(bmp, crop.x, crop.y, crop.w, srcRows, 0, d.dy, size.w, d.dh);
-      bmp.close();
-      end = d.dy + d.dh;
-    },
-    /**
-     * Plans for `covered` CSS px (the target grew). Refused (false) if the scale would change: the capture then stops at the
-     * size it had, which keeps the top of the page at full resolution, as a page cut at MAX_TILES.
-     * ponytail: growth is followed while the scale of the canvas stays the same, past that the page is cut where it is; redraw the canvas at the new scale to go on.
-     */
-    extend(covered) {
-      const next = canvasSize(covered, crop.w, sy);
-      if (next.k !== size.k || next.w !== size.w) return false;
-      size = next;
-      return true;
-    },
-    /** Encodes the final PNG, then frees the pixel memory of the canvas right away. */
-    async finish() {
-      const used = Math.min(end, size.h, canvas.height);
-      if (canvas.height - used > 2) resize(used); // the target ended sooner than planned: no blank rows at the bottom
-      const out = { blob: await canvas.convertToBlob({ type: 'image/png' }), w: size.w, h: canvas.height, k: size.k };
-      canvas.width = canvas.height = 0;
-      return out;
-    },
-  };
 }
 
 // We scroll, capture each tile, paste it into the canvas right away and close its bitmap (never more than one decoded
@@ -546,8 +469,8 @@ const startPicker = async (tab, file, id, edit) => {
         args: [id],
       });
     }
-  } catch {
-    badge('ERR', RED);
+  } catch (e) {
+    fail(e);
   }
 };
 const startArea = (tab, edit = false) => startPicker(tab, 'overlay.js', 'obturo-overlay', edit);
@@ -634,9 +557,11 @@ async function runFromPopup({ id, tab }) {
 // Message from the popup: from the extension itself, from the popup page and not from a tab (a content script or the overlay
 // has sender.tab). Answers at once (true = accepted) so that the popup knows the worker has it before it closes.
 const POPUP_URL = chrome.runtime.getURL('popup.html');
+/** @param {chrome.runtime.MessageSender} sender */
+const isFromPopup = (sender) => sender.id === chrome.runtime.id && !sender.tab && sender.url === POPUP_URL;
 /** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
 function onPopupRun(m, sender, respond) {
-  const request = sender.id === chrome.runtime.id && !sender.tab && sender.url === POPUP_URL ? cleanPopupRun(m) : null;
+  const request = isFromPopup(sender) ? cleanPopupRun(m) : null;
   respond(!!request);
   if (request) runFromPopup(request).catch(fail);
 }
@@ -645,7 +570,7 @@ function onPopupRun(m, sender, respond) {
 // rebuilds the menu, the tooltip and the icon, which follow it); the popup shows the state it asked for and takes it back if told no.
 /** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
 function onPopupNoTrace(m, sender, respond) {
-  const value = sender.id === chrome.runtime.id && !sender.tab && sender.url === POPUP_URL ? cleanNoTrace(m) : null;
+  const value = isFromPopup(sender) ? cleanNoTrace(m) : null;
   if (value === null) return respond(false);
   setSettings({ noTrace: value }).then(() => respond(true), (e) => { fail(e); respond(false); });
   return true; // the answer comes once the setting is stored
@@ -654,7 +579,7 @@ function onPopupNoTrace(m, sender, respond) {
 // Message from the popup: its delay control was changed. Same sender rule and same answer as the no-trace switch.
 /** @param {any} m @param {chrome.runtime.MessageSender} sender @param {(accepted: boolean) => void} respond */
 function onPopupDelay(m, sender, respond) {
-  const value = sender.id === chrome.runtime.id && !sender.tab && sender.url === POPUP_URL ? cleanDelay(m) : null;
+  const value = isFromPopup(sender) ? cleanDelay(m) : null;
   if (value === null) return respond(false);
   setSettings({ captureDelay: value }).then(() => respond(true), (e) => { fail(e); respond(false); });
   return true; // the answer comes once the setting is stored
@@ -672,7 +597,7 @@ function onChooserEdit(m, sender, respond) {
 
 // Message from the overlay: only from the main frame of a tab, shape validated before any computation.
 function onMessage(m, sender, respond) {
-  if (m?.type === 'settings-changed') return void rebuildMenu(); // sent by pages that want the stopped worker to wake up
+  if (m?.type === MESSAGES.settingsChanged) return void rebuildMenu(); // sent by pages that want the stopped worker to wake up
   if (m?.type === 'popup-run') return onPopupRun(m, sender, respond);
   if (m?.type === 'popup-notrace') return onPopupNoTrace(m, sender, respond);
   if (m?.type === 'popup-delay') return onPopupDelay(m, sender, respond);
@@ -740,5 +665,5 @@ chrome.action.setBadgeText({ text: '' });
 chrome.runtime.onInstalled.addListener(rebuildMenu);
 chrome.runtime.onInstalled.addListener((details) => noteInstalled(details).catch((e) => console.error('Obturo:', e)));
 chrome.runtime.onStartup.addListener(rebuildMenu);
-const settingsChannel = new BroadcastChannel('obturo');
-settingsChannel.onmessage = (e) => { if (e.data?.type === 'settings-changed') rebuildMenu(); };
+const settingsChannel = new BroadcastChannel(BUS_NAME);
+settingsChannel.onmessage = (e) => { if (e.data?.type === MESSAGES.settingsChanged) rebuildMenu(); };

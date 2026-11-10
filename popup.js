@@ -7,6 +7,7 @@
 // its focus back, then runs the action (sw.js).
 import { CAPTURE_DELAYS, POPUP_ICONS, popupGroups, popupLanguage, shortcutKeys } from './gestures.js';
 import TEXTS from './locales/popup.js';
+import { APPEARANCE_KEY } from './bus.js';
 
 // The texts of the rows are the 'menu.*' ones of the icon menu, with the 'popup.*' ones: only these two small parts of each language
 // are loaded (locales/popup.js, not i18n.js with the whole interface of the library, which costs a few dozen milliseconds when the
@@ -26,7 +27,6 @@ function icon(name) {
   return svg;
 }
 
-const COPY_KEY = 'obturo.appearance'; // the copy of the settings in localStorage (settings.js): the language, the theme, the no-trace mode, the delay
 const menu = /** @type {HTMLElement} */ (document.getElementById('menu'));
 /** @type {HTMLButtonElement[]} */
 const items = [];
@@ -134,8 +134,8 @@ function paintNoTrace(on) {
 /** @param {Record<string, unknown>} patch */
 function writeCopy(patch) {
   try {
-    const raw = JSON.parse(localStorage.getItem(COPY_KEY) ?? 'null');
-    localStorage.setItem(COPY_KEY, JSON.stringify({ ...(raw && typeof raw === 'object' ? raw : {}), ...patch }));
+    const raw = JSON.parse(localStorage.getItem(APPEARANCE_KEY) ?? 'null');
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ ...(raw && typeof raw === 'object' ? raw : {}), ...patch }));
   } catch { /* no localStorage, or not JSON: the worker has the setting all the same */ }
 }
 
@@ -273,7 +273,7 @@ menu.addEventListener('focusin', (e) => {
 async function init() {
   // the copy of the language that settings.js keeps in localStorage (the library or the worker wrote it); none yet: the browser's
   let copy = null;
-  try { copy = localStorage.getItem(COPY_KEY); } catch { /* no localStorage: the browser's language */ }
+  try { copy = localStorage.getItem(APPEARANCE_KEY); } catch { /* no localStorage: the browser's language */ }
   lang = popupLanguage(copy, chrome.i18n.getUILanguage());
   try {
     const saved = JSON.parse(copy ?? 'null');

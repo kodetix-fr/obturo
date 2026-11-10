@@ -4,6 +4,7 @@
 import { LANGUAGES } from './languages.js';
 import { CAPTURE_DELAYS } from './gestures.js';
 import { done, wait } from './idb.js';
+import { APPEARANCE_KEY, BUS_NAME, MESSAGES } from './bus.js';
 
 /** @typedef {{ language: string, theme: string, retentionDays: number, maxBytes: number, downloadFormat: string, downloadQuality: number, pdfLayout: string, pdfEncoding: string, filenameTemplate: string, afterCapture: string, fullPageWait: number, fullPageFixed: string, noTrace: boolean, captureDelay: number, redactSensitive: boolean }} Settings */
 
@@ -175,7 +176,6 @@ export async function liveOpenShots() {
 // The popup also reads the copy for the no-trace mode and the delay before a capture (controls it shows at once, with no database); it writes it too when
 // one is changed there, since it is the page that changes the setting (through the service worker).
 // ponytail: only what a first frame needs is copied (the language, the theme, the no-trace mode, the delay); add a key here if another setting must be known before IndexedDB answers.
-const APPEARANCE_KEY = 'obturo.appearance';
 
 /** @returns {{ language: string, theme: string, noTrace: boolean, captureDelay: number } | null} the copy, validated, or null if there is none yet */
 export function readAppearance() {
@@ -202,11 +202,11 @@ export function writeAppearance({ language, theme, noTrace = false, captureDelay
  * chrome API (Node tests) only the channel is used; nobody listening is not an error.
  */
 export function notifySettingsChanged() {
-  const channel = new BroadcastChannel('obturo');
-  channel.postMessage({ type: 'settings-changed' });
+  const channel = new BroadcastChannel(BUS_NAME);
+  channel.postMessage({ type: MESSAGES.settingsChanged });
   channel.close();
   if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return;
   try {
-    Promise.resolve(chrome.runtime.sendMessage({ type: 'settings-changed' })).catch(() => {}); // no receiver, context gone
+    Promise.resolve(chrome.runtime.sendMessage({ type: MESSAGES.settingsChanged })).catch(() => {}); // no receiver, context gone
   } catch { /* the extension was reloaded under this page */ }
 }
