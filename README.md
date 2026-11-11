@@ -506,7 +506,8 @@ databases, the retention, the version model and the budgets.
   `history-settings.js`, `settings-ui.js`: the history sheet, its logic, its
   confirmations, the history block of the settings, and the settings dialog.
   Loaded on first use.
-- `editor.js`, `panel.js`, `dom.js`, `output.js`, `shapes.js`: the editor, built
+- `editor.js`, `editor-crop.js`, `editor-mouse.js`, `turn-objects.js`, `panel.js`,
+  `dom.js`, `output.js`, `shapes.js`: the editor, built
   on [Fabric.js](https://github.com/fabricjs/fabric.js) and loaded after the
   strip is painted.
 - `export-ui.js`, `export-batch.js`, `export-pure.js`, `export.css`,

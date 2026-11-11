@@ -74,7 +74,8 @@ writes go through db.js (updateShot, setPinned, deleteShots, purgeNow...)
 | `history-view.js`, `history-model.js` | The history sheet (a large modal dialog): windowed grid, search, filters, selection and keyboard, bulk actions. `history-model.js` is its pure logic. Loaded on first use. |
 | `history-dialogs.js`, `history-settings.js`, `settings-ui.js` | The confirmation dialog (every confirmation of the page goes through it: the history, the strip, the versions of the editor) and the deletion with a progress, the "Purge now" and "Delete everything" flows, the history block of the settings (gauge, retention selects), and the settings dialog. Loaded on first use. |
 | `dialogs.js` | `confirmDialog`, the confirmation dialog of `library.html`, apart from `history-dialogs.js` so that the editor can ask before deleting a version without loading the database and the settings. |
-| `editor.js` | Controller of the Fabric.js 6.9.1 editor: canvas and view, drawing tools, versions, crop, saving, life cycle of an open capture. Imported dynamically by `library.js`. |
+| `editor.js` | Controller of the Fabric.js 6.9.1 editor: canvas and view, tools, versions, saving, life cycle of an open capture. Imported dynamically by `library.js`. |
+| `editor-crop.js`, `editor-mouse.js`, `turn-objects.js` | What the controller hands over, each through a host of functions the editor gives it (never its variables): the crop box (adjust, apply, clear, the shade outside it), the mouse gesture that draws with the armed tool, and the quarter turn of the objects drawn on a capture. |
 | `panel.js` | The controls of `library.html`: what the editor shows there (active tool, settings of the selected object, versions, output size) and the events it gets from them, passed to the editor as actions. |
 | `dom.js` | The elements of `library.html` that the editor drives, typed, looked up once. A missing id, or one of another kind, throws a clear error at import. |
 | `history.js` | Undo and redo history (50 levels): a stack of JSON snapshots and a cursor. Pure. Not to be mistaken for the history of the captures, which is `history-*.js`. |
@@ -183,12 +184,15 @@ The editor keeps its undo history (`history.js`, 50 levels) as JSON of objects, 
 
 ## How the editor is split
 
-`editor.js` is the controller: it owns the state (open capture, Fabric canvas, tool, view, crop) and chains the actions. The rest sits in modules that each have one responsibility:
+`editor.js` is the controller: it owns the state (open capture, Fabric canvas, tool, view) and chains the actions. The rest sits in modules that each have one responsibility:
 
 | Module | Responsibility | Depends on |
 |---|---|---|
 | `panel.js` | Controls of `library.html`: display and events | `dom.js`, `dom-i18n.js`, `i18n.js`, `shapes.js`, `versions.js`, `settings.js` (the names of the formats), `pure.js`, the pure modules of the tools (`shape-pure.js`, `emoji-pure.js`, `mask-pure.js`, `marker-pure.js`, `highlight-pure.js`, `beautify-pure.js`), Fabric (to recognise texts) |
 | `dom.js` | Elements of `library.html`, typed | nothing |
+| `editor-crop.js` | The crop box and the shade outside the crop | Fabric, `versions.js`, `panel.js` |
+| `editor-mouse.js` | The gesture that draws a shape, a text, a marker or an emoji | `shapes.js`, `shape-pure.js`, `panel.js` |
+| `turn-objects.js` | The quarter turn of the objects drawn on a capture | Fabric, `shapes.js`, `marker-pure.js`, `turn-pure.js` |
 | `history.js` | Undo and redo stack | nothing (pure, tested) |
 | `output.js` | Rendering of a version and of its thumbnail | `versions.js`, `thumb-pure.js`, `beautify.js` |
 | `beautify-pure.js`, `beautify.js` | The beautify look: style and geometry, drawing | nothing (pure, tested), `beautify-pure.js` |
