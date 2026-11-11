@@ -1,5 +1,5 @@
 // Obturo's own Fabric objects. None holds pixels in its serialization:
-// the pixelated and the blurred regions reread the original image (source.img) to draw themselves.
+// the pixelated, the blurred and the spotlight regions reread the original image of their canvas (setSource) to draw themselves.
 import { FabricObject, IText, Path, Rect, classRegistry } from './vendor/fabric.min.mjs';
 import { EMOJI_FONT, cleanEmoji } from './emoji-pure.js';
 import { blockAverages, regionBox, tilePlan } from './mask-pure.js';
@@ -8,8 +8,19 @@ import { DEFAULT_HIGHLIGHT, HIGHLIGHT_OPACITY } from './highlight-pure.js';
 import { SPOT_SHADE } from './spot-pure.js';
 import { DEFAULT_ENDS, cleanEnds, shapeOf, shapeRadii } from './shape-pure.js';
 
-// Decoded original image (ImageBitmap), full resolution. Set by the editor when a shot is opened.
-export const source = { img: null };
+const sources = new WeakMap();
+
+/** Gives `canvas` the decoded original (full resolution) its regions draw from, or takes it away with null. @param {object} canvas @param {ImageBitmap | null} img */
+export function setSource(canvas, img) {
+  if (img) sources.set(canvas, img);
+  else sources.delete(canvas);
+}
+
+const hostOf = (object) => object.canvas ?? object.group?.canvas;
+const sourceOf = (object) => {
+  const host = hostOf(object);
+  return host && sources.get(host);
+};
 
 // Width of a text in a font, measured on a canvas that is never drawn (the legend of a marker sets the width of its box from it).
 let ruler = null;
@@ -326,8 +337,8 @@ export class Spot extends Rect {
   }
 
   _render(ctx) {
-    const { img } = source;
-    const host = this.canvas ?? this.group?.canvas;
+    const host = hostOf(this);
+    const img = sourceOf(this);
     if (!img || !host) return;
     const spots = host.getObjects().filter((o) => o instanceof Spot);
     if (spots[0] !== this) return;
@@ -379,7 +390,7 @@ export class PixelRegion extends Rect {
   }
 
   _render(ctx) {
-    const { img } = source;
+    const img = sourceOf(this);
     if (!img) return;
     // Area of the document under the object (angle always 0). getCenterPoint gives absolute coordinates,
     // even when the object is moved along with others in a multiple selection (left/top are relative to the group there).
@@ -441,7 +452,7 @@ export class BlurRegion extends Rect {
   // for a moment); read it in bands of rows, one block row at a time, if that peak ever matters.
   /** The exact tile of the current area (a canvas of one pixel per block), computed if the area, the block or the image changed. */
   settle() {
-    const { img } = source;
+    const img = sourceOf(this);
     const plan = img && this._plan(img);
     if (!plan) return null;
     if (this._exactKey !== plan.key || this._exactImg !== img) {
@@ -479,9 +490,9 @@ export class BlurRegion extends Rect {
   }
 
   _render(ctx) {
-    const { img } = source;
+    const img = sourceOf(this);
     if (!img) return;
-    const host = this.canvas ?? this.group?.canvas;
+    const host = hostOf(this);
     const shown = this.live && ctx === host?.getContext() ? this._preview(img) : this.settle();
     if (!shown) return;
     const { box, area } = shown;

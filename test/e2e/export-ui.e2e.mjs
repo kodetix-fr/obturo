@@ -881,8 +881,9 @@ describe('export: the grouped export', () => {
     const m = await mapper(page, 1280, 720);
     await tool(page, 'flat');
     await drag(page, m, 990, 290, 1210, 510);
+    await page.waitForSelector('#undo:not([disabled])'); // the editor has taken the drawing into its history
     const row = (await dbDump(page)).find((s) => s.id === list[1]);
-    await openBatch(page, [list[1]]); // within the 500 ms of the autosave, in all likelihood
+    await openBatch(page, [list[1]]); // within the delay of the autosave, in all likelihood
     const file = await downloadAfter(page, () => page.click('#exStart'));
     await batchDone(page);
     const image = await decodePng(page, readZip(file.buf)[0].data);

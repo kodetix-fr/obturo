@@ -10,7 +10,7 @@
 // (export-pure.js: MAX_ITEMS, MAX_OUTPUT_BYTES). The main thread is given back between two captures; the rendering of one
 // capture is synchronous (Fabric draws on the main thread), so the Cancel button answers between captures.
 import { StaticCanvas, util } from './vendor/fabric.min.mjs';
-import { source } from './shapes.js';
+import { setSource } from './shapes.js';
 import { turnedBitmap } from './turn.js';
 import { drawUnder, editorSync, renderCanvas } from './output.js';
 import { getOriginal, getShots } from './db.js';
@@ -42,9 +42,7 @@ const yieldToMain = () => new Promise((done) => {
 });
 
 /**
- * The stored version drawn on a canvas that belongs to the caller, from the bitmap of the original. `source.img` (read by
- * PixelRegion to draw itself) is swapped for the length of the synchronous rendering only, so an editor open in the same
- * page keeps its own image.
+ * The stored version drawn on a canvas that belongs to the caller, from the bitmap of the original.
  * @param {ImageBitmap} bitmap
  * @param {import('./versions.js').Version} version
  * @returns {Promise<HTMLCanvasElement>}
@@ -54,14 +52,9 @@ export async function renderVersion(bitmap, version) {
   const canvas = new StaticCanvas(undefined, { width: 1, height: 1, renderOnAddRemove: false, enableRetinaScaling: false });
   try {
     canvas.on('before:render', ({ ctx }) => drawUnder(canvas, ctx, frame));
+    setSource(canvas, frame);
     canvas.add(...await util.enlivenObjects(version.objects));
-    const previous = source.img;
-    source.img = frame;
-    try {
-      return renderCanvas(canvas, version, frame.width, frame.height);
-    } finally {
-      source.img = previous;
-    }
+    return renderCanvas(canvas, version, frame.width, frame.height);
   } finally {
     await canvas.dispose();
     if (frame !== bitmap) frame.close();
